@@ -35,6 +35,29 @@ export function assertCents(value: number, field = 'importo'): Cents {
   return value
 }
 
+/**
+ * Converte in centesimi un valore che arriva dal database.
+ *
+ * Serve al confine con PostgREST: un bigint oltre i 2^53 viaggia come stringa
+ * JSON, e le colonne numeric (per esempio un sum() non convertito) arrivano
+ * sempre come stringa. Meglio normalizzare qui, una volta, che scoprirlo con
+ * un errore a schermo.
+ */
+export function toCents(value: unknown, field = 'importo'): Cents {
+  if (value === null || value === undefined) return 0
+  if (typeof value === 'number') return assertCents(value, field)
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (trimmed === '') return 0
+    if (!/^-?\d+$/.test(trimmed)) {
+      throw new MoneyError(`Valore non valido per ${field}: atteso un intero, ricevuto "${value}"`)
+    }
+    return assertCents(Number(trimmed), field)
+  }
+  if (typeof value === 'bigint') return assertCents(Number(value), field)
+  throw new MoneyError(`Tipo non gestito per ${field}: ${typeof value}`)
+}
+
 /** Moltiplicazione e divisione esatte con arrotondamento commerciale (half-up, via BigInt). */
 export function mulDivRoundHalfUp(value: bigint, multiplier: bigint, divisor: bigint): bigint {
   if (divisor === 0n) throw new MoneyError('Divisione per zero nel calcolo monetario')

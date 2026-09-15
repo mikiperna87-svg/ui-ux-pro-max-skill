@@ -477,6 +477,7 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          search_text: string | null
         }
         Insert: {
           id?: string
@@ -934,6 +935,7 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          search_text: string | null
         }
         Insert: {
           id?: string
@@ -1344,6 +1346,7 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          search_text: string | null
         }
         Insert: {
           id?: string
@@ -1503,8 +1506,151 @@ export interface Database {
         }
         Relationships: []
       }
+      customer_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          kind: Enums['customer_kind'] | null
+          display_name: string | null
+          first_name: string | null
+          last_name: string | null
+          company_name: string | null
+          email: string | null
+          phone: string | null
+          mobile: string | null
+          city: string | null
+          province: string | null
+          vat_number: string | null
+          tax_code: string | null
+          tags: string[] | null
+          marketing_consent: boolean | null
+          privacy_consent_at: string | null
+          anonymized_at: string | null
+          created_at: string | null
+          created_by: string | null
+          search_text: string | null
+          bookings_count: number | null
+          active_count: number | null
+          lifetime_value_cents: number | null
+          lifetime_margin_cents: number | null
+          open_balance_cents: number | null
+          last_departure: string | null
+          next_departure: string | null
+          passengers_count: number | null
+        }
+        Relationships: []
+      }
+      customer_stats: {
+        Row: {
+          customer_id: string | null
+          agency_id: string | null
+          bookings_count: number | null
+          active_count: number | null
+          cancelled_count: number | null
+          lifetime_value_cents: number | null
+          lifetime_margin_cents: number | null
+          open_balance_cents: number | null
+          first_departure: string | null
+          last_departure: string | null
+          next_departure: string | null
+          passengers_count: number | null
+        }
+        Relationships: []
+      }
+      passenger_documents: {
+        Row: {
+          passenger_id: string | null
+          agency_id: string | null
+          document_expires_at: string | null
+          next_return_date: string | null
+          days_to_expiry: number | null
+          document_state: string | null
+        }
+        Relationships: []
+      }
+      passenger_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          customer_id: string | null
+          customer_name: string | null
+          first_name: string | null
+          last_name: string | null
+          full_name: string | null
+          birth_date: string | null
+          nationality: string | null
+          email: string | null
+          phone: string | null
+          document_type: Enums['id_document_type'] | null
+          document_number: string | null
+          document_expires_at: string | null
+          dietary_needs: string | null
+          special_needs: string | null
+          created_at: string | null
+          search_text: string | null
+          document_state: string | null
+          days_to_expiry: number | null
+          next_return_date: string | null
+          bookings_count: number | null
+        }
+        Relationships: []
+      }
+      supplier_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          kind: Enums['supplier_kind'] | null
+          name: string | null
+          legal_name: string | null
+          email: string | null
+          phone: string | null
+          contact_name: string | null
+          city: string | null
+          province: string | null
+          vat_number: string | null
+          iban: string | null
+          payment_terms_days: number | null
+          default_commission_bps: number | null
+          default_vat_regime: Enums['vat_regime'] | null
+          is_active: boolean | null
+          created_at: string | null
+          search_text: string | null
+          services_count: number | null
+          bookings_count: number | null
+          cost_cents: number | null
+          revenue_cents: number | null
+          margin_cents: number | null
+          margin_bps: number | null
+          open_payable_cents: number | null
+          overdue_payable_cents: number | null
+          next_due_date: string | null
+          last_service_date: string | null
+        }
+        Relationships: []
+      }
+      supplier_stats: {
+        Row: {
+          supplier_id: string | null
+          agency_id: string | null
+          services_count: number | null
+          bookings_count: number | null
+          cost_cents: number | null
+          revenue_cents: number | null
+          margin_cents: number | null
+          margin_bps: number | null
+          open_payable_cents: number | null
+          overdue_payable_cents: number | null
+          next_due_date: string | null
+          last_service_date: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      anonymize_customer: {
+        Args: { p_customer_id: string | null }
+        Returns: undefined
+      }
       check_rate_limit: {
         Args: { p_bucket: string | null; p_limit?: number | null; p_window_seconds?: number | null }
         Returns: boolean
@@ -1516,6 +1662,10 @@ export interface Database {
       dashboard_kpis: {
         Args: { p_from: string | null; p_to: string | null; p_owner_id?: string | null }
         Returns: { bookings_count: number | null; confirmed_count: number | null; revenue_cents: number | null; cost_cents: number | null; margin_cents: number | null; margin_bps: number | null; average_ticket_cents: number | null; collected_cents: number | null; receivable_cents: number | null; overdue_cents: number | null; supplier_due_cents: number | null }[]
+      }
+      export_customer_data: {
+        Args: { p_customer_id: string | null }
+        Returns: Json
       }
       log_activity: {
         Args: { p_agency_id: string | null; p_action: Enums['activity_action'] | null; p_entity_type: string | null; p_entity_id: string | null; p_entity_label: string | null; p_summary: string | null; p_before?: Json | null; p_after?: Json | null }

@@ -267,7 +267,7 @@ select
   s.total_price_cents,
   s.total_cost_cents,
   s.commission_cents,
-  (s.total_price_cents - s.total_cost_cents + s.commission_cents) as margin_cents,
+  (s.total_price_cents - s.total_cost_cents + s.commission_cents)::bigint as margin_cents,
   app.line_taxable_cents(s.total_price_cents, s.total_cost_cents, s.vat_bps, s.vat_regime) as taxable_cents,
   app.line_vat_cents(s.total_price_cents, s.total_cost_cents, s.vat_bps, s.vat_regime) as vat_cents
 from public.booking_services s
@@ -279,11 +279,13 @@ with (security_invoker = on) as
 select
   b.id as booking_id,
   b.agency_id,
-  coalesce(sv.revenue_cents, 0) as revenue_cents,
-  coalesce(sv.cost_cents, 0) as cost_cents,
-  coalesce(sv.commission_cents, 0) as commission_cents,
-  coalesce(sv.vat_cents, 0) as vat_cents,
-  (coalesce(sv.revenue_cents, 0) - coalesce(sv.cost_cents, 0) + coalesce(sv.commission_cents, 0)) as margin_cents,
+  -- I cast a bigint sono obbligatori: sum(bigint) e' numeric, e una colonna
+  -- numeric arriverebbe al client come stringa invece che come intero.
+  coalesce(sv.revenue_cents, 0)::bigint as revenue_cents,
+  coalesce(sv.cost_cents, 0)::bigint as cost_cents,
+  coalesce(sv.commission_cents, 0)::bigint as commission_cents,
+  coalesce(sv.vat_cents, 0)::bigint as vat_cents,
+  (coalesce(sv.revenue_cents, 0) - coalesce(sv.cost_cents, 0) + coalesce(sv.commission_cents, 0))::bigint as margin_cents,
   case
     when coalesce(sv.revenue_cents, 0) = 0 then 0
     else round(
@@ -291,11 +293,11 @@ select
       / coalesce(sv.revenue_cents, 0)
     )::integer
   end as margin_bps,
-  coalesce(pi.paid_cents, 0) as paid_cents,
-  (coalesce(sv.revenue_cents, 0) - coalesce(pi.paid_cents, 0)) as balance_cents,
-  coalesce(po.supplier_due_cents, 0) as supplier_due_cents,
+  coalesce(pi.paid_cents, 0)::bigint as paid_cents,
+  (coalesce(sv.revenue_cents, 0) - coalesce(pi.paid_cents, 0))::bigint as balance_cents,
+  coalesce(po.supplier_due_cents, 0)::bigint as supplier_due_cents,
   inst.next_due_date,
-  coalesce(inst.due_so_far_cents, 0) as due_so_far_cents,
+  coalesce(inst.due_so_far_cents, 0)::bigint as due_so_far_cents,
   case
     when coalesce(pi.paid_cents, 0) >= coalesce(sv.revenue_cents, 0) and coalesce(sv.revenue_cents, 0) > 0
       then 'saldata'::app.payment_state

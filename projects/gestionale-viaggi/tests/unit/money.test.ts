@@ -11,6 +11,7 @@ import {
   splitByWeights,
   splitEvenly,
   sumCents,
+  toCents,
   vatFromGross,
   vatFromNet,
 } from '@/lib/money'
@@ -122,5 +123,35 @@ describe('centsToInputValue', () => {
     expect(centsToInputValue(123_456)).toBe('1234,56')
     expect(centsToInputValue(5)).toBe('0,05')
     expect(centsToInputValue(-5)).toBe('-0,05')
+  })
+})
+
+describe('toCents', () => {
+  it('accetta i numeri interi così come sono', () => {
+    expect(toCents(123_456)).toBe(123_456)
+    expect(toCents(0)).toBe(0)
+    expect(toCents(-500)).toBe(-500)
+  })
+
+  it('accetta le stringhe con cui il database trasporta i bigint e i numeric', () => {
+    expect(toCents('123456')).toBe(123_456)
+    expect(toCents('-500')).toBe(-500)
+    expect(toCents('')).toBe(0)
+  })
+
+  it('tratta i valori assenti come zero', () => {
+    expect(toCents(null)).toBe(0)
+    expect(toCents(undefined)).toBe(0)
+  })
+
+  it('rifiuta ciò che non è un intero, invece di arrotondare in silenzio', () => {
+    expect(() => toCents('123,45')).toThrow(MoneyError)
+    expect(() => toCents('123.45')).toThrow(MoneyError)
+    expect(() => toCents(12.5)).toThrow(MoneyError)
+    expect(() => toCents({})).toThrow(MoneyError)
+  })
+
+  it('nomina il campo nel messaggio di errore', () => {
+    expect(() => toCents('abc', 'margine della pratica')).toThrow(/margine della pratica/)
   })
 })

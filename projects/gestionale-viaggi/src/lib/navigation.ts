@@ -1,4 +1,12 @@
-import { Building2, LayoutDashboard, Settings, type LucideIcon } from 'lucide-react'
+import {
+  Building2,
+  LayoutDashboard,
+  Settings,
+  Truck,
+  Users,
+  UsersRound,
+  type LucideIcon,
+} from 'lucide-react'
 import type { Role } from '@/lib/roles'
 
 export interface NavItem {
@@ -8,24 +16,53 @@ export interface NavItem {
   readonly description: string
   /** Ruoli ammessi; assente = tutti. */
   readonly roles?: readonly Role[]
+  /**
+   * Lettera da premere dopo "G" per raggiungere la sezione. Sta qui e non nel
+   * pannello delle scorciatoie perché l'elenco mostrato all'utente e i tasti
+   * che funzionano davvero devono essere la stessa cosa.
+   */
+  readonly shortcut?: string
 }
 
 /**
  * Voci di navigazione. Contiene solo le sezioni realmente implementate:
- * una voce che porta a una pagina inesistente e' peggio di una vocè assente.
- * Le sezioni successive (pratiche, preventivi, clienti, fornitori,
- * amministrazione, agenda) si aggiungono qui quando il modulo viene consegnato.
+ * una voce che porta a una pagina inesistente è peggio di una voce assente.
+ * Le sezioni successive (pratiche, preventivi, amministrazione, agenda) si
+ * aggiungono qui quando il modulo viene consegnato.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   {
     href: '/',
     label: 'Panoramica',
+    shortcut: 'p',
     icon: LayoutDashboard,
     description: 'Indicatori dell’agenzia e attività recenti',
   },
   {
+    href: '/clienti',
+    label: 'Clienti',
+    shortcut: 'c',
+    icon: Users,
+    description: 'Anagrafica, storico viaggi e consensi',
+  },
+  {
+    href: '/passeggeri',
+    label: 'Passeggeri',
+    shortcut: 's',
+    icon: UsersRound,
+    description: 'Documenti, scadenze ed esigenze particolari',
+  },
+  {
+    href: '/fornitori',
+    label: 'Fornitori',
+    shortcut: 'f',
+    icon: Truck,
+    description: 'Condizioni, scadenzario e marginalità',
+  },
+  {
     href: '/impostazioni',
     label: 'Impostazioni',
+    shortcut: 'i',
     icon: Settings,
     description: 'Dati agenzia, utenti e parametri operativi',
     roles: ['titolare'],

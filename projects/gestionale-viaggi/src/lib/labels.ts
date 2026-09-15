@@ -75,3 +75,14 @@ export const ACTIVITY_ACTION: Record<Enums['activity_action'], string> = {
   emissione_documento: 'Emissione documento',
   annullamento: 'Annullamento',
 }
+
+/**
+ * Concordanza di numero in italiano.
+ *
+ * "1 pratiche" è il genere di sciatteria che fa sembrare un gestionale un
+ * prototipo: il conteggio e il sostantivo vanno d’accordo sempre, anche a zero
+ * (che in italiano vuole il plurale: "0 pratiche").
+ */
+export function plurale(quantita: number, singolare: string, plurale: string): string {
+  return `${quantita} ${quantita === 1 ? singolare : plurale}`
+}

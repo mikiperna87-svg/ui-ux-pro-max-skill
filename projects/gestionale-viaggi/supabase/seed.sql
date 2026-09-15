@@ -1,13 +1,13 @@
 -- =============================================================================
 -- Seed dimostrativo: un'agenzia completa e navigabile dal primo avvio.
---   1 agenzia · 3 utenti (titolare, amministrativo, operatore)
+--   1 agenzia · 4 utenti (titolare, amministrativo, operatore, sola lettura)
 --   14 fornitori · 40 clienti · 70 passeggeri
 --   60 pratiche in stati diversi, con servizi, incassi, scadenze e pagamenti
 --   fatture e note di credito · task · registro attivita'
 --
 -- Rieseguibile: cancella i dati dell'agenzia dimostrativa e li ricrea.
 -- Credenziali: titolare@orizzontiviaggi.it / Gestionale2026!
---              (stessa password per amministrativo@ e operatore@)
+--              (stessa password per amministrativo@, operatore@ e revisore@)
 -- =============================================================================
 
 do $$
@@ -16,6 +16,7 @@ declare
   v_owner_id    uuid := '22222222-2222-4222-8222-222222222221';
   v_admin_id    uuid := '22222222-2222-4222-8222-222222222222';
   v_operator_id uuid := '22222222-2222-4222-8222-222222222223';
+  v_reader_id   uuid := '22222222-2222-4222-8222-222222222224';
   v_m_owner     uuid;
   v_m_admin     uuid;
   v_m_operator  uuid;
@@ -23,7 +24,7 @@ declare
 begin
   -- Pulizia: l'agenzia e' la radice, il cascade fa il resto.
   delete from public.agencies where id = v_agency_id;
-  delete from auth.users where id in (v_owner_id, v_admin_id, v_operator_id);
+  delete from auth.users where id in (v_owner_id, v_admin_id, v_operator_id, v_reader_id);
 
   v_password := crypt('Gestionale2026!', gen_salt('bf'));
 
@@ -43,7 +44,11 @@ begin
     ('00000000-0000-0000-0000-000000000000', v_operator_id, 'authenticated', 'authenticated',
      'operatore@orizzontiviaggi.it', v_password, now(),
      '{"provider":"email","providers":["email"]}'::jsonb,
-     '{"full_name":"Sara Bonomi"}'::jsonb, now() - interval '300 days', now())
+     '{"full_name":"Sara Bonomi"}'::jsonb, now() - interval '300 days', now()),
+    ('00000000-0000-0000-0000-000000000000', v_reader_id, 'authenticated', 'authenticated',
+     'revisore@orizzontiviaggi.it', v_password, now(),
+     '{"provider":"email","providers":["email"]}'::jsonb,
+     '{"full_name":"Enrico Pavan"}'::jsonb, now() - interval '200 days', now())
   on conflict (id) do nothing;
 
   -- --- Agenzia ---------------------------------------------------------------
@@ -53,7 +58,7 @@ begin
     license_number, insurance_policy, created_by, created_at
   )
   values (
-    v_agency_id, 'Orizzonti Viaggi', 'Orizzonti Viaggi S.r.l.', 'IT03918470127', '03918470127',
+    v_agency_id, 'Orizzonti Viaggi', 'Orizzonti Viaggi S.r.l.', 'IT03918470125', '03918470125',
     'VA-318742', 'Corso Giacomo Matteotti 48', '21100', 'Varese', 'VA', 'IT',
     'info@orizzontiviaggi.it', 'orizzontiviaggi@pec.it', '+39 0332 245 118',
     'https://www.orizzontiviaggi.it', 'IT60X0542811101000000123456', 'ordinario',
@@ -80,7 +85,10 @@ begin
     (v_agency_id, v_admin_id, 'amministrativo', 'Paolo Ferrero', 'amministrativo@orizzontiviaggi.it',
      '+39 335 771 2210', 'Responsabile amministrativo', v_owner_id, now() - interval '380 days'),
     (v_agency_id, v_operator_id, 'operatore', 'Sara Bonomi', 'operatore@orizzontiviaggi.it',
-     '+39 340 118 5522', 'Consulente di viaggio', v_owner_id, now() - interval '300 days');
+     '+39 340 118 5522', 'Consulente di viaggio', v_owner_id, now() - interval '300 days'),
+    -- Il commercialista dell'agenzia: consulta tutto, non modifica nulla.
+    (v_agency_id, v_reader_id, 'sola_lettura', 'Enrico Pavan', 'revisore@orizzontiviaggi.it',
+     '+39 02 7788 4411', 'Consulente contabile esterno', v_owner_id, now() - interval '200 days');
 
   select id into v_m_owner from public.memberships where agency_id = v_agency_id and user_id = v_owner_id;
   select id into v_m_admin from public.memberships where agency_id = v_agency_id and user_id = v_admin_id;
@@ -92,16 +100,16 @@ begin
     city, province, iban, payment_terms_days, default_commission_bps, default_vat_regime, notes, created_by
   )
   values
-    (v_agency_id, 'tour_operator', 'Mediterranea Tour', 'Mediterranea Tour S.p.A.', 'IT02114560159',
+    (v_agency_id, 'tour_operator', 'Mediterranea Tour', 'Mediterranea Tour S.p.A.', 'IT02114560150',
      'booking@mediterraneatour.it', '+39 02 4455 1100', 'Elena Colombo', 'Milano', 'MI',
      'IT12A0300203280000400551122', 30, 1200, 'art_74_ter', 'Commissione 12% sui pacchetti mare.', v_owner_id),
-    (v_agency_id, 'tour_operator', 'Nordica Viaggi', 'Nordica Viaggi S.r.l.', 'IT03556780964',
+    (v_agency_id, 'tour_operator', 'Nordica Viaggi', 'Nordica Viaggi S.r.l.', 'IT03556780967',
      'agenzie@nordicaviaggi.it', '+39 02 3311 9080', 'Marco Villa', 'Milano', 'MI',
      'IT44B0542811101000000778899', 45, 1000, 'art_74_ter', 'Tour Nord Europa e capitali.', v_owner_id),
-    (v_agency_id, 'tour_operator', 'Rotta Oriente', 'Rotta Oriente Travel S.r.l.', 'IT09887650158',
+    (v_agency_id, 'tour_operator', 'Rotta Oriente', 'Rotta Oriente Travel S.r.l.', 'IT09887650159',
      'ops@rottaoriente.it', '+39 02 8899 4412', 'Chiara Sanna', 'Milano', 'MI',
      'IT88C0100003245000000112233', 30, 1400, 'art_74_ter', 'Asia e Medio Oriente, gruppi su richiesta.', v_owner_id),
-    (v_agency_id, 'compagnia_aerea', 'Aerolinea Adriatica', 'Aerolinea Adriatica S.p.A.', 'IT01223440150',
+    (v_agency_id, 'compagnia_aerea', 'Aerolinea Adriatica', 'Aerolinea Adriatica S.p.A.', 'IT01223440155',
      'trade@aeroadriatica.it', '+39 06 6501 2200', 'Ufficio Trade', 'Roma', 'RM',
      'IT21D0103003200000001234567', 7, 100, 'esente_art_10', 'Biglietteria BSP, commissione 1%.', v_owner_id),
     (v_agency_id, 'compagnia_aerea', 'SkyPonente Airlines', 'SkyPonente S.A.', 'ES-B12345678',
@@ -110,13 +118,13 @@ begin
     (v_agency_id, 'compagnia_marittima', 'Crociere Tirreniche', 'Crociere Tirreniche S.p.A.', 'IT04455660821',
      'agenzie@crocieretirreniche.it', '+39 010 553 2200', 'Davide Parodi', 'Genova', 'GE',
      'IT33E0569601600000002233445', 30, 1500, 'art_74_ter', 'Commissione 15% su crociere di listino.', v_owner_id),
-    (v_agency_id, 'compagnia_ferroviaria', 'Rete Ferroviaria Europa', 'RFE Distribuzione S.r.l.', 'IT07788990163',
+    (v_agency_id, 'compagnia_ferroviaria', 'Rete Ferroviaria Europa', 'RFE Distribuzione S.r.l.', 'IT07788990161',
      'supporto@rfeuropa.it', '+39 02 7200 3311', 'Servizio Agenzie', 'Milano', 'MI',
      null, 15, 300, 'esente_art_10', 'Biglietteria ferroviaria nazionale e internazionale.', v_owner_id),
-    (v_agency_id, 'hotel', 'Hotel Belvedere Taormina', 'Belvedere Hospitality S.r.l.', 'IT05566770833',
+    (v_agency_id, 'hotel', 'Hotel Belvedere Taormina', 'Belvedere Hospitality S.r.l.', 'IT05566770839',
      'booking@belvederetaormina.it', '+39 0942 231 100', 'Rosa Cutrufelli', 'Taormina', 'ME',
      'IT09F0100016000000000998877', 14, 0, 'art_74_ter', 'Tariffe nette confidenziali.', v_owner_id),
-    (v_agency_id, 'hotel', 'Residenza Cortina 1890', 'Cortina 1890 S.r.l.', 'IT02233440251',
+    (v_agency_id, 'hotel', 'Residenza Cortina 1890', 'Cortina 1890 S.r.l.', 'IT02233440250',
      'reservations@cortina1890.it', '+39 0436 880 442', 'Luca De Zanna', 'Cortina d''Ampezzo', 'BL',
      'IT77G0306912345100000045612', 21, 0, 'art_74_ter', 'Stagione invernale, caparra 30%.', v_owner_id),
     (v_agency_id, 'dmc', 'Andalus DMC', 'Andalus Receptive S.L.', 'ES-B87654321',
@@ -125,13 +133,13 @@ begin
     (v_agency_id, 'dmc', 'Kilimangiaro Safari DMC', 'Kilimangiaro Safari Ltd', 'TZ-114-882-901',
      'reservations@kilisafari.co.tz', '+255 27 254 8890', 'Joseph Mwita', 'Arusha', null,
      null, 45, 0, 'art_74_ter', 'Safari Tanzania, pagamento 60 giorni prima dell''arrivo.', v_owner_id),
-    (v_agency_id, 'assicurazione', 'Assicura Viaggi', 'Assicura Viaggi S.p.A.', 'IT06677880154',
+    (v_agency_id, 'assicurazione', 'Assicura Viaggi', 'Assicura Viaggi S.p.A.', 'IT06677880152',
      'agenzie@assicuraviaggi.it', '+39 02 6699 1122', 'Ufficio Convenzioni', 'Milano', 'MI',
      'IT51H0103003200000009988776', 30, 2500, 'esente_art_10', 'Polizze annullamento e medico-bagaglio, provvigione 25%.', v_owner_id),
-    (v_agency_id, 'noleggio', 'AutoLibera Rent', 'AutoLibera Rent S.r.l.', 'IT08899001007',
+    (v_agency_id, 'noleggio', 'AutoLibera Rent', 'AutoLibera Rent S.r.l.', 'IT08899001005',
      'partner@autolibera.it', '+39 06 4455 7788', 'Simone Iacovelli', 'Roma', 'RM',
      'IT62I0538703201000003344556', 30, 1000, 'art_74_ter', 'Noleggio auto Italia ed Europa.', v_owner_id),
-    (v_agency_id, 'altro', 'Visti Rapidi Service', 'Visti Rapidi S.r.l.', 'IT01100220338',
+    (v_agency_id, 'altro', 'Visti Rapidi Service', 'Visti Rapidi S.r.l.', 'IT01100220332',
      'pratiche@vistirapidi.it', '+39 02 3344 5566', 'Anna Ricci', 'Milano', 'MI',
      null, 15, 0, 'ordinaria', 'Pratiche consolari e visti elettronici.', v_owner_id);
 
@@ -166,11 +174,11 @@ declare
   companies text[] := array[
     'Meccanica Verbano S.r.l.','Studio Legale Bertoni e Associati','Tessitura Prealpina S.p.A.',
     'Cooperativa Sociale Il Faro','Istituto Comprensivo Dante Alighieri','Farmacie Riunite Varesine S.r.l.'];
-  city_rows text[][] := array[
-    array['Varese','VA','21100'], array['Milano','MI','20121'], array['Como','CO','22100'],
-    array['Busto Arsizio','VA','21052'], array['Gallarate','VA','21013'], array['Saronno','VA','21047'],
-    array['Legnano','MI','20025'], array['Novara','NO','28100'], array['Lecco','LC','23900'],
-    array['Monza','MB','20900']];
+  cities text[] := array[
+    'Varese','Milano','Como','Busto Arsizio','Gallarate',
+    'Saronno','Legnano','Novara','Lecco','Monza'];
+  provinces text[] := array['VA','MI','CO','VA','VA','VA','MI','NO','LC','MB'];
+  postal_codes text[] := array['21100','20121','22100','21052','21013','21047','20025','28100','23900','20900'];
   streets text[] := array[
     'Via Giuseppe Verdi','Corso Italia','Via Roma','Viale Belforte','Via San Michele',
     'Piazza della Repubblica','Via Dante','Via Cavour','Viale Europa','Via Manzoni'];
@@ -212,7 +220,7 @@ declare
   v_kind app.customer_kind;
   v_first text;
   v_last text;
-  v_city text[];
+  v_city_index integer;
   v_dest_index integer;
   v_departure date;
   v_return date;
@@ -250,8 +258,9 @@ begin
   for i in 1..40 loop
     v_kind := case when i > 34 then 'azienda'::app.customer_kind else 'privato'::app.customer_kind end;
     v_first := first_names[1 + ((i * 7) % array_length(first_names, 1))];
-    v_last := last_names[1 + ((i * 11) % array_length(last_names, 1))];
-    v_city := city_rows[1 + (i % array_length(city_rows, 1))];
+    -- Il secondo addendo evita che i e i+30 producano la stessa coppia di nomi.
+    v_last := last_names[1 + ((i * 11 + (i / 30)) % array_length(last_names, 1))];
+    v_city_index := 1 + (i % array_length(cities, 1));
 
     insert into public.customers (
       agency_id, kind, first_name, last_name, company_name, vat_number, tax_code, sdi_code, pec,
@@ -263,9 +272,24 @@ begin
       case when v_kind = 'privato' then v_first end,
       case when v_kind = 'privato' then v_last end,
       case when v_kind = 'azienda' then companies[i - 34] end,
-      case when v_kind = 'azienda' then 'IT' || lpad((1000000000 + i * 137)::text, 11, '0') end,
+      -- Anche la partita IVA dimostrativa porta la sua cifra di controllo.
+      case when v_kind = 'azienda'
+           then 'IT' || app.vat_number_with_checksum(lpad((1000000000 + i * 137)::text, 10, '0'))
+      end,
+      -- Il codice fiscale dimostrativo viene completato con il carattere di
+      -- controllo corretto: i dati di prova devono superare gli stessi
+      -- controlli che l'applicazione applica all'inserimento.
       case when v_kind = 'privato'
-           then upper(substr(v_last, 1, 3) || substr(v_first, 1, 3)) || lpad((60 + i)::text, 2, '0') || 'A01L682X'
+           then app.tax_code_with_checksum(
+                  upper(substr(regexp_replace(v_last, '[^A-Za-z]', '', 'g') || 'XXX', 1, 3)
+                     || substr(regexp_replace(v_first, '[^A-Za-z]', '', 'g') || 'XXX', 1, 3))
+                  -- Struttura del codice: 6 lettere + anno (2) + mese (1) +
+                  -- giorno (2) + codice catastale del comune (4) = 15.
+                  || lpad((60 + (i % 40))::text, 2, '0')
+                  || 'A'
+                  || lpad((1 + (i % 28))::text, 2, '0')
+                  || 'L682'
+                )
       end,
       case when v_kind = 'azienda' then 'M5UXCR1' end,
       case when v_kind = 'azienda' then 'amministrazione' || i || '@pec.it' end,
@@ -273,7 +297,7 @@ begin
       '+39 0332 ' || lpad((100000 + i * 421)::text, 6, '0'),
       '+39 3' || lpad((30000000 + i * 918273)::text, 9, '0'),
       streets[1 + (i % array_length(streets, 1))] || ' ' || (1 + (i * 3) % 90),
-      v_city[3], v_city[1], v_city[2],
+      postal_codes[v_city_index], cities[v_city_index], provinces[v_city_index],
       case when v_kind = 'privato' then date '1955-01-01' + ((i * 421) % 16000) end,
       case when i % 7 = 0 then 'Cliente storico, preferisce partenze di sabato.'
            when i % 11 = 0 then 'Richiede sempre assicurazione annullamento.' end,
@@ -299,7 +323,7 @@ begin
       case when v_kind = 'privato' then v_first else first_names[1 + (i % 30)] end,
       case when v_kind = 'privato' then v_last else last_names[1 + (i % 30)] end,
       date '1960-01-01' + ((i * 613) % 18000),
-      v_city[1],
+      cities[v_city_index],
       case when i % 2 = 0 then 'F' else 'M' end,
       'IT',
       null,
@@ -311,7 +335,7 @@ begin
       current_date - ((900 + i * 13) % 2500),
       -- alcuni documenti scadono a breve: alimentano l'alert "documento in scadenza"
       case when i % 9 = 0 then current_date + (10 + i) else current_date + (400 + i * 37) end,
-      'Comune di ' || v_city[1],
+      'Comune di ' || cities[v_city_index],
       case when i % 8 = 0 then 'Intollerante al glutine' end,
       v_owner_user,
       now() - ((400 - i * 6) || ' days')::interval
@@ -329,12 +353,12 @@ begin
       values (
         v_agency_id, v_customer_id,
         first_names[1 + ((i * 3) % 30)], v_last,
-        date '1985-01-01' + ((i * 317) % 12000), v_city[1],
+        date '1985-01-01' + ((i * 317) % 12000), cities[v_city_index],
         case when i % 4 = 0 then 'M' else 'F' end, 'IT',
         'passaporto', 'YA' || lpad((3000000 + i * 611)::text, 7, '0'),
         current_date - ((700 + i * 9) % 2200),
         current_date + (300 + i * 29),
-        'Comune di ' || v_city[1], v_owner_user
+        'Comune di ' || cities[v_city_index], v_owner_user
       )
       returning id into v_passenger_id;
       v_passenger_ids := array_append(v_passenger_ids, v_passenger_id);
@@ -413,6 +437,13 @@ declare
   v_installment_deposit uuid;
   v_installment_balance uuid;
   v_created timestamptz;
+  -- Contatori di rotazione: indicizzare i fornitori con "i % n" li
+  -- distribuirebbe male, perché i è sempre multiplo di 3 nelle pratiche di
+  -- organizzazione e mai multiplo di 3 in quelle di intermediazione.
+  v_rot_to integer := 0;
+  v_rot_air integer := 0;
+  v_rot_hotel integer := 0;
+  v_rot_dmc integer := 0;
 begin
   perform setseed(0.777);
 
@@ -500,7 +531,8 @@ begin
     if v_sale = 'intermediazione' then
       -- Pacchetto di tour operator: il TO fattura al netto, il margine e' la commissione.
       v_commission_bps := 1000 + ((i * 7) % 600);
-      v_supplier_id := v_supplier_to[1 + (i % array_length(v_supplier_to, 1))];
+      v_supplier_id := v_supplier_to[1 + (v_rot_to % array_length(v_supplier_to, 1))];
+      v_rot_to := v_rot_to + 1;
       insert into public.booking_services (
         agency_id, booking_id, service_type, supplier_id, description, details, confirmation_code,
         date_from, date_to, quantity, unit_cost_cents, unit_price_cents, commission_bps,
@@ -538,7 +570,7 @@ begin
         vat_bps, vat_regime, supplier_due_date, sort_order, created_by, created_at
       )
       values (
-        v_agency_id, v_booking_id, 'volo', v_supplier_air[1 + (i % array_length(v_supplier_air, 1))],
+        v_agency_id, v_booking_id, 'volo', v_supplier_air[1 + (v_rot_air % array_length(v_supplier_air, 1))],
         'Volo a/r ' || dest_names[v_dest], 'Bagaglio da stiva incluso, classe economica.',
         'PNR' || upper(substr(md5(v_booking_id::text), 1, 6)),
         v_departure, v_return, v_pax,
@@ -552,7 +584,7 @@ begin
       )
       values (
         v_agency_id, v_booking_id, 'hotel',
-        v_supplier_hotel[1 + (i % array_length(v_supplier_hotel, 1))],
+        v_supplier_hotel[1 + (v_rot_hotel % array_length(v_supplier_hotel, 1))],
         'Soggiorno ' || (v_return - v_departure) || ' notti',
         'Camera doppia, trattamento di mezza pensione.',
         'HTL-' || lpad((20000 + i * 13)::text, 5, '0'),
@@ -567,12 +599,16 @@ begin
       )
       values (
         v_agency_id, v_booking_id, 'transfer',
-        v_supplier_dmc[1 + (i % array_length(v_supplier_dmc, 1))],
+        v_supplier_dmc[1 + (v_rot_dmc % array_length(v_supplier_dmc, 1))],
         'Trasferimenti e assistenza in loco', 'Transfer privato aeroporto/hotel a/r.',
         v_departure, v_return, v_pax,
         (v_unit_price * 7 / 100)::bigint, (v_unit_price * 11 / 100)::bigint, 0,
         2200, 'art_74_ter', v_departure - 10, 3, v_actor_user, v_created
       );
+
+      v_rot_air := v_rot_air + 1;
+      v_rot_hotel := v_rot_hotel + 1;
+      v_rot_dmc := v_rot_dmc + 1;
     end if;
 
     -- --- Quadro economico dalla vista ufficiale -------------------------------

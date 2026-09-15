@@ -2,13 +2,14 @@
 
 import { HelpCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CommandPalette } from '@/components/layout/command-palette'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { Button } from '@/components/ui/button'
+import { NAV_ITEMS, visibleNavItems } from '@/lib/navigation'
 import type { Role } from '@/lib/roles'
 import type { ThemePreference } from '@/lib/preferences'
 
@@ -32,6 +33,10 @@ export function Topbar({
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const router = useRouter()
   const pendingGo = useRef(false)
+
+  // Le stesse voci della barra laterale: una scorciatoia non porta mai dove
+  // l'utente non potrebbe comunque andare.
+  const sezioni = useMemo(() => visibleNavItems(NAV_ITEMS, role), [role])
 
   /** Scorciatoie globali: ⌘/ per l’aiuto, "g" seguito da una lettera per navigare. */
   useEffect(() => {
@@ -62,14 +67,15 @@ export function Topbar({
 
       if (pendingGo.current) {
         pendingGo.current = false
-        if (event.key.toLowerCase() === 'p') router.push('/')
-        if (event.key.toLowerCase() === 'i' && canOpenSettings) router.push('/impostazioni')
+        const tasto = event.key.toLowerCase()
+        const destinazione = sezioni.find((item) => item.shortcut === tasto)
+        if (destinazione) router.push(destinazione.href)
       }
     }
 
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [router, canOpenSettings])
+  }, [router, sezioni])
 
   return (
     <header className="sticky top-0 z-30 flex h-(--container-topbar) shrink-0 items-center gap-2 border-b border-border bg-bg/85 px-3 backdrop-blur">
@@ -97,7 +103,7 @@ export function Topbar({
         canOpenSettings={canOpenSettings}
       />
 
-      <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} sezioni={sezioni} />
     </header>
   )
 }

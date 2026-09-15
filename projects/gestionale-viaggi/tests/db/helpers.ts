@@ -79,7 +79,7 @@ export async function seedTenants(): Promise<void> {
          '{"provider":"email"}'::jsonb, '{"full_name":"Enrico Pavan"}'::jsonb);
 
       insert into public.agencies (id, name, legal_name, vat_number, city, province, email, created_by)
-      values ('${AGENCY_B}', 'Viaggi del Sud', 'Viaggi del Sud S.r.l.', 'IT07788990721',
+      values ('${AGENCY_B}', 'Viaggi del Sud', 'Viaggi del Sud S.r.l.', 'IT07788990724',
               'Bari', 'BA', 'info@viaggidelsud.it', '${USER_B_OWNER}');
 
       insert into public.agency_settings (agency_id, created_by)

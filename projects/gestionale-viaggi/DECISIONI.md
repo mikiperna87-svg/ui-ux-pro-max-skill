@@ -252,12 +252,134 @@ test end-to-end — quello che altrimenti si potrebbe soltanto dichiarare.
 
 ---
 
-## 19. Scelte rinviate, con motivo
+## 19. Ricerca: colonna generata e indice trigram, non `ilike '%...%'`
+
+Ogni anagrafica ha una colonna `search_text` generata e conservata, che unisce
+nome, ragione sociale, contatti e codici fiscali normalizzati (minuscole, senza
+accenti, senza punteggiatura), con indice GIN `pg_trgm`. Cercare "citta" trova
+"Città" e cercare un pezzo di email trova il cliente, senza scansione completa.
+
+La normalizzazione vive in `app.normalize`, scritta in **plpgsql** e non in SQL:
+una funzione SQL verrebbe incorporata nella query dal pianificatore, esponendo
+la volatilità `stable` di `unaccent` e facendo rifiutare la colonna generata,
+che pretende una funzione `immutable`. Il dizionario passato a `unaccent` è
+esplicito proprio perché il risultato non dipenda dalla configurazione del
+server.
+
+---
+
+## 20. Lo stato dell'elenco sta nell'indirizzo
+
+Ricerca, filtri, ordinamento, pagina e righe per pagina sono parametri della
+query string, letti dal Server Component e risolti sul database. Nessuno stato
+di elenco vive nel browser.
+
+Costa una navigazione a ogni cambio di filtro, e in cambio: un elenco filtrato
+si può mandare a un collega con un collegamento, il tasto indietro funziona,
+l'aggiornamento della pagina non perde niente, e l'esportazione CSV riceve
+esattamente gli stessi parametri della vista (`/clienti/esporta?...`), quindi
+esporta ciò che si sta guardando e non "tutto".
+
+---
+
+## 21. TanStack Table v8, con paginazione e ordinamento manuali
+
+La griglia usa `@tanstack/react-table` **8.x**, fissata: la 9 ha una API
+incompatibile (`createCoreRowModel`, `useTable`) e non porta nulla che serva qui.
+
+Sono attivi `manualPagination`, `manualSorting` e `manualFiltering`: la libreria
+si occupa solo di colonne, visibilità e selezione; righe, ordine e conteggio
+arrivano dal server. Il browser non riceve mai più righe di quelle che mostra,
+e con 5.000 clienti la pagina pesa quanto con 40.
+
+Da tablet in su la griglia è una tabella; sotto diventa un elenco di schede,
+perché nove colonne su 390 px non si leggono. L'ordinamento, che sulla tabella
+vive nelle intestazioni, sulle schede diventa il comando "Ordina": senza, su
+telefono l'elenco resterebbe senza ordinamento.
+
+---
+
+## 22. Importazione CSV in due tempi, con ripiego sulle colonne assenti
+
+Il file viene letto nel browser e mostrato in anteprima riga per riga, con
+l'esito di ciascuna; solo alla conferma le righe valide passano al server, che
+le rivalida con lo stesso schema Zod. La validazione che decide è quella del
+server, l'anteprima serve a non far scoprire gli errori a cose fatte.
+
+Le intestazioni si riconoscono per sinonimi ("Partita IVA", "P.IVA",
+`partita_iva`), e i campi che lo schema pretende ma che il file non ha prendono
+un ripiego: senza colonna "Tipo" un elenco di sole persone è di privati, uno di
+sole ragioni sociali è di aziende, un fornitore senza condizioni commerciali
+prende 30 giorni e regime 74-ter. Un'esportazione altrui ha quasi sempre meno
+colonne delle nostre: rifiutare l'intero file per una colonna mancante sarebbe
+corretto e inutile.
+
+Prima di inserire, il server scarta le righe che ripetono un'anagrafica già
+esistente per email, partita IVA o codice fiscale — e i doppioni interni allo
+stesso file. Non c'è un vincolo di unicità sul database, perché due fratelli
+possono condividere un recapito e un cliente può non avere nessuno di quei
+campi; il controllo sta quindi dove si conosce l'intenzione ("importa queste
+righe"), e le righe saltate vengono elencate con il loro motivo. Chi corregge
+tre righe e ricarica il file intero — cioè chiunque — non si ritrova
+l'anagrafica doppia.
+
+---
+
+## 23. Validazione fiscale scritta due volte, di proposito
+
+Partita IVA (checksum di Luhn), codice fiscale (carattere di controllo) e IBAN
+(mod 97) sono validati in `src/lib/fiscal.ts`, usato dallo schema Zod sia nel
+browser sia nel server. La stessa verifica esiste in SQL (`app.tax_code_with_checksum`)
+perché il seed non può inserire codici che l'applicazione rifiuterebbe.
+
+Le due implementazioni sono confrontate da un test: sono duplicate, quindi
+devono restare d'accordo per costruzione, non per fiducia.
+
+---
+
+## 24. Clienti con pratiche: anonimizzazione, mai eliminazione
+
+L'eliminazione di un cliente è consentita solo se non ha pratiche collegate; è
+comunque una cancellazione logica (`deleted_at`), registrata nel registro
+attività. Per gli altri esiste l'anonimizzazione GDPR: sostituisce i dati
+personali, conserva gli importi e i riferimenti fiscali che la legge impone di
+tenere, e lascia le pratiche consultabili.
+
+Il diritto alla cancellazione e l'obbligo di conservazione fiscale convivono
+così: il cliente sparisce come persona, la contabilità resta in piedi.
+
+---
+
+## 25. I valori inviati tornano indietro quando la validazione fallisce
+
+Dopo una Server Action React azzera i campi non controllati del modulo. Con un
+modulo da venti campi, sbagliare una cifra della partita IVA significherebbe
+ridigitare tutto. Per questo `ActionState` porta anche i valori inviati e ogni
+campo li usa come valore predefinito.
+
+Non è autosalvataggio: è la garanzia che un errore di validazione costi la
+correzione di un carattere e non la ricompilazione del modulo.
+
+---
+
+## 26. Il selettore a segmenti è fatto di bottoni, non di radio nascosti
+
+Il modello diffuso — `<input type="radio" class="sr-only">` dentro la `<label>` —
+lascia il contorno di messa a fuoco su un elemento di un pixel: chi naviga da
+tastiera non vede dove si trova, e il puntatore colpisce la label invece del
+comando. `SegmentedControl` usa bottoni con `role="radio"` dentro un
+`role="radiogroup"`: il contorno globale di `:focus-visible` circonda il
+segmento per intero, il fuoco entra una volta sola nel gruppo e le frecce
+spostano la scelta come in un gruppo nativo.
+
+---
+
+## 27. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
 | Generazione PDF | Fase 5 | La scelta della libreria dipende dal layout dei preventivi |
 | Email transazionali (Resend) | Fase 8 | Servono i modelli, che dipendono dai moduli precedenti |
-| TanStack Table e Query | Fase 3 | Entrano con la prima griglia vera, non prima |
+| TanStack Query | Fase 4 | Serve dove c'è stato client vero: lo scadenzario, non gli elenchi |
 | Realtime | Fase 4 | Utile sullo scadenzario condiviso, inutile finché non esiste |
-| Esportazione GDPR e anonimizzazione | Fase 2 | Le colonne dei consensi ci sono già; l'azione arriva con la scheda cliente |
+| Viste salvate degli elenchi | Fase 3 | I filtri stanno già nell'indirizzo: salvarli è un'aggiunta, non una riscrittura |

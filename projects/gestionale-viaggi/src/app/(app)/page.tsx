@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDateShort, formatDateTime, formatRelativeDays, toIsoDateOnly } from '@/lib/date'
-import { ACTIVITY_ACTION } from '@/lib/labels'
+import { ACTIVITY_ACTION, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import {
@@ -156,7 +156,7 @@ async function KpiSection({
       <KpiCard
         label="Venduto"
         value={formatEuro(kpis.revenueCents)}
-        hint={`${kpis.bookingsCount} pratiche · ${kpis.confirmedCount} confermate`}
+        hint={`${plurale(kpis.bookingsCount, 'pratica', 'pratiche')} · ${kpis.confirmedCount} ${kpis.confirmedCount === 1 ? 'confermata' : 'confermate'}`}
         icon={<TrendingUp />}
       />
       {showMargins ? (

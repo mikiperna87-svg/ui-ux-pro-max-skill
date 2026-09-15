@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { fieldErrorsFrom, type ActionState } from '@/lib/action-state'
+import { fieldErrorsFrom, formValues, type ActionState } from '@/lib/action-state'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { siteUrl } from '@/lib/env'
@@ -21,7 +21,12 @@ export async function updateAgencyAction(_previous: ActionState, formData: FormD
   const parsed = agencySchema.safeParse(formObject(formData))
 
   if (!parsed.success) {
-    return { status: 'error', message: 'Controlla i dati inseriti.', fieldErrors: fieldErrorsFrom(parsed.error.issues) }
+    return {
+      status: 'error',
+      message: 'Controlla i dati inseriti.',
+      fieldErrors: fieldErrorsFrom(parsed.error.issues),
+      values: formValues(formData),
+    }
   }
 
   const supabase = await createClient()
@@ -57,7 +62,12 @@ export async function updateSettingsAction(_previous: ActionState, formData: For
   })
 
   if (!parsed.success) {
-    return { status: 'error', message: 'Controlla i parametri inseriti.', fieldErrors: fieldErrorsFrom(parsed.error.issues) }
+    return {
+      status: 'error',
+      message: 'Controlla i parametri inseriti.',
+      fieldErrors: fieldErrorsFrom(parsed.error.issues),
+      values: formValues(formData),
+    }
   }
 
   const supabase = await createClient()
@@ -96,7 +106,12 @@ export async function inviteMemberAction(_previous: ActionState, formData: FormD
   const parsed = inviteSchema.safeParse(formObject(formData))
 
   if (!parsed.success) {
-    return { status: 'error', message: 'Controlla i dati inseriti.', fieldErrors: fieldErrorsFrom(parsed.error.issues) }
+    return {
+      status: 'error',
+      message: 'Controlla i dati inseriti.',
+      fieldErrors: fieldErrorsFrom(parsed.error.issues),
+      values: formValues(formData),
+    }
   }
 
   let admin: ReturnType<typeof createAdminClient>

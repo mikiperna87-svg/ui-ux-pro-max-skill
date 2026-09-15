@@ -8,11 +8,11 @@ Il cuore dell'applicazione è la **pratica di viaggio**: un contenitore che lega
 cliente, passeggeri, servizi acquistati, costi fornitore, ricavi, incassi,
 documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 
-> **Stato: fase 1 di 9 completata** (fondamenta). Le sezioni consegnate sono
-> autenticazione, ruoli, panoramica e impostazioni. La roadmap completa è in
-> fondo a questo file; il registro delle scelte tecniche è in
-> [DECISIONI.md](./DECISIONI.md), la guida per il personale in
-> [MANUALE.md](./MANUALE.md).
+> **Stato: fasi 1 e 2 di 9 completate** (fondamenta e anagrafiche). Le sezioni
+> consegnate sono autenticazione, ruoli, panoramica, impostazioni, clienti,
+> passeggeri e fornitori. La roadmap completa è in fondo a questo file; il
+> registro delle scelte tecniche è in [DECISIONI.md](./DECISIONI.md), la guida
+> per il personale in [MANUALE.md](./MANUALE.md).
 
 ---
 
@@ -23,6 +23,9 @@ documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 | **Accesso** | Password o link via email, recupero password, uscita da tutti i dispositivi, limitazione dei tentativi |
 | **Panoramica** | Venduto, margine, da incassare, da pagare ai fornitori · andamento mensile · partenze imminenti · scadenze fornitore · registro attività |
 | **Impostazioni** | Dati fiscali dell'agenzia, utenti e ruoli, parametri delle scadenze, numerazioni, visibilità dei margini |
+| **Clienti** | Elenco con ricerca insensibile ad accenti e maiuscole, filtri, ordinamento, colonne configurabili, selezione multipla, esportazione CSV e importazione guidata · scheda con valore generato, margine, viaggi, passeggeri, consensi e cronologia · esportazione e anonimizzazione GDPR |
+| **Passeggeri** | Anagrafica separata dai clienti, con documento di viaggio, scadenze e filtro su chi non è in regola |
+| **Fornitori** | Tipo, condizioni di pagamento, commissione predefinita, regime IVA, IBAN · acquistato, margine generato, da pagare e prossima scadenza · disattivazione senza perdita dello storico |
 
 Il database contiene già l'intero modello dati (pratiche, preventivi, servizi,
 incassi, piani rateali, fatture, documenti, task, audit) con le relative policy
@@ -150,6 +153,8 @@ src/
 ├── components/
 │   ├── ui/                  primitive (bottoni, campi, tabelle, dialoghi, toast)
 │   ├── layout/              shell, barra laterale, tavolozza dei comandi
+│   ├── data-table/          griglia, filtri, paginazione, importazione CSV
+│   ├── forms/               messaggi, invio, avviso sulle modifiche non salvate
 │   ├── domain/              componenti che conoscono il dominio (badge di stato)
 │   └── dashboard/           indicatori e grafico della panoramica
 ├── lib/                     denaro, date, ruoli, etichette, validazione, tipi DB
@@ -199,7 +204,7 @@ tests/
 | Fase | Contenuto | Stato |
 | --- | --- | --- |
 | 1 | Fondamenta: design system, layout, Supabase, migrazioni, auth, ruoli, RLS, seed | **completata** |
-| 2 | Anagrafiche: clienti, passeggeri, fornitori (CRUD, ricerca, import CSV) | da fare |
+| 2 | Anagrafiche: clienti, passeggeri, fornitori (CRUD, ricerca, import CSV) | **completata** |
 | 3 | Pratiche: righe di servizio, margine, stati, documenti, cronologia | da fare |
 | 4 | Incassi e scadenze: piani rateali, pagamenti fornitore, scadenzario, alert | da fare |
 | 5 | Preventivi: varianti, PDF, invio, accettazione online, conversione | da fare |

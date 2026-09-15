@@ -147,7 +147,7 @@ test.describe('Comandi e tema', () => {
     await accedi(page, 'titolare')
 
     await page.keyboard.press('ControlOrMeta+k')
-    const ricerca = page.getByPlaceholder('Cerca una sezione o digita un comando...')
+    const ricerca = page.getByRole('combobox')
     await expect(ricerca).toBeVisible()
 
     await ricerca.fill('impost')

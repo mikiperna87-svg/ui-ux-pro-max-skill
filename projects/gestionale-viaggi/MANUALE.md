@@ -2,9 +2,9 @@
 
 Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 
-> Questa versione copre l'accesso, la panoramica e le impostazioni. Le sezioni
-> pratiche, preventivi, clienti, fornitori e amministrazione arrivano con i
-> rilasci successivi; il manuale cresce con loro.
+> Questa versione copre l'accesso, la panoramica, le anagrafiche (clienti,
+> passeggeri, fornitori) e le impostazioni. Le sezioni pratiche, preventivi e
+> amministrazione arrivano con i rilasci successivi; il manuale cresce con loro.
 
 ---
 
@@ -13,13 +13,17 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 1. [Entrare nel gestionale](#1-entrare-nel-gestionale)
 2. [Che cosa vedi appena entri](#2-che-cosa-vedi-appena-entri)
 3. [Muoversi velocemente](#3-muoversi-velocemente)
-4. [Chi vede che cosa: i quattro ruoli](#4-chi-vede-che-cosa-i-quattro-ruoli)
-5. [Impostazioni dell'agenzia](#5-impostazioni-dellagenzia)
-6. [Invitare un collaboratore](#6-invitare-un-collaboratore)
-7. [I parametri che governano le scadenze](#7-i-parametri-che-governano-le-scadenze)
-8. [Le numerazioni](#8-le-numerazioni)
-9. [Aspetto e accessibilità](#9-aspetto-e-accessibilità)
-10. [Domande frequenti](#10-domande-frequenti)
+4. [I clienti](#4-i-clienti)
+5. [I passeggeri](#5-i-passeggeri)
+6. [I fornitori](#6-i-fornitori)
+7. [Importare ed esportare gli elenchi](#7-importare-ed-esportare-gli-elenchi)
+8. [Chi vede che cosa: i quattro ruoli](#8-chi-vede-che-cosa-i-quattro-ruoli)
+9. [Impostazioni dell'agenzia](#9-impostazioni-dellagenzia)
+10. [Invitare un collaboratore](#10-invitare-un-collaboratore)
+11. [I parametri che governano le scadenze](#11-i-parametri-che-governano-le-scadenze)
+12. [Le numerazioni](#12-le-numerazioni)
+13. [Aspetto e accessibilità](#13-aspetto-e-accessibilità)
+14. [Domande frequenti](#14-domande-frequenti)
 
 ---
 
@@ -103,9 +107,13 @@ prevedeva due rate.
 ### La ricerca rapida
 
 Premi **⌘K** (Mac) o **Ctrl+K** (Windows) da qualsiasi punto: si apre una
-casella in cui scrivere il nome di una sezione o un comando. Invio esegue.
+casella in cui scrivere. Trova le sezioni, i comandi e — soprattutto — i
+**clienti, i passeggeri e i fornitori**, cercando per nome, email, telefono,
+partita IVA o codice fiscale. Le frecce scorrono i risultati, Invio apre la
+scheda.
 
-Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
+Accenti e maiuscole non contano: *citta*, *Città* e *CITTA* trovano le stesse
+righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 
 ### Scorciatoie da tastiera
 
@@ -114,6 +122,9 @@ Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **⌘K** / **Ctrl+K** | Ricerca e comandi |
 | **⌘/** / **Ctrl+/** | Elenco delle scorciatoie |
 | **G** poi **P** | Vai alla panoramica |
+| **G** poi **C** | Vai ai clienti |
+| **G** poi **S** | Vai ai passeggeri |
+| **G** poi **F** | Vai ai fornitori |
 | **G** poi **I** | Vai alle impostazioni |
 | **Esc** | Chiude la finestra aperta |
 | **Tab** | Passa al comando successivo |
@@ -123,12 +134,149 @@ L'elenco completo è sempre disponibile dal punto interrogativo in alto a destra
 ### Dal telefono
 
 Il gestionale si usa anche da telefono: il menu laterale diventa un pannello che
-si apre dal simbolo ☰ in alto a sinistra, e le schede si impilano una sotto
-l'altra. Serve a consultare una pratica mentre sei fuori, non a inserire dati.
+si apre dal simbolo ☰ in alto a sinistra, gli elenchi diventano schede impilate e
+il comando **Ordina** prende il posto delle intestazioni della tabella. Cercare,
+consultare una scheda e inserire un cliente o un passeggero funziona come dal
+computer.
 
 ---
 
-## 4. Chi vede che cosa: i quattro ruoli
+## 4. I clienti
+
+**Clienti** è l'anagrafica di chi compra: privati e aziende.
+
+### Trovare un cliente
+
+La casella di ricerca in cima all'elenco cerca in tutto: nome, ragione sociale,
+email, telefono, città, partita IVA, codice fiscale. Non serve scrivere per
+intero e non contano accenti né maiuscole.
+
+Accanto ci sono i filtri: tipo (privati o aziende), attività (con o senza
+pratiche), tag, consenso marketing. Ogni filtro finisce nell'indirizzo della
+pagina: puoi salvarlo fra i preferiti o mandarlo a un collega, e ritroverà
+esattamente la tua vista.
+
+Le colonne si ordinano con un clic sull'intestazione (un secondo clic inverte
+l'ordine) e si nascondono dal comando **Colonne**.
+
+### Creare un cliente
+
+**Nuovo cliente** apre la scheda vuota. La prima scelta è **privato** o
+**azienda**: cambia i campi richiesti (cognome per un privato, ragione sociale
+per un'azienda) e quelli utili alla fatturazione elettronica (codice destinatario
+SDI e PEC).
+
+Partita IVA e codice fiscale vengono verificati nella cifra di controllo: un
+errore di una cifra viene segnalato subito, non settimane dopo con una fattura
+scartata. Gli identificativi esteri sono ammessi così come sono.
+
+Se lasci la pagina con modifiche non salvate, il gestionale ti avvisa.
+
+### La scheda del cliente
+
+In alto ci sono quattro numeri: **valore generato**, **margine generato** (solo
+per chi può vederlo), **da incassare** e **prossima partenza**. Sotto, quattro
+schede: *Anagrafica*, *Viaggi*, *Passeggeri*, *Cronologia*.
+
+### Consensi e GDPR
+
+I tre consensi (privacy, marketing, profilazione) si spuntano nella scheda; la
+data in cui li hai raccolti viene registrata da sola.
+
+Dal menu **⋮** in alto a destra:
+
+- **Esporta i dati (GDPR)** scarica un file con tutto ciò che l'agenzia conserva
+  su quella persona: da consegnare a chi lo chiede.
+- **Anonimizza** sostituisce i dati personali e conserva gli importi e i
+  riferimenti fiscali che la legge impone di tenere. Le pratiche restano
+  consultabili, la persona non è più identificabile. È irreversibile e ti viene
+  chiesto di confermarla scrivendo il nome del cliente.
+
+Un cliente **senza pratiche** si può anche eliminare. Uno con pratiche no: per
+quello esiste l'anonimizzazione. Non è una limitazione del programma, è un
+obbligo di conservazione contabile.
+
+---
+
+## 5. I passeggeri
+
+I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
+manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
+anagrafica, collegabile a un cliente.
+
+Di ciascuno si registra il **documento di viaggio**: tipo, numero, rilascio,
+scadenza ed ente. Il filtro **Documenti** mostra subito chi non è in regola:
+
+| Stato | Significato |
+| --- | --- |
+| **Documento assente** | Non è stato registrato alcun documento |
+| **Documento scaduto** | La data di scadenza è passata |
+| **Scade prima del rientro** | Il documento scade mentre il passeggero è in viaggio |
+| **In regola** | Valido oltre la data di rientro |
+
+La terza riga è quella che salva le partenze: un passaporto valido oggi ma non
+al ritorno è un imbarco negato.
+
+Si registrano anche esigenze alimentari, esigenze particolari (mobilità ridotta,
+assistenza in aeroporto) e il numero di frequent flyer: informazioni che servono
+al momento della prenotazione, non dopo.
+
+---
+
+## 6. I fornitori
+
+I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
+ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
+
+Di ognuno si tengono le **condizioni commerciali**, che poi guidano i calcoli
+delle pratiche:
+
+- **giorni di pagamento** — la dilazione concessa, da cui nascono le scadenze;
+- **commissione predefinita** — la provvigione riconosciuta sul venduto;
+- **regime IVA predefinito** — ordinario, art. 74-ter, esente, fuori campo o
+  inversione contabile;
+- **IBAN**, verificato nella sua cifra di controllo.
+
+La scheda mostra quanto è stato acquistato, il margine generato, quanto resta da
+pagare e la prossima scadenza, con lo scadenzario e l'elenco dei servizi.
+
+Un fornitore con cui non si lavora più si **disattiva**, non si elimina: sparisce
+dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serve.
+
+---
+
+## 7. Importare ed esportare gli elenchi
+
+Ogni elenco ha due comandi in alto a destra.
+
+**Esporta** scarica in CSV *quello che stai guardando*: se hai applicato un
+filtro o una ricerca, il file contiene quelle righe e non tutte. Il file si apre
+in Excel italiano senza passaggi intermedi.
+
+**Importa** porta dentro un file esistente, in due tempi:
+
+1. scegli il file (punto e virgola o virgola, con una riga di intestazione);
+2. il gestionale riconosce le colonne dai loro nomi — *Partita IVA*, *P.IVA* e
+   *partita_iva* vanno bene uguale — e mostra l'**anteprima**: riga per riga,
+   che cosa entrerà e che cosa no, con il motivo;
+3. **Importa** conferma solo le righe valide. Le altre restano nel tuo file, da
+   correggere e ricaricare.
+
+Le colonne che mancano non bloccano l'importazione: un elenco di sole ragioni
+sociali viene letto come aziende, un fornitore senza condizioni commerciali parte
+con trenta giorni e regime 74-ter, e li correggi dopo.
+
+**Reimportare lo stesso file è sicuro.** Chi ha già la stessa email, la stessa
+partita IVA o lo stesso codice fiscale non viene inserito una seconda volta: le
+righe saltate compaiono nell'esito con il motivo. Puoi quindi correggere tre
+righe e ricaricare tutto il file senza sdoppiare l'anagrafica.
+
+Se non sai da dove partire, il collegamento **Scarica il modello** dà un file con
+le intestazioni giuste.
+
+---
+
+## 8. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -146,7 +294,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 5. Impostazioni dell'agenzia
+## 9. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -161,7 +309,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 6. Invitare un collaboratore
+## 10. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -184,7 +332,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 7. I parametri che governano le scadenze
+## 11. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -203,7 +351,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 8. Le numerazioni
+## 12. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -218,7 +366,7 @@ esempio `AG` produce `AG2026/0001`. Lasciandolo vuoto ottieni `2026/0001`.
 
 ---
 
-## 9. Aspetto e accessibilità
+## 13. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -238,7 +386,7 @@ un'etichetta scritta.
 
 ---
 
-## 10. Domande frequenti
+## 14. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.
@@ -259,9 +407,19 @@ malfunzionamento.
 Se hai il ruolo Operatore vedi soltanto le pratiche di cui sei titolare.
 
 **Un cliente chiede la cancellazione dei suoi dati.**
-I consensi sono già registrati nella scheda cliente. La funzione di esportazione
-e anonimizzazione arriva con il rilascio delle anagrafiche: preserva i dati
-fiscali obbligatori e rimuove tutto il resto.
+Apri la sua scheda, menu **⋮** in alto a destra. **Esporta i dati (GDPR)** gli
+consegna tutto ciò che conserviamo; **Anonimizza** rimuove i dati personali e
+conserva soltanto quanto la legge impone di tenere. Vedi la sezione 4.
+
+**Ho sbagliato a scrivere una partita IVA e il gestionale non me la accetta.**
+La cifra di controllo non torna: è la stessa verifica che farebbe il Sistema di
+Interscambio. Ricontrolla il numero sul documento del cliente. Gli identificativi
+esteri non hanno cifra di controllo e vengono accettati come li scrivi.
+
+**Ho importato un file e alcune righe sono state scartate.**
+L'anteprima indica il motivo riga per riga. Correggi quelle righe nel tuo file e
+ricarica pure tutto: chi è già in archivio — stessa email, partita IVA o codice
+fiscale — viene riconosciuto e non inserito di nuovo.
 
 **A chi mi rivolgo se qualcosa non funziona?**
 Se compare un messaggio di errore con un **codice**, annotalo: consente di

@@ -171,6 +171,7 @@ async function handleRest(request, response, url, claims, body) {
   }
 
   const table = resource
+  const extraHeaders = {}
   const select = params.get('select') ?? '*'
   const columns = select === '*' ? '*' : select.split(',').map((c) => `"${c.trim()}"`).join(', ')
   const values = []
@@ -180,6 +181,10 @@ async function handleRest(request, response, url, claims, body) {
   const offset = params.get('offset') ? ` offset ${Number(params.get('offset'))}` : ''
   const wantsObject = (request.headers.accept ?? '').includes('vnd.pgrst.object')
   const wantsRepresentation = (request.headers.prefer ?? '').includes('return=representation')
+  // PostgREST comunica il totale nell'intestazione Content-Range quando il
+  // client chiede Prefer: count=exact: senza questo la paginazione lato
+  // server non saprebbe quante pagine esistono.
+  const wantsCount = /count=(exact|planned|estimated)/.test(request.headers.prefer ?? '')
 
   let sql
   if (request.method === 'GET' || request.method === 'HEAD') {
@@ -208,17 +213,34 @@ async function handleRest(request, response, url, claims, body) {
   }
 
   try {
-    const rows = await runAs(claims, async (client) => (await client.query(sql, values)).rows)
+    let total = null
+    const rows = await runAs(claims, async (client) => {
+      if (wantsCount && (request.method === 'GET' || request.method === 'HEAD')) {
+        const counted = await client.query(
+          `select count(*)::bigint as total from public."${table}"${where}`,
+          values,
+        )
+        total = Number(counted.rows[0]?.total ?? 0)
+      }
+      return (await client.query(sql, values)).rows
+    })
+
+    if (total !== null) {
+      const first = params.get('offset') ? Number(params.get('offset')) : 0
+      const last = Math.max(first + rows.length - 1, first)
+      extraHeaders['content-range'] = `${first}-${last}/${total}`
+    }
+
     if (wantsObject) {
       if (rows.length === 0) {
         return sendJson(response, 406, { code: 'PGRST116', message: 'Nessuna riga trovata' }, request)
       }
-      return sendJson(response, 200, rows[0], request)
+      return sendJson(response, 200, rows[0], request, extraHeaders)
     }
     if (request.method !== 'GET' && !wantsRepresentation) {
-      return sendJson(response, 201, null, request)
+      return sendJson(response, 201, null, request, extraHeaders)
     }
-    return sendJson(response, request.method === 'POST' ? 201 : 200, rows, request)
+    return sendJson(response, request.method === 'POST' ? 201 : 200, rows, request, extraHeaders)
   } catch (error) {
     const status = /row-level security|permission denied/i.test(error.message) ? 403 : 400
     return sendJson(
@@ -381,7 +403,7 @@ async function handleAuth(request, response, url, body) {
 }
 
 // --- Server -------------------------------------------------------------------
-function sendJson(response, status, payload, request) {
+function sendJson(response, status, payload, request, headers = {}) {
   const origin = request?.headers?.origin ?? '*'
   response.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
@@ -389,6 +411,7 @@ function sendJson(response, status, payload, request) {
     'access-control-allow-credentials': 'true',
     'access-control-allow-headers': '*',
     'access-control-expose-headers': '*',
+    ...headers,
   })
   response.end(payload === null ? '' : JSON.stringify(payload))
 }

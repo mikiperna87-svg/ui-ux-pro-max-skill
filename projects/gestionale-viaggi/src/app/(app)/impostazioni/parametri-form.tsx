@@ -13,6 +13,10 @@ import { updateSettingsAction } from '@/server/actions/settings'
 
 export function ParametriForm({ settings }: { settings: Tables<'agency_settings'> }) {
   const [state, submit] = useActionState(updateSettingsAction, IDLE)
+  // I valori rimandati dall’azione tornano a essere i default: dopo un errore
+  // di validazione il modulo resta compilato com’era.
+  const initial = (field: string, fallback?: string | number | null) =>
+    state.values?.[field] ?? (fallback === null || fallback === undefined ? '' : String(fallback))
   const [hideMargins, setHideMargins] = useState(settings.hide_margins_from_operators)
 
   return (
@@ -39,7 +43,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   type="number"
                   min={0}
                   max={90}
-                  defaultValue={settings.deposit_due_days}
+                  defaultValue={initial('deposit_due_days', settings.deposit_due_days)}
                 />
               )}
             </Field>
@@ -56,7 +60,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   min={0}
                   max={100}
                   step={0.5}
-                  defaultValue={settings.deposit_percent_bps / 100}
+                  defaultValue={initial('deposit_percent', settings.deposit_percent_bps / 100)}
                 />
               )}
             </Field>
@@ -72,7 +76,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   type="number"
                   min={0}
                   max={365}
-                  defaultValue={settings.balance_due_days_before_departure}
+                  defaultValue={initial('balance_due_days_before_departure', settings.balance_due_days_before_departure)}
                 />
               )}
             </Field>
@@ -88,7 +92,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   type="number"
                   min={0}
                   max={365}
-                  defaultValue={settings.passenger_document_alert_days}
+                  defaultValue={initial('passenger_document_alert_days', settings.passenger_document_alert_days)}
                 />
               )}
             </Field>
@@ -103,7 +107,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   type="number"
                   min={1}
                   max={365}
-                  defaultValue={settings.quote_validity_days}
+                  defaultValue={initial('quote_validity_days', settings.quote_validity_days)}
                 />
               )}
             </Field>
@@ -120,7 +124,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   min={0}
                   max={100}
                   step={0.5}
-                  defaultValue={settings.default_vat_bps / 100}
+                  defaultValue={initial('default_vat_percent', settings.default_vat_bps / 100)}
                 />
               )}
             </Field>
@@ -141,17 +145,17 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
           <div className="grid gap-4 sm:grid-cols-4">
             <Field label="Pratiche" error={state.fieldErrors?.booking_number_prefix}>
               {(props) => (
-                <Input {...props} name="booking_number_prefix" maxLength={8} defaultValue={settings.booking_number_prefix} />
+                <Input {...props} name="booking_number_prefix" maxLength={8} defaultValue={initial('booking_number_prefix', settings.booking_number_prefix)} />
               )}
             </Field>
             <Field label="Preventivi" error={state.fieldErrors?.quote_number_prefix}>
               {(props) => (
-                <Input {...props} name="quote_number_prefix" maxLength={8} defaultValue={settings.quote_number_prefix} />
+                <Input {...props} name="quote_number_prefix" maxLength={8} defaultValue={initial('quote_number_prefix', settings.quote_number_prefix)} />
               )}
             </Field>
             <Field label="Fatture" error={state.fieldErrors?.invoice_number_prefix}>
               {(props) => (
-                <Input {...props} name="invoice_number_prefix" maxLength={8} defaultValue={settings.invoice_number_prefix} />
+                <Input {...props} name="invoice_number_prefix" maxLength={8} defaultValue={initial('invoice_number_prefix', settings.invoice_number_prefix)} />
               )}
             </Field>
             <Field label="Note di credito" error={state.fieldErrors?.credit_note_number_prefix}>
@@ -160,7 +164,7 @@ export function ParametriForm({ settings }: { settings: Tables<'agency_settings'
                   {...props}
                   name="credit_note_number_prefix"
                   maxLength={8}
-                  defaultValue={settings.credit_note_number_prefix}
+                  defaultValue={initial('credit_note_number_prefix', settings.credit_note_number_prefix)}
                 />
               )}
             </Field>
