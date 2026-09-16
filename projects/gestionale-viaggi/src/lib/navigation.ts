@@ -1,5 +1,6 @@
 import {
   Building2,
+  Luggage,
   LayoutDashboard,
   Settings,
   Truck,
@@ -27,8 +28,8 @@ export interface NavItem {
 /**
  * Voci di navigazione. Contiene solo le sezioni realmente implementate:
  * una voce che porta a una pagina inesistente è peggio di una voce assente.
- * Le sezioni successive (pratiche, preventivi, amministrazione, agenda) si
- * aggiungono qui quando il modulo viene consegnato.
+ * Le sezioni successive (preventivi, amministrazione, agenda) si aggiungono
+ * qui quando il modulo viene consegnato.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   {
@@ -37,6 +38,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: 'p',
     icon: LayoutDashboard,
     description: 'Indicatori dell’agenzia e attività recenti',
+  },
+  {
+    href: '/pratiche',
+    label: 'Pratiche',
+    shortcut: 'r',
+    icon: Luggage,
+    description: 'Viaggi venduti, scadenze, incassi e margine',
   },
   {
     href: '/clienti',

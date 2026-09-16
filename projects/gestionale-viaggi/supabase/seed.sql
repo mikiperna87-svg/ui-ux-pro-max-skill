@@ -398,6 +398,14 @@ declare
     89000,268000,219000,79000,159000,385000,118000,96000,349000,72000,
     142000,98000,189000,132000,42000,68000,164000,148000,52000,64000];
 
+  -- Il titolo dice l'occasione del viaggio: ripetere la destinazione, che ha
+  -- gia' la sua colonna, non aggiungerebbe niente a chi legge l'elenco.
+  trip_titles text[] := array[
+    'Viaggio di nozze','Vacanza in famiglia','Settimana di relax','Tour culturale',
+    'Ponte lungo','Capodanno','Viaggio di gruppo','Fuga romantica',
+    'Viaggio premio aziendale','Viaggio di istruzione','Anniversario di matrimonio',
+    'Vacanza con amici'];
+
   v_customer_ids  uuid[];
   v_supplier_to   uuid[];
   v_supplier_air  uuid[];
@@ -505,7 +513,7 @@ begin
     )
     values (
       v_agency_id, v_customer_id, v_owner_mem,
-      dest_names[v_dest] || ' · ' || v_pax || ' pax',
+      trip_titles[1 + ((i * 5) % array_length(trip_titles, 1))],
       dest_names[v_dest], dest_countries[v_dest], v_departure, v_return, v_pax, v_status, v_sale,
       case when i % 6 = 0 then 'Richiesta camera con vista mare e late check-out.' end,
       case when i % 9 = 0 then 'Cliente da richiamare per upgrade volo.' end,

@@ -321,7 +321,18 @@ export default async function FornitorePage({ params }: { params: Promise<{ id: 
                   {services.map((service) => (
                     <TableRow key={service.id}>
                       <TableCell className="num">{formatDateShort(service.date_from)}</TableCell>
-                      <TableCell className="num text-text-muted">{service.booking_code ?? '—'}</TableCell>
+                      <TableCell>
+                        {service.booking_id ? (
+                          <Link
+                            href={`/pratiche/${service.booking_id}`}
+                            className="num text-text-muted underline-offset-2 hover:text-accent hover:underline"
+                          >
+                            {service.booking_code ?? '—'}
+                          </Link>
+                        ) : (
+                          <span className="num text-text-muted">—</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge tone="neutral">{SERVICE_TYPE[service.service_type]}</Badge>
                       </TableCell>

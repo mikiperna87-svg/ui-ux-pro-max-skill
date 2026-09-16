@@ -374,12 +374,153 @@ spostano la scelta come in un gruppo nativo.
 
 ---
 
-## 27. Scelte rinviate, con motivo
+## 27. Conferma e annullamento sono funzioni del database
+
+`confirm_booking` e `cancel_booking` vivono in SQL, non nella Server Action.
+Toccano quattro tabelle insieme — pratica, piano rateale, scadenze, task — e o
+succede tutto o non succede niente: una transazione del database lo garantisce,
+una sequenza di chiamate PostgREST no.
+
+Sono anche **ripetibili**: riconfermare una pratica dopo un cambio di prezzo
+allinea gli importi delle scadenze invece di affiancarne di nuove, e non crea un
+secondo controllo documenti. Un operatore che clicca due volte non deve
+produrre due acconti.
+
+L'annullamento pretende un motivo, calcola la penale, toglie le scadenze future
+e chiude i task aperti — e non cancella nulla: la pratica resta consultabile,
+perché era un fatto ed è successa.
+
+---
+
+## 28. La numerazione non si passa, si riceve
+
+`year`, `number` e `code` sono `not null` e li assegna un trigger con il
+contatore transazionale. Chi inserisce da PostgREST, però, non può omettere una
+colonna `not null` priva di default: si ritrovava a passare uno zero, e il
+vincolo `number > 0` rifiutava la riga.
+
+Le tre colonne hanno ora un default che vale da segnaposto, e il trigger lo
+riconosce come "assegnalo tu". L'inserimento nomina solo i dati reali del
+documento, e nessuno può inventarsi un numero di pratica.
+
+---
+
+## 29. Il quadro economico resta sempre in vista
+
+La scheda della pratica ha sei schede, ma la domanda che porta qualcuno ad
+aprirla è quasi sempre la stessa: quanto vale, quanto ho incassato, quanto
+manca. Perciò venduto, costo, commissioni, margine, incassato, residuo e stato
+di pagamento stanno in una barra laterale che non cambia al cambio di scheda.
+
+Sotto i 1280 px la barra scende sotto il contenuto invece di stringersi: un
+riquadro di numeri largo dieci caratteri non è più una sintesi.
+
+---
+
+## 30. Gli incassi si attribuiscono alle scadenze in lettura
+
+Lo stato di pagamento della pratica lo calcola il database (`booking_financials`).
+Quale *rata* sia coperta, invece, si decide leggendo: gli incassi si attribuiscono
+in ordine di scadenza, come farebbe una persona riconciliando a mano
+(`src/lib/scadenze.ts`).
+
+Non è una scorciatoia: legare un incasso a una rata specifica è una decisione
+contabile che appartiene al modulo degli incassi, e finché non esiste, mostrare
+"da incassare" accanto a una rata già coperta sarebbe semplicemente falso.
+
+---
+
+## 31. Una pratica si cerca anche per cognome del cliente
+
+`bookings.search_text` è una colonna generata e non può leggere un'altra
+tabella. Ma chi cerca una pratica parte dal cliente, non dal codice.
+
+La vista `booking_list` porta quindi accanto la colonna di ricerca già
+indicizzata di `customers`, e la query cerca su entrambe con un `or`. Nessun
+dato duplicato, nessun trigger di sincronizzazione, e la ricerca resta una sola
+interrogazione.
+
+---
+
+## 32. I documenti stanno in un deposito privato
+
+Il bucket `documenti` non è pubblico: non esiste un indirizzo da indovinare. La
+prima cartella del percorso è l'identificativo dell'agenzia, ed è su quella che
+la policy dello storage verifica l'accesso — la stessa regola della RLS, appena
+scritta altrove.
+
+Ogni apertura chiede al server un collegamento firmato che vale cinque minuti.
+Se l'inserimento della riga nel database fallisce, il file appena caricato viene
+rimosso: un file senza riga sarebbe invisibile e non cancellabile.
+
+---
+
+## 33. Una vista salvata è un nome dato a un indirizzo
+
+I filtri stanno già nella query string. Una vista salvata non introduce un
+secondo modo di filtrare: memorizza quella stringa con un nome. Con
+`membership_id` nullo appartiene all'agenzia (la crea il titolare), altrimenti è
+di chi l'ha salvata.
+
+Due indici unici parziali invece di un vincolo unico, perché in SQL i NULL non
+si confrontano fra loro: senza il primo, la stessa vista condivisa potrebbe
+esistere in dieci copie.
+
+---
+
+## 34. La suite end-to-end gira con un lavoratore solo
+
+Tutti i contesti condividono un server e un database. Due browser che creano
+pratiche nello stesso istante si contendono il contatore della numerazione e i
+parametri dell'agenzia, e i fallimenti finiscono per raccontare la macchina
+invece del prodotto.
+
+La suite completa impiega qualche minuto in più ed è ripetibile: da un test
+serve quello. `scripts/dev-stack.mjs` accende Postgres e il banco di prova se
+sono spenti, così "prima esegui le due cose" smette di essere un passaggio da
+ricordare.
+
+---
+
+## 35. Niente `loading.tsx` di rotta: le pagine hanno già i propri scheletri
+
+Il gruppo `(app)` aveva un `loading.tsx` che mostrava uno scheletro finito
+mentre la pagina veniva preparata. Quel file crea un confine Suspense sopra
+tutte le pagine dell'applicazione e, combinato con un layout che attende a ogni
+richiesta e con azioni server che scrivono cookie (il rinnovo della sessione
+Supabase) e chiamano `revalidatePath`, attiva un difetto del router di Next 15:
+la corsia di transizione resta sospesa e non viene mai risvegliata, così la
+risposta dell'azione arriva completa al browser ma l'interfaccia non la applica
+mai. Per chi usa il gestionale significa un bottone fermo su "Salvataggio..."
+per sempre, con il dato in realtà già salvato.
+
+Misurato sulla build di produzione, con quaranta creazioni di pratica di
+seguito: **16 bloccate su 40** con il `loading.tsx`, **0 su 40** senza (e 0 su
+80 inserimenti di riga contro 4). Il difetto è noto a monte
+(vercel/next.js#98303, riprodotto solo nelle build di produzione) ed è corretto
+solo in canary di Next 16: restare su Next 15, come chiede la specifica, vuol
+dire togliere una delle condizioni che lo innescano.
+
+La perdita è minima perché ogni pagina ha già i suoi confini `<Suspense>` con
+gli scheletri giusti (`TableSkeleton`, `KpiSkeleton`, `ListSkeleton`):
+l'intestazione e la barra dei comandi compaiono subito e sono le aree dati a
+riempirsi dopo. Al posto dello scheletro a pagina intera, la voce di menu
+cliccata mostra una rotellina (`StatoNavigazione`, basata su `useLinkStatus`),
+così la navigazione resta annunciata anche a chi legge con la tastiera.
+
+Quando il correttivo arriverà in un Next 15 stabile, il `loading.tsx` si può
+rimettere: basta ripetere il conteggio descritto sopra e confrontarlo con questi
+numeri.
+
+---
+
+## 36. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
+| Registrazione di incassi e pagamenti | Fase 4 | La scheda li mostra già; inserirli è il modulo successivo |
 | Generazione PDF | Fase 5 | La scelta della libreria dipende dal layout dei preventivi |
 | Email transazionali (Resend) | Fase 8 | Servono i modelli, che dipendono dai moduli precedenti |
 | TanStack Query | Fase 4 | Serve dove c'è stato client vero: lo scadenzario, non gli elenchi |
 | Realtime | Fase 4 | Utile sullo scadenzario condiviso, inutile finché non esiste |
-| Viste salvate degli elenchi | Fase 3 | I filtri stanno già nell'indirizzo: salvarli è un'aggiunta, non una riscrittura |
+| Esportazione XLSX | Fase 9 | Il CSV si apre in Excel italiano senza passaggi: una libreria in più va giustificata da un bisogno vero |

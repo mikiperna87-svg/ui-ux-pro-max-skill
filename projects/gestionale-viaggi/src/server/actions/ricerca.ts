@@ -14,12 +14,13 @@ export interface SearchHit {
 }
 
 export interface SearchResults {
+  readonly pratiche: readonly SearchHit[]
   readonly clienti: readonly SearchHit[]
   readonly passeggeri: readonly SearchHit[]
   readonly fornitori: readonly SearchHit[]
 }
 
-const VUOTO: SearchResults = { clienti: [], passeggeri: [], fornitori: [] }
+const VUOTO: SearchResults = { pratiche: [], clienti: [], passeggeri: [], fornitori: [] }
 
 const PER_GRUPPO = 5
 
@@ -40,7 +41,13 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
   const supabase = await createClient()
   const pattern = `%${cercato}%`
 
-  const [clienti, passeggeri, fornitori] = await Promise.all([
+  const [pratiche, clienti, passeggeri, fornitori] = await Promise.all([
+    supabase
+      .from('booking_list')
+      .select('id, code, destination, customer_name, departure_date, search_text')
+      .ilike('search_text', pattern)
+      .order('departure_date', { ascending: false, nullsFirst: false })
+      .limit(PER_GRUPPO),
     supabase
       .from('customer_list')
       .select('id, display_name, email, city, search_text')
@@ -62,6 +69,13 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
   ])
 
   return {
+    pratiche: (pratiche.data ?? []).map((row) => ({
+      id: row.id ?? '',
+      href: `/pratiche/${row.id}`,
+      label: `${row.code} · ${row.destination}`,
+      hint: [row.customer_name, row.departure_date].filter(Boolean).join(' · '),
+      terms: row.search_text ?? '',
+    })),
     clienti: (clienti.data ?? []).map((row) => ({
       id: row.id ?? '',
       href: `/clienti/${row.id}`,

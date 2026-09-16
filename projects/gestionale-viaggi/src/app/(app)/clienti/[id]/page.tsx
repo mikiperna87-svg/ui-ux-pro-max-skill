@@ -32,7 +32,7 @@ import {
   TableWrapper,
 } from '@/components/ui/table'
 import { formatDateLong, formatDateShort, formatDateTime } from '@/lib/date'
-import { ACTIVITY_ACTION, plurale } from '@/lib/labels'
+import { ACTIVITY_ACTION, INVOICE_KIND, INVOICE_STATUS, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent, ratioBps } from '@/lib/money'
 import { getCustomerDetail } from '@/server/queries/anagrafiche'
 import { requireSession } from '@/server/session'
@@ -250,11 +250,28 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
         </TabsContent>
 
         <TabsContent value="viaggi">
+          {session.permissions.write ? (
+            <div className="mb-3 flex justify-end">
+              <Button asChild variant="secondary" size="sm">
+                <Link href={`/pratiche/nuova?cliente=${customer.id}`}>
+                  <Plane aria-hidden="true" />
+                  Apri una pratica per questo cliente
+                </Link>
+              </Button>
+            </div>
+          ) : null}
           {bookings.length === 0 ? (
             <EmptyState
               icon={<Plane />}
               title="Nessun viaggio registrato"
               description="Le pratiche intestate a questo cliente compariranno qui, con il loro stato di pagamento."
+              action={
+                session.permissions.write ? (
+                  <Button asChild variant="primary">
+                    <Link href={`/pratiche/nuova?cliente=${customer.id}`}>Apri la prima pratica</Link>
+                  </Button>
+                ) : undefined
+              }
             />
           ) : (
             <TableWrapper>
@@ -276,7 +293,14 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
                 <TableBody>
                   {bookings.map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="num font-medium">{booking.code}</TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/pratiche/${booking.id}`}
+                          className="num font-medium text-text underline-offset-2 hover:text-accent hover:underline"
+                        >
+                          {booking.code}
+                        </Link>
+                      </TableCell>
                       <TableCell className="max-w-64 truncate">{booking.destination}</TableCell>
                       <TableCell className="num">{formatDateShort(booking.departure_date)}</TableCell>
                       <TableCell>
@@ -382,7 +406,7 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
                     <TableRow key={invoice.id}>
                       <TableCell className="num font-medium">{invoice.code}</TableCell>
                       <TableCell>
-                        {invoice.kind === 'nota_credito' ? 'Nota di credito' : 'Fattura'}
+                        {INVOICE_KIND[invoice.kind]}
                       </TableCell>
                       <TableCell className="num">{formatDateShort(invoice.issue_date)}</TableCell>
                       <TableCellNumeric>{formatEuro(invoice.taxable_cents)}</TableCellNumeric>
@@ -391,8 +415,8 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
                         {formatEuro(invoice.total_cents)}
                       </TableCellNumeric>
                       <TableCell>
-                        <Badge tone={invoice.status === 'pagata' ? 'success' : 'neutral'}>
-                          {invoice.status}
+                        <Badge tone={INVOICE_STATUS[invoice.status].tone}>
+                          {INVOICE_STATUS[invoice.status].label}
                         </Badge>
                       </TableCell>
                     </TableRow>

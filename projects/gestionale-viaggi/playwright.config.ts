@@ -18,12 +18,20 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  // Il server di sviluppo compila una pagina alla volta: troppi lavoratori
-  // in parallelo allungano i tempi invece di accorciarli.
-  workers: process.env.CI ? 1 : 3,
+  // Un lavoratore solo, di proposito.
+  //
+  // Tutti i contesti condividono lo stesso server e lo stesso database: due
+  // browser che creano pratiche nello stesso istante si contendono il contatore
+  // della numerazione e i parametri dell'agenzia, e i fallimenti finiscono per
+  // raccontare la macchina invece del prodotto. La suite completa impiega
+  // qualche minuto in piu' ed e' ripetibile, che e' cio' che serve a un test.
+  workers: 1,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   timeout: 60_000,
-  expect: { timeout: 7_000 },
+  // Desktop e telefono girano insieme su un solo server di sviluppo, che
+  // compila una pagina alla volta: sotto quel carico sette secondi bocciavano
+  // attese legittime.
+  expect: { timeout: 12_000 },
 
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',

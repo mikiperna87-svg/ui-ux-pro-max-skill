@@ -24,6 +24,55 @@ export const PAYOUT_STATUS: Record<Enums['payout_status'], { label: string; tone
   stornato: { label: 'Stornato', tone: 'neutral' },
 }
 
+export const TASK_STATUS: Record<Enums['task_status'], { label: string; tone: Tone }> = {
+  aperto: { label: 'Aperto', tone: 'warning' },
+  in_corso: { label: 'In corso', tone: 'info' },
+  completato: { label: 'Completato', tone: 'success' },
+  annullato: { label: 'Annullato', tone: 'neutral' },
+}
+
+export const TASK_PRIORITY: Record<Enums['task_priority'], { label: string; tone: Tone }> = {
+  bassa: { label: 'Bassa', tone: 'neutral' },
+  media: { label: 'Media', tone: 'info' },
+  alta: { label: 'Alta', tone: 'warning' },
+  urgente: { label: 'Urgente', tone: 'danger' },
+}
+
+export const INSTALLMENT_KIND: Record<Enums['installment_kind'], string> = {
+  acconto: 'Acconto',
+  saldo: 'Saldo',
+  rata: 'Rata',
+}
+
+export const PAYMENT_IN_KIND: Record<Enums['payment_in_kind'], string> = {
+  acconto: 'Acconto',
+  saldo: 'Saldo',
+  extra: 'Extra',
+  rimborso: 'Rimborso',
+}
+
+export const PAYMENT_METHOD: Record<Enums['payment_method'], string> = {
+  contanti: 'Contanti',
+  pos: 'POS',
+  bonifico: 'Bonifico',
+  assegno: 'Assegno',
+  link_pagamento: 'Link di pagamento',
+  compensazione: 'Compensazione',
+}
+
+export const INVOICE_STATUS: Record<Enums['invoice_status'], { label: string; tone: Tone }> = {
+  bozza: { label: 'Bozza', tone: 'neutral' },
+  emessa: { label: 'Emessa', tone: 'info' },
+  inviata: { label: 'Inviata', tone: 'accent' },
+  pagata: { label: 'Pagata', tone: 'success' },
+  annullata: { label: 'Annullata', tone: 'danger' },
+}
+
+export const INVOICE_KIND: Record<Enums['invoice_kind'], string> = {
+  fattura: 'Fattura',
+  nota_credito: 'Nota di credito',
+}
+
 export const SALE_TYPE: Record<Enums['sale_type'], string> = {
   intermediazione: 'Intermediazione',
   organizzazione: 'Organizzazione',

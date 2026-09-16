@@ -267,10 +267,13 @@ async function DeparturesSection({ ownerId }: { ownerId: string | null }) {
       {departures.map((departure) => (
         <li key={departure.bookingId} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
           <div className="min-w-0 sm:flex-1">
-            <p className="flex items-baseline gap-2 text-small font-medium text-text">
+            <Link
+              href={`/pratiche/${departure.bookingId}`}
+              className="flex items-baseline gap-2 text-small font-medium text-text underline-offset-2 hover:text-accent hover:underline"
+            >
               <span className="num shrink-0 text-text-muted">{departure.code}</span>
               <span className="truncate">{departure.destination}</span>
-            </p>
+            </Link>
             <p className="mt-0.5 truncate text-caption text-text-muted">
               {departure.customerName} · {departure.paxCount} pax
               {departure.ownerName ? ` · ${departure.ownerName}` : ''}

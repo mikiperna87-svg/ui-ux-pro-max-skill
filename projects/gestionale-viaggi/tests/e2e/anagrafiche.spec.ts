@@ -33,9 +33,31 @@ function righe(page: Page) {
   return page.locator('[data-riga]:visible')
 }
 
+/**
+ * Le griglie arrivano in streaming dentro il loro `<Suspense>`: contare le
+ * righe appena dopo il `goto` risponde zero anche quando l'elenco è pieno, e il
+ * test finisce per cercare uno stato vuoto che non esiste. Qui si aspetta che
+ * la pagina abbia deciso: o la prima riga, o il messaggio di elenco vuoto.
+ */
+async function attendiElenco(page: Page, messaggioVuoto: string) {
+  await expect(righe(page).first().or(page.getByText(messaggioVuoto))).toBeVisible()
+}
+
 /** Il collegamento alla scheda dentro la prima riga dell’elenco. */
 function primaScheda(page: Page, entita: string) {
   return righe(page).first().locator(`a[href^="/${entita}/"]`).first()
+}
+
+/**
+ * Apre la scheda della prima riga e aspetta di esserci davvero.
+ *
+ * Senza l'attesa sull'indirizzo un'asserzione poteva passare su una parola
+ * della pagina di elenco — "valore generato" compare anche nella sua
+ * descrizione — facendo credere superata una prova mai eseguita.
+ */
+async function apriPrimaScheda(page: Page, entita: string) {
+  await primaScheda(page, entita).click()
+  await page.waitForURL(new RegExp(`/${entita}/[0-9a-f-]{36}$`), { timeout: 20_000 })
 }
 
 test.describe('Elenco clienti', () => {
@@ -132,7 +154,7 @@ test.describe('Scheda cliente', () => {
     await accedi(page, 'titolare')
     await page.goto('/clienti?ordina=lifetime_value_cents&verso=desc')
 
-    await primaScheda(page, 'clienti').click()
+    await apriPrimaScheda(page, 'clienti')
     await expect(page.getByText('Valore generato')).toBeVisible()
     await expect(page.getByText('Margine generato')).toBeVisible()
 
@@ -146,7 +168,7 @@ test.describe('Scheda cliente', () => {
   test('offre l’esportazione dei dati per il GDPR', async ({ page }) => {
     await accedi(page, 'titolare')
     await page.goto('/clienti')
-    await primaScheda(page, 'clienti').click()
+    await apriPrimaScheda(page, 'clienti')
 
     await page.getByRole('button', { name: 'Altre azioni' }).click()
     const voce = page.getByRole('menuitem', { name: /Esporta i dati/ })
@@ -206,11 +228,12 @@ test.describe('Creazione e modifica di un cliente', () => {
   test('modifica un cliente esistente', async ({ page }) => {
     await accedi(page, 'titolare')
     await page.goto('/clienti?q=collaudo')
+    await attendiElenco(page, 'Nessun cliente corrisponde ai filtri')
 
     const quante = await righe(page).count()
     test.skip(quante === 0, 'Nessun cliente di collaudo da modificare')
 
-    await primaScheda(page, 'clienti').click()
+    await apriPrimaScheda(page, 'clienti')
     await page.getByRole('link', { name: 'Modifica' }).click()
 
     const nuovoTelefono = `0332 ${Math.floor(100000 + Math.random() * 899999)}`
@@ -225,6 +248,7 @@ test.describe('Passeggeri', () => {
   test('il filtro sui documenti trova chi non è in regola', async ({ page }) => {
     await accedi(page, 'titolare')
     await page.goto('/passeggeri?documento=insufficiente')
+    await attendiElenco(page, 'Nessun passeggero corrisponde ai filtri')
 
     const elenco = righe(page)
     const quante = await elenco.count()
@@ -270,7 +294,7 @@ test.describe('Fornitori', () => {
     await accedi(page, 'titolare')
     await page.goto('/fornitori?ordina=cost_cents&verso=desc')
 
-    await primaScheda(page, 'fornitori').click()
+    await apriPrimaScheda(page, 'fornitori')
     await expect(page.getByText('Acquistato')).toBeVisible()
     await expect(page.getByText('Dilazione di pagamento')).toBeVisible()
 

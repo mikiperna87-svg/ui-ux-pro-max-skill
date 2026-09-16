@@ -2,9 +2,10 @@
 
 Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 
-> Questa versione copre l'accesso, la panoramica, le anagrafiche (clienti,
-> passeggeri, fornitori) e le impostazioni. Le sezioni pratiche, preventivi e
-> amministrazione arrivano con i rilasci successivi; il manuale cresce con loro.
+> Questa versione copre l'accesso, la panoramica, le pratiche di viaggio, le
+> anagrafiche (clienti, passeggeri, fornitori) e le impostazioni. Le sezioni
+> preventivi, incassi e amministrazione arrivano con i rilasci successivi; il
+> manuale cresce con loro.
 
 ---
 
@@ -13,17 +14,18 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 1. [Entrare nel gestionale](#1-entrare-nel-gestionale)
 2. [Che cosa vedi appena entri](#2-che-cosa-vedi-appena-entri)
 3. [Muoversi velocemente](#3-muoversi-velocemente)
-4. [I clienti](#4-i-clienti)
-5. [I passeggeri](#5-i-passeggeri)
-6. [I fornitori](#6-i-fornitori)
-7. [Importare ed esportare gli elenchi](#7-importare-ed-esportare-gli-elenchi)
-8. [Chi vede che cosa: i quattro ruoli](#8-chi-vede-che-cosa-i-quattro-ruoli)
-9. [Impostazioni dell'agenzia](#9-impostazioni-dellagenzia)
-10. [Invitare un collaboratore](#10-invitare-un-collaboratore)
-11. [I parametri che governano le scadenze](#11-i-parametri-che-governano-le-scadenze)
-12. [Le numerazioni](#12-le-numerazioni)
-13. [Aspetto e accessibilità](#13-aspetto-e-accessibilità)
-14. [Domande frequenti](#14-domande-frequenti)
+4. [Le pratiche di viaggio](#4-le-pratiche-di-viaggio)
+5. [I clienti](#5-i-clienti)
+6. [I passeggeri](#6-i-passeggeri)
+7. [I fornitori](#7-i-fornitori)
+8. [Importare ed esportare gli elenchi](#8-importare-ed-esportare-gli-elenchi)
+9. [Chi vede che cosa: i quattro ruoli](#9-chi-vede-che-cosa-i-quattro-ruoli)
+10. [Impostazioni dell'agenzia](#10-impostazioni-dellagenzia)
+11. [Invitare un collaboratore](#11-invitare-un-collaboratore)
+12. [I parametri che governano le scadenze](#12-i-parametri-che-governano-le-scadenze)
+13. [Le numerazioni](#13-le-numerazioni)
+14. [Aspetto e accessibilità](#14-aspetto-e-accessibilità)
+15. [Domande frequenti](#15-domande-frequenti)
 
 ---
 
@@ -83,7 +85,8 @@ Sotto trovi:
 - **Ultime attività** — chi ha fatto che cosa e quando. Il registro non si può
   modificare né cancellare, da parte di nessuno.
 - **Partenze nei prossimi 30 giorni** — con lo stato della pratica e lo stato di
-  pagamento, per sapere subito chi parte senza aver saldato.
+  pagamento, per sapere subito chi parte senza aver saldato. Il codice apre la
+  pratica.
 - **Pagamenti a fornitore in scadenza** — visibile a chi si occupa di
   amministrazione. Gli importi in rosso sono già scaduti.
 
@@ -107,9 +110,9 @@ prevedeva due rate.
 ### La ricerca rapida
 
 Premi **⌘K** (Mac) o **Ctrl+K** (Windows) da qualsiasi punto: si apre una
-casella in cui scrivere. Trova le sezioni, i comandi e — soprattutto — i
-**clienti, i passeggeri e i fornitori**, cercando per nome, email, telefono,
-partita IVA o codice fiscale. Le frecce scorrono i risultati, Invio apre la
+casella in cui scrivere. Trova le sezioni, i comandi e — soprattutto — le
+**pratiche, i clienti, i passeggeri e i fornitori**, cercando per codice,
+destinazione, nome, email, telefono, partita IVA o codice fiscale. Le frecce scorrono i risultati, Invio apre la
 scheda.
 
 Accenti e maiuscole non contano: *citta*, *Città* e *CITTA* trovano le stesse
@@ -122,6 +125,7 @@ righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **⌘K** / **Ctrl+K** | Ricerca e comandi |
 | **⌘/** / **Ctrl+/** | Elenco delle scorciatoie |
 | **G** poi **P** | Vai alla panoramica |
+| **G** poi **R** | Vai alle pratiche |
 | **G** poi **C** | Vai ai clienti |
 | **G** poi **S** | Vai ai passeggeri |
 | **G** poi **F** | Vai ai fornitori |
@@ -141,7 +145,106 @@ computer.
 
 ---
 
-## 4. I clienti
+## 4. Le pratiche di viaggio
+
+La **pratica** è il contenitore di un viaggio venduto: cliente, passeggeri,
+servizi acquistati, costi, prezzi, incassi, scadenze e documenti. Tutto il resto
+del gestionale gira attorno a questa.
+
+### Aprire una pratica
+
+**Nuova pratica** chiede il cliente intestatario, il titolo (l'occasione del
+viaggio: *Viaggio di nozze*, *Ponte lungo*), la destinazione, le date e il
+numero di passeggeri.
+
+Il **codice** (2027/0042) non lo scegli tu: viene assegnato al salvataggio, in
+ordine e senza buchi, e non cambia più. È il riferimento che userai al telefono
+con il cliente e in contabilità.
+
+### Intermediazione oppure organizzazione
+
+È la scelta che decide come si calcola l'IVA, e va fatta con attenzione:
+
+| Tipo | Quando | Che cosa comporta |
+| --- | --- | --- |
+| **Intermediazione** | Rivendi il pacchetto di un tour operator | Si fattura la commissione; l'IVA segue il regime ordinario |
+| **Organizzazione** | Il viaggio lo componi tu, con più fornitori | Si applica l'**art. 74-ter**: l'IVA si calcola sul margine, non sul corrispettivo |
+
+Il regime si può comunque cambiare riga per riga: un volo e una polizza dentro
+la stessa pratica possono seguire regole diverse.
+
+### Servizi e costi
+
+Ogni riga porta **quanto costa** (il netto del fornitore) e **quanto paga il
+cliente**. La differenza, più l'eventuale commissione riconosciuta dal
+fornitore, è il **margine**.
+
+La colonna IVA mostra l'imposta calcolata riga per riga. In regime 74-ter è
+l'imposta scorporata dal margine: se il margine è zero o negativo, l'IVA è zero.
+Aprendo una riga in modifica trovi il calcolo scritto per esteso — imponibile,
+aliquota, regime — perché su questo non si va a memoria.
+
+Scegliendo il fornitore, commissione e regime IVA arrivano dalle sue condizioni:
+sono un punto di partenza, li puoi correggere.
+
+### Il quadro economico
+
+Sulla destra, sempre visibile qualunque scheda tu stia guardando: venduto, costo
+dei fornitori, commissioni, **margine in euro e in percentuale**, incassato,
+residuo, stato di pagamento e prossima scadenza. È la risposta alle domande per
+cui si apre una pratica.
+
+Se sei un operatore e non vedi i margini, è una scelta dell'agenzia: vedi prezzi
+e incassi, non il guadagno.
+
+### Confermare
+
+**Conferma** non è un cambio di etichetta. In un colpo solo:
+
+- crea la scadenza dell'**acconto** (la percentuale e i giorni sono nelle
+  impostazioni dell'agenzia: di regola 30% entro 3 giorni);
+- crea la scadenza del **saldo**, 30 giorni prima della partenza;
+- apre il **controllo dei documenti** dei passeggeri fra le cose da fare.
+
+Puoi confermare di nuovo dopo aver cambiato un prezzo: le scadenze si
+riallineano, non si sdoppiano. Una pratica senza righe di servizio non si
+conferma: non ci sarebbe niente da incassare.
+
+Da lì la pratica prosegue con **Segna partita** e **Segna rientrata**.
+
+### Annullare
+
+Dal menu **⋮**, **Annulla la pratica**. Serve un **motivo** — obbligatorio, e
+finisce nel registro attività — e puoi indicare la **penale** trattenuta.
+
+Non si cancella niente: la pratica resta consultabile con il suo motivo e la sua
+penale, le scadenze future vengono tolte e i promemoria aperti chiusi. Una
+pratica annullata si può riaprire in opzione.
+
+### Passeggeri
+
+Chi viaggia si collega alla pratica dalla scheda **Passeggeri**, scegliendolo
+fra quelli in anagrafica. Accanto a ciascuno compare lo stato del documento, e
+in cima alla pratica un avviso elenca chi ha un documento assente, scaduto o in
+scadenza **prima del rientro**.
+
+### Documenti
+
+Voucher, contratti, copie dei documenti: si allegano dalla scheda
+**Documenti**. I file non hanno un indirizzo pubblico: ogni apertura genera un
+collegamento che scade dopo pochi minuti. Se una pratica confermata non ha
+ancora un documento allegato, il quadro economico te lo ricorda.
+
+### Viste salvate
+
+Se usi sempre gli stessi filtri — *partenze del mese non saldate*, *le mie
+pratiche in opzione* — impostali e premi **Salva vista**: li ritrovi con un
+clic dal comando **Viste**. Il titolare può salvare una vista per tutta
+l'agenzia; gli altri salvano la propria.
+
+---
+
+## 5. I clienti
 
 **Clienti** è l'anagrafica di chi compra: privati e aziende.
 
@@ -198,7 +301,7 @@ obbligo di conservazione contabile.
 
 ---
 
-## 5. I passeggeri
+## 6. I passeggeri
 
 I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
 manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
@@ -223,7 +326,7 @@ al momento della prenotazione, non dopo.
 
 ---
 
-## 6. I fornitori
+## 7. I fornitori
 
 I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
 ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
@@ -245,7 +348,7 @@ dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serv
 
 ---
 
-## 7. Importare ed esportare gli elenchi
+## 8. Importare ed esportare gli elenchi
 
 Ogni elenco ha due comandi in alto a destra.
 
@@ -276,7 +379,7 @@ le intestazioni giuste.
 
 ---
 
-## 8. Chi vede che cosa: i quattro ruoli
+## 9. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -294,7 +397,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 9. Impostazioni dell'agenzia
+## 10. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -309,7 +412,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 10. Invitare un collaboratore
+## 11. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -332,7 +435,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 11. I parametri che governano le scadenze
+## 12. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -351,7 +454,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 12. Le numerazioni
+## 13. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -366,7 +469,7 @@ esempio `AG` produce `AG2026/0001`. Lasciandolo vuoto ottieni `2026/0001`.
 
 ---
 
-## 13. Aspetto e accessibilità
+## 14. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -386,7 +489,7 @@ un'etichetta scritta.
 
 ---
 
-## 14. Domande frequenti
+## 15. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.
@@ -406,10 +509,25 @@ malfunzionamento.
 **Perché vedo meno pratiche dei miei colleghi?**
 Se hai il ruolo Operatore vedi soltanto le pratiche di cui sei titolare.
 
+**Ho confermato una pratica e poi ho cambiato un prezzo: le scadenze sono
+sbagliate.**
+Premi di nuovo **Conferma**: acconto e saldo si riallineano al nuovo venduto.
+Non vengono create scadenze doppie.
+
+**Il cliente ha rinunciato. Elimino la pratica?**
+No: si **annulla**, indicando il motivo. La pratica resta, con la sua penale e
+la sua storia; eliminarla lascerebbe un buco nella numerazione e nella
+contabilità. Le pratiche con incassi registrati non si eliminano affatto.
+
+**Nell'elenco non trovo una pratica che so che esiste.**
+La ricerca guarda codice, titolo, destinazione e anche il cognome del cliente.
+Controlla i filtri in alto: uno stato o un periodo attivo può nasconderla.
+"Azzera i filtri" nello stato vuoto li toglie tutti.
+
 **Un cliente chiede la cancellazione dei suoi dati.**
 Apri la sua scheda, menu **⋮** in alto a destra. **Esporta i dati (GDPR)** gli
 consegna tutto ciò che conserviamo; **Anonimizza** rimuove i dati personali e
-conserva soltanto quanto la legge impone di tenere. Vedi la sezione 4.
+conserva soltanto quanto la legge impone di tenere. Vedi la sezione 5.
 
 **Ho sbagliato a scrivere una partita IVA e il gestionale non me la accetta.**
 La cifra di controllo non torna: è la stessa verifica che farebbe il Sistema di

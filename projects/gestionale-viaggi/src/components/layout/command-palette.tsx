@@ -1,7 +1,18 @@
 'use client'
 
 import { Command } from 'cmdk'
-import { Keyboard, LogOut, Monitor, Moon, Search, Sun, Truck, Users, UsersRound } from 'lucide-react'
+import {
+  Keyboard,
+  LogOut,
+  Luggage,
+  Monitor,
+  Moon,
+  Search,
+  Sun,
+  Truck,
+  Users,
+  UsersRound,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
@@ -14,7 +25,12 @@ import { signOutAction } from '@/server/actions/auth'
 import { searchEverywhereAction, type SearchHit, type SearchResults } from '@/server/actions/ricerca'
 import { cn } from '@/lib/utils'
 
-const NESSUN_RISULTATO: SearchResults = { clienti: [], passeggeri: [], fornitori: [] }
+const NESSUN_RISULTATO: SearchResults = {
+  pratiche: [],
+  clienti: [],
+  passeggeri: [],
+  fornitori: [],
+}
 
 const GRUPPO =
   '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-caption [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-text-subtle'
@@ -84,6 +100,7 @@ export function CommandPalette({
   }, [open])
 
   const gruppi: ReadonlyArray<{ titolo: string; icona: typeof Search; voci: readonly SearchHit[] }> = [
+    { titolo: 'Pratiche', icona: Luggage, voci: hits.pratiche },
     { titolo: 'Clienti', icona: Users, voci: hits.clienti },
     { titolo: 'Passeggeri', icona: UsersRound, voci: hits.passeggeri },
     { titolo: 'Fornitori', icona: Truck, voci: hits.fornitori },
@@ -141,7 +158,7 @@ export function CommandPalette({
                 <Command.Input
                   value={term}
                   onValueChange={setTerm}
-                  placeholder="Cerca un cliente, un passeggero, un fornitore o un comando..."
+                  placeholder="Cerca una pratica, un cliente, un fornitore o un comando..."
                   className="h-11 w-full bg-transparent text-body text-text outline-none placeholder:text-text-subtle"
                 />
                 <Kbd>esc</Kbd>

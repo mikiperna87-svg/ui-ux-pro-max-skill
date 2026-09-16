@@ -371,6 +371,7 @@ export interface ServiceSummary {
   readonly total_price_cents: number
   readonly commission_cents: number
   readonly booking_code: string | null
+  readonly booking_id: string | null
 }
 
 export async function getSupplierDetail(id: string): Promise<SupplierDetail | null> {
@@ -428,6 +429,7 @@ export async function getSupplierDetail(id: string): Promise<SupplierDetail | nu
       total_price_cents: toCents(service.total_price_cents, 'prezzo del servizio'),
       commission_cents: toCents(service.commission_cents, 'commissione'),
       booking_code: byBooking.get(service.booking_id) ?? null,
+      booking_id: service.booking_id,
     })),
   }
 }

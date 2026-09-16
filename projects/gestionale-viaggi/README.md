@@ -8,11 +8,12 @@ Il cuore dell'applicazione è la **pratica di viaggio**: un contenitore che lega
 cliente, passeggeri, servizi acquistati, costi fornitore, ricavi, incassi,
 documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 
-> **Stato: fasi 1 e 2 di 9 completate** (fondamenta e anagrafiche). Le sezioni
-> consegnate sono autenticazione, ruoli, panoramica, impostazioni, clienti,
-> passeggeri e fornitori. La roadmap completa è in fondo a questo file; il
-> registro delle scelte tecniche è in [DECISIONI.md](./DECISIONI.md), la guida
-> per il personale in [MANUALE.md](./MANUALE.md).
+> **Stato: fasi 1, 2 e 3 di 9 completate** (fondamenta, anagrafiche, pratiche).
+> Le sezioni consegnate sono autenticazione, ruoli, panoramica, impostazioni,
+> clienti, passeggeri, fornitori e **pratiche di viaggio**. La roadmap completa
+> è in fondo a questo file; il registro delle scelte tecniche è in
+> [DECISIONI.md](./DECISIONI.md), la guida per il personale in
+> [MANUALE.md](./MANUALE.md).
 
 ---
 
@@ -23,13 +24,14 @@ documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 | **Accesso** | Password o link via email, recupero password, uscita da tutti i dispositivi, limitazione dei tentativi |
 | **Panoramica** | Venduto, margine, da incassare, da pagare ai fornitori · andamento mensile · partenze imminenti · scadenze fornitore · registro attività |
 | **Impostazioni** | Dati fiscali dell'agenzia, utenti e ruoli, parametri delle scadenze, numerazioni, visibilità dei margini |
+| **Pratiche** | Il cuore del gestionale: elenco con ricerca (anche per cognome del cliente), filtri per stato, pagamento, periodo, tipo di vendita e operatore, viste salvate, esportazione · scheda a sei schede con barra laterale sempre visibile di venduto, costi, commissioni, margine, incassato e residuo · righe di servizio con IVA di riga in chiaro (compreso l'art. 74-ter) · conferma che genera acconto, saldo e controllo documenti · annullamento con motivo e penale · documenti allegati in deposito privato |
 | **Clienti** | Elenco con ricerca insensibile ad accenti e maiuscole, filtri, ordinamento, colonne configurabili, selezione multipla, esportazione CSV e importazione guidata · scheda con valore generato, margine, viaggi, passeggeri, consensi e cronologia · esportazione e anonimizzazione GDPR |
 | **Passeggeri** | Anagrafica separata dai clienti, con documento di viaggio, scadenze e filtro su chi non è in regola |
 | **Fornitori** | Tipo, condizioni di pagamento, commissione predefinita, regime IVA, IBAN · acquistato, margine generato, da pagare e prossima scadenza · disattivazione senza perdita dello storico |
 
-Il database contiene già l'intero modello dati (pratiche, preventivi, servizi,
-incassi, piani rateali, fatture, documenti, task, audit) con le relative policy
-di sicurezza: le fasi successive aggiungono le interfacce, non lo schema.
+Il database contiene già l'intero modello dati (preventivi, incassi, piani
+rateali, fatture, documenti, task, audit) con le relative policy di sicurezza:
+le fasi successive aggiungono le interfacce, non lo schema.
 
 ## Stack
 
@@ -101,14 +103,14 @@ Per lavorare offline (o dove Docker non è disponibile) il progetto include un
 servizio che espone la stessa superficie HTTP di Supabase.
 
 ```bash
-# 1. Postgres locale (una volta)
+# 1. Postgres locale (una volta sola)
 initdb -D .postgres && pg_ctl -D .postgres -o "-p 54329" start
 
-# 2. Migrazioni + seed su quel database
-npm run db:reset
+# 2. Postgres + banco di prova, se sono spenti
+npm run dev:stack
 
-# 3. Banco di prova (autenticazione + REST) su http://127.0.0.1:54321
-npm run dev:api
+# 3. Migrazioni + seed su quel database
+npm run db:reset
 
 # 4. Applicazione, con .env.local che punta a 127.0.0.1:54321
 npm run dev
@@ -118,7 +120,13 @@ Il banco di prova (`supabase/testing/local-api.mjs`) **non fa parte del
 prodotto** e non viene distribuito: serve a sviluppare e a eseguire i test.
 Esegue ogni richiesta con `set local role authenticated` e i claim JWT sulla
 connessione, esattamente come PostgREST, quindi le policy RLS che si
-attraversano sono quelle vere.
+attraversano sono quelle vere. Espone anche lo storage dei documenti, con la
+stessa regola di accesso della produzione: la prima cartella del percorso è
+l'agenzia.
+
+Due variabili lo governano quando serve: `LOCAL_API_POOL` (connessioni al
+database, 60 di default) e `LOCAL_API_LOG=1` (traccia ogni richiesta con la sua
+durata, utile quando un test si blocca).
 
 ---
 
@@ -135,9 +143,18 @@ attraversano sono quelle vere.
 | `npm run db:reset` | Ricrea da zero il database locale con migrazioni e seed |
 | `npm run db:types` | Rigenera `src/lib/database.types.ts` dallo schema |
 | `npm run dev:api` | Banco di prova Supabase per lo sviluppo locale |
+| `npm run dev:stack` | Accende Postgres e il banco di prova se sono spenti |
+| `npm run start:e2e` | Server di produzione con i limiti di accesso alzati |
 
 Dopo ogni migrazione va rigenerato il file dei tipi: così un campo rinominato
 rompe la compilazione invece della produzione.
+
+`npm run test:e2e` accende da sé il server con i limiti giusti. Se invece si
+punta la suite a un server già acceso (`E2E_BASE_URL=...`), quel server va
+avviato con `npm run start:e2e`: centoquaranta test che entrano con le stesse
+tre email dallo stesso indirizzo superano di slancio il limite di otto accessi
+ogni cinque minuti, e i fallimenti raccontano il limitatore invece del
+prodotto.
 
 ---
 
@@ -157,7 +174,7 @@ src/
 │   ├── forms/               messaggi, invio, avviso sulle modifiche non salvate
 │   ├── domain/              componenti che conoscono il dominio (badge di stato)
 │   └── dashboard/           indicatori e grafico della panoramica
-├── lib/                     denaro, date, ruoli, etichette, validazione, tipi DB
+├── lib/                     denaro, date, scadenze, ruoli, etichette, validazione, tipi DB
 ├── server/                  sessione, query, Server Action, limitazione richieste
 └── middleware.ts            rinnovo sessione e protezione delle rotte
 
@@ -205,7 +222,7 @@ tests/
 | --- | --- | --- |
 | 1 | Fondamenta: design system, layout, Supabase, migrazioni, auth, ruoli, RLS, seed | **completata** |
 | 2 | Anagrafiche: clienti, passeggeri, fornitori (CRUD, ricerca, import CSV) | **completata** |
-| 3 | Pratiche: righe di servizio, margine, stati, documenti, cronologia | da fare |
+| 3 | Pratiche: righe di servizio, margine, stati, documenti, cronologia | **completata** |
 | 4 | Incassi e scadenze: piani rateali, pagamenti fornitore, scadenzario, alert | da fare |
 | 5 | Preventivi: varianti, PDF, invio, accettazione online, conversione | da fare |
 | 6 | Amministrazione: fatture, note di credito, 74-ter, registri, export | da fare |

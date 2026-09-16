@@ -60,14 +60,20 @@ export async function asUser<T>(
   }
 }
 
-/** Prepara la seconda agenzia e l'utente in sola lettura usati dai test di isolamento. */
+/**
+ * Prepara la seconda agenzia e l'utente in sola lettura usati dai test di
+ * isolamento.
+ *
+ * È idempotente e protetta da un lucchetto consultivo: i file di test girano in
+ * parallelo e preparerebbero le stesse righe nello stesso istante. La versione
+ * precedente cancellava e reinseriva, e due file partiti insieme si toglievano
+ * le fixture da sotto i piedi.
+ */
 export async function seedTenants(): Promise<void> {
   const client = await adminClient()
   try {
+    await client.query('select pg_advisory_lock(918273645)')
     await client.query(`
-      delete from public.agencies where id = '${AGENCY_B}';
-      delete from auth.users where id in ('${USER_B_OWNER}', '${USER_A_READONLY}');
-
       insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
                               raw_app_meta_data, raw_user_meta_data)
       values
@@ -76,24 +82,33 @@ export async function seedTenants(): Promise<void> {
          '{"provider":"email"}'::jsonb, '{"full_name":"Rocco Esposito"}'::jsonb),
         ('00000000-0000-0000-0000-000000000000', '${USER_A_READONLY}', 'authenticated', 'authenticated',
          'revisore@orizzontiviaggi.it', crypt('Gestionale2026!', gen_salt('bf')), now(),
-         '{"provider":"email"}'::jsonb, '{"full_name":"Enrico Pavan"}'::jsonb);
+         '{"provider":"email"}'::jsonb, '{"full_name":"Enrico Pavan"}'::jsonb)
+      on conflict (id) do nothing;
 
       insert into public.agencies (id, name, legal_name, vat_number, city, province, email, created_by)
       values ('${AGENCY_B}', 'Viaggi del Sud', 'Viaggi del Sud S.r.l.', 'IT07788990724',
-              'Bari', 'BA', 'info@viaggidelsud.it', '${USER_B_OWNER}');
+              'Bari', 'BA', 'info@viaggidelsud.it', '${USER_B_OWNER}')
+      on conflict (id) do nothing;
 
       insert into public.agency_settings (agency_id, created_by)
-      values ('${AGENCY_B}', '${USER_B_OWNER}');
+      values ('${AGENCY_B}', '${USER_B_OWNER}')
+      on conflict (agency_id) do nothing;
 
       insert into public.memberships (agency_id, user_id, role, full_name, email, created_by)
       values
         ('${AGENCY_B}', '${USER_B_OWNER}', 'titolare', 'Rocco Esposito', 'titolare@viaggidelsud.it', '${USER_B_OWNER}'),
-        ('${AGENCY_A}', '${USER_A_READONLY}', 'sola_lettura', 'Enrico Pavan', 'revisore@orizzontiviaggi.it', '${USER_A_OWNER}');
+        ('${AGENCY_A}', '${USER_A_READONLY}', 'sola_lettura', 'Enrico Pavan', 'revisore@orizzontiviaggi.it', '${USER_A_OWNER}')
+      on conflict (agency_id, user_id) do nothing;
 
       insert into public.customers (agency_id, kind, first_name, last_name, email, created_by)
-      values ('${AGENCY_B}', 'privato', 'Nicola', 'Palumbo', 'nicola.palumbo@example.it', '${USER_B_OWNER}');
+      select '${AGENCY_B}', 'privato', 'Nicola', 'Palumbo', 'nicola.palumbo@example.it', '${USER_B_OWNER}'
+      where not exists (
+        select 1 from public.customers
+        where agency_id = '${AGENCY_B}' and email = 'nicola.palumbo@example.it'
+      );
     `)
   } finally {
+    await client.query('select pg_advisory_unlock(918273645)').catch(() => undefined)
     await client.end()
   }
 }

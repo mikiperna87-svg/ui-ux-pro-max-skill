@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:e2e": "LIMITE_ACCESSO=500 LIMITE_MAGIC_LINK=500 LIMITE_RECUPERO=500 LIMITE_REGISTRAZIONE=500 next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -16,7 +17,8 @@
     "db:apply": "node scripts/db-apply.mjs",
     "db:reset": "node scripts/db-apply.mjs --reset --shim --seed",
     "db:types": "node scripts/gen-types.mjs",
-    "dev:api": "node supabase/testing/local-api.mjs"
+    "dev:api": "node supabase/testing/local-api.mjs",
+    "dev:stack": "node scripts/dev-stack.mjs"
   },
   "dependencies": {
     "@date-fns/tz": "1.5.0",

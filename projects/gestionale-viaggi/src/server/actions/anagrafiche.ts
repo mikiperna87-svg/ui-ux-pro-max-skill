@@ -20,6 +20,17 @@ import type { Enums, TablesInsert } from '@/lib/database.types'
 
 const MAX_IMPORT_ROWS = 2000
 
+/**
+ * Una Server Action è un endpoint HTTP: gli argomenti arrivano dalla rete e
+ * possono essere qualunque cosa, non solo quello che il nostro componente
+ * passa. Gli identificativi si controllano prima di toccare il database.
+ */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isUuid(value: unknown): value is string {
+  return typeof value === 'string' && UUID.test(value)
+}
+
 function formObject(formData: FormData): Record<string, FormDataEntryValue> {
   const entries: Record<string, FormDataEntryValue> = {}
   for (const [key, value] of formData.entries()) entries[key] = value
@@ -141,6 +152,9 @@ export async function saveCustomerAction(
 
 export async function deleteCustomersAction(ids: readonly string[]): Promise<ActionState> {
   const session = await requirePermission('write')
+  if (Array.isArray(ids) && !ids.every(isUuid)) {
+    return { status: 'error', message: 'Selezione non valida.' }
+  }
   if (ids.length === 0) return { status: 'error', message: 'Nessun cliente selezionato.' }
 
   const supabase = await createClient()
@@ -192,6 +206,7 @@ export async function deleteCustomersAction(ids: readonly string[]): Promise<Act
 
 export async function anonymizeCustomerAction(id: string): Promise<ActionState> {
   const session = await requirePermission('accounting')
+  if (!isUuid(id)) return { status: 'error', message: 'Cliente non valido.' }
   const supabase = await createClient()
 
   const { error } = await supabase.rpc('anonymize_customer', { p_customer_id: id })
@@ -267,6 +282,9 @@ export async function savePassengerAction(
 
 export async function deletePassengersAction(ids: readonly string[]): Promise<ActionState> {
   const session = await requirePermission('write')
+  if (Array.isArray(ids) && !ids.every(isUuid)) {
+    return { status: 'error', message: 'Selezione non valida.' }
+  }
   if (ids.length === 0) return { status: 'error', message: 'Nessun passeggero selezionato.' }
 
   const supabase = await createClient()
@@ -383,6 +401,9 @@ export async function saveSupplierAction(
 
 export async function deleteSuppliersAction(ids: readonly string[]): Promise<ActionState> {
   const session = await requirePermission('write')
+  if (Array.isArray(ids) && !ids.every(isUuid)) {
+    return { status: 'error', message: 'Selezione non valida.' }
+  }
   if (ids.length === 0) return { status: 'error', message: 'Nessun fornitore selezionato.' }
 
   const supabase = await createClient()
@@ -419,6 +440,9 @@ export async function deleteSuppliersAction(ids: readonly string[]): Promise<Act
 
 export async function toggleSupplierActiveAction(id: string, active: boolean): Promise<ActionState> {
   const session = await requirePermission('write')
+  if (!isUuid(id) || typeof active !== 'boolean') {
+    return { status: 'error', message: 'Fornitore non valido.' }
+  }
   const supabase = await createClient()
 
   const { error } = await supabase

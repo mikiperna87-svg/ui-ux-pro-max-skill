@@ -13,7 +13,9 @@
  *   node supabase/testing/local-api.mjs
  */
 import crypto from 'node:crypto'
+import fs from 'node:fs/promises'
 import http from 'node:http'
+import path from 'node:path'
 import pg from 'pg'
 
 const PORT = Number(process.env.LOCAL_API_PORT ?? 54321)
@@ -21,12 +23,23 @@ const CONNECTION =
   process.env.DATABASE_URL ?? 'postgresql://postgres@localhost:54329/postgres'
 const JWT_SECRET = process.env.LOCAL_API_JWT_SECRET ?? 'segreto-di-sviluppo-locale-non-usare-altrove'
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'chiave-di-servizio-di-sviluppo-locale-0000'
+// I file caricati finiscono su disco, fuori dal repository: il banco di prova
+// non deve lasciare tracce fra le sorgenti.
+const STORAGE_DIR = process.env.LOCAL_API_STORAGE ?? '/tmp/gestionale-storage'
 
 // PostgREST restituisce i bigint come numeri JSON: qui facciamo lo stesso,
 // altrimenti il banco di prova si comporterebbe diversamente dalla produzione.
 pg.types.setTypeParser(20, (value) => Number(value))
 
-const pool = new pg.Pool({ connectionString: CONNECTION, max: 24, idleTimeoutMillis: 10_000 })
+// Ogni richiesta tiene una connessione per tutta la transazione, e la scheda di
+// una pratica ne apre una decina in parallelo: con la suite end-to-end su due
+// viewport il vecchio limite di 24 faceva la coda, non il lavoro.
+const pool = new pg.Pool({
+  connectionString: CONNECTION,
+  max: Number(process.env.LOCAL_API_POOL ?? 60),
+  idleTimeoutMillis: 10_000,
+  connectionTimeoutMillis: 20_000,
+})
 const refreshTokens = new Map()
 
 // --- JWT minimale (HS256) ----------------------------------------------------
@@ -85,10 +98,79 @@ async function runAs(claims, work) {
 // --- Traduzione delle query PostgREST ----------------------------------------
 const RESERVED = new Set(['select', 'order', 'limit', 'offset', 'on_conflict', 'columns'])
 
+/**
+ * Un singolo filtro PostgREST (`colonna=op.valore`) tradotto in SQL.
+ * Restituisce null per gli operatori che non servono a questo progetto.
+ */
+function buildFilter(column, raw, values) {
+  const [operator, ...rest] = raw.split('.')
+  const operand = rest.join('.')
+  switch (operator) {
+    case 'eq':
+    case 'neq':
+    case 'gt':
+    case 'gte':
+    case 'lt':
+    case 'lte': {
+      const sqlOperator = { eq: '=', neq: '<>', gt: '>', gte: '>=', lt: '<', lte: '<=' }[operator]
+      values.push(operand)
+      return `"${column}" ${sqlOperator} $${values.length}`
+    }
+    case 'like':
+    case 'ilike': {
+      values.push(operand.replace(/\*/g, '%'))
+      return `"${column}"::text ${operator} $${values.length}`
+    }
+    case 'is':
+      return `"${column}" is ${operand === 'null' ? 'null' : operand}`
+    default:
+      return null
+  }
+}
+
+/**
+ * `or=(a.ilike.*x*,b.ilike.*x*)` come lo intende PostgREST: le condizioni sono
+ * separate da virgole al primo livello di parentesi.
+ */
+function splitConditions(text) {
+  const parti = []
+  let livello = 0
+  let corrente = ''
+  for (const carattere of text) {
+    if (carattere === '(') livello += 1
+    if (carattere === ')') livello -= 1
+    if (carattere === ',' && livello === 0) {
+      parti.push(corrente)
+      corrente = ''
+      continue
+    }
+    corrente += carattere
+  }
+  if (corrente.trim() !== '') parti.push(corrente)
+  return parti.map((parte) => parte.trim()).filter(Boolean)
+}
+
 function buildFilters(params, values) {
   const clauses = []
   for (const [column, raw] of params) {
     if (RESERVED.has(column)) continue
+
+    // or=(...) e and=(...): l'applicazione li usa per la ricerca su piu' colonne.
+    if (column === 'or' || column === 'and') {
+      const interno = raw.replace(/^\(|\)$/g, '')
+      const pezzi = splitConditions(interno)
+        .map((condizione) => {
+          const separatore = condizione.indexOf('.')
+          const nome = condizione.slice(0, separatore)
+          return buildFilter(nome, condizione.slice(separatore + 1), values)
+        })
+        .filter(Boolean)
+      if (pezzi.length > 0) {
+        clauses.push(`(${pezzi.join(column === 'or' ? ' or ' : ' and ')})`)
+      }
+      continue
+    }
+
     const [operator, ...rest] = raw.split('.')
     const operand = rest.join('.')
     switch (operator) {
@@ -152,6 +234,9 @@ function buildOrder(params) {
 async function handleRest(request, response, url, claims, body) {
   const [, , , resource, ...extra] = url.pathname.split('/')
   const params = url.searchParams
+
+  // /rest/v1/ senza tabella: è il controllo di salute, non una query.
+  if (!resource) return sendJson(response, 200, { message: 'Banco di prova attivo' }, request)
 
   if (resource === 'rpc') {
     const fn = extra[0]
@@ -403,6 +488,104 @@ async function handleAuth(request, response, url, body) {
 }
 
 // --- Server -------------------------------------------------------------------
+// --- Storage (bucket privato dei documenti) ----------------------------------
+/**
+ * Stessa superficie HTTP dello Storage di Supabase, con la stessa regola di
+ * accesso: la prima cartella del percorso e' l'agenzia, e si puo' toccare solo
+ * se l'utente ne fa parte. E' la traduzione in JavaScript della policy SQL su
+ * storage.objects, cosi' un errore di percorso si vede qui come in produzione.
+ */
+async function agencyIdsOf(claims) {
+  if (!claims?.sub) return []
+  const result = await pool.query('select agency_id from public.memberships where user_id = $1 and deleted_at is null', [
+    claims.sub,
+  ])
+  return result.rows.map((row) => row.agency_id)
+}
+
+function storagePathOf(bucket, objectPath) {
+  // path.normalize impedisce che un ".." risalga fuori dalla cartella.
+  const pulito = path.normalize(objectPath).replace(/^(\.\.(\/|\\|$))+/, '')
+  return path.join(STORAGE_DIR, bucket, pulito)
+}
+
+async function handleStorage(request, response, url, claims, rawBody) {
+  const resto = url.pathname.replace('/storage/v1', '')
+
+  // Firma di un collegamento temporaneo: POST /object/sign/<bucket>/<path>
+  if (request.method === 'POST' && resto.startsWith('/object/sign/')) {
+    const [bucket, ...pezzi] = resto.replace('/object/sign/', '').split('/')
+    const objectPath = pezzi.join('/')
+    const agenzie = await agencyIdsOf(claims)
+    if (!agenzie.includes(objectPath.split('/')[0])) {
+      return sendJson(response, 403, { message: 'Accesso negato al documento' }, request)
+    }
+    let scadenza = 300
+    try {
+      scadenza = JSON.parse(rawBody.toString('utf8')).expiresIn ?? 300
+    } catch {
+      scadenza = 300
+    }
+    const token = signJwt({ url: `${bucket}/${objectPath}`, exp: Math.floor(Date.now() / 1000) + scadenza })
+    return sendJson(
+      response,
+      200,
+      { signedURL: `/object/sign/${bucket}/${objectPath}?token=${token}` },
+      request,
+    )
+  }
+
+  // Lettura con collegamento firmato: GET /object/sign/<bucket>/<path>?token=
+  if (request.method === 'GET' && resto.startsWith('/object/sign/')) {
+    const [bucket, ...pezzi] = resto.replace('/object/sign/', '').split('/')
+    const objectPath = pezzi.join('/')
+    const payload = verifyJwt(url.searchParams.get('token') ?? '')
+    if (!payload || payload.url !== `${bucket}/${objectPath}`) {
+      return sendJson(response, 401, { message: 'Collegamento scaduto o non valido' }, request)
+    }
+    try {
+      const contenuto = await fs.readFile(storagePathOf(bucket, objectPath))
+      response.writeHead(200, { 'content-type': 'application/octet-stream' })
+      return response.end(contenuto)
+    } catch {
+      return sendJson(response, 404, { message: 'File non trovato' }, request)
+    }
+  }
+
+  // Caricamento: POST /object/<bucket>/<path>
+  if ((request.method === 'POST' || request.method === 'PUT') && resto.startsWith('/object/')) {
+    const [bucket, ...pezzi] = resto.replace('/object/', '').split('/')
+    const objectPath = pezzi.join('/')
+    const agenzie = await agencyIdsOf(claims)
+    if (!agenzie.includes(objectPath.split('/')[0])) {
+      return sendJson(response, 403, { message: 'Accesso negato al documento' }, request)
+    }
+    const destinazione = storagePathOf(bucket, objectPath)
+    await fs.mkdir(path.dirname(destinazione), { recursive: true })
+    await fs.writeFile(destinazione, rawBody)
+    return sendJson(response, 200, { Id: objectPath, Key: `${bucket}/${objectPath}` }, request)
+  }
+
+  // Eliminazione: DELETE /object/<bucket> con { prefixes: [...] }
+  if (request.method === 'DELETE' && resto.startsWith('/object/')) {
+    const bucket = resto.replace('/object/', '').split('/')[0]
+    const agenzie = await agencyIdsOf(claims)
+    let prefissi = []
+    try {
+      prefissi = JSON.parse(rawBody.toString('utf8')).prefixes ?? []
+    } catch {
+      prefissi = []
+    }
+    for (const prefisso of prefissi) {
+      if (!agenzie.includes(String(prefisso).split('/')[0])) continue
+      await fs.rm(storagePathOf(bucket, prefisso), { force: true })
+    }
+    return sendJson(response, 200, prefissi.map((name) => ({ name })), request)
+  }
+
+  return sendJson(response, 404, { message: 'Percorso storage sconosciuto' }, request)
+}
+
 function sendJson(response, status, payload, request, headers = {}) {
   const origin = request?.headers?.origin ?? '*'
   response.writeHead(status, {
@@ -424,12 +607,27 @@ function claimsFrom(request) {
   return verifyJwt(token) ?? { role: 'anon' }
 }
 
+// Traccia opzionale delle richieste: LOCAL_API_LOG=1 per accenderla.
+const TRACCIA = process.env.LOCAL_API_LOG === '1'
+
 const server = http.createServer((request, response) => {
+  const inizio = Date.now()
+  if (TRACCIA) {
+    response.on('finish', () => {
+      console.log(`${request.method} ${request.url.slice(0, 120)} → ${response.statusCode} ${Date.now() - inizio}ms`)
+    })
+    response.on('close', () => {
+      if (!response.writableEnded) {
+        console.log(`${request.method} ${request.url.slice(0, 120)} → CHIUSA SENZA RISPOSTA ${Date.now() - inizio}ms`)
+      }
+    })
+  }
   const chunks = []
   request.on('data', (chunk) => chunks.push(chunk))
   request.on('end', async () => {
     const url = new URL(request.url, `http://127.0.0.1:${PORT}`)
-    const raw = Buffer.concat(chunks).toString('utf8')
+    const rawBuffer = Buffer.concat(chunks)
+    const raw = url.pathname.startsWith('/storage/v1') ? '' : rawBuffer.toString('utf8')
     let body = null
     if (raw) {
       try {
@@ -443,6 +641,9 @@ const server = http.createServer((request, response) => {
 
     try {
       if (url.pathname.startsWith('/auth/v1')) return await handleAuth(request, response, url, body)
+      if (url.pathname.startsWith('/storage/v1')) {
+        return await handleStorage(request, response, url, claimsFrom(request), rawBuffer)
+      }
       if (url.pathname.startsWith('/rest/v1')) {
         return await handleRest(request, response, url, claimsFrom(request), body)
       }

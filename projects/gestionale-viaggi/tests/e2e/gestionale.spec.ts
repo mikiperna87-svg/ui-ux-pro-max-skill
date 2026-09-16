@@ -61,6 +61,12 @@ test.describe('Panoramica', () => {
 
   test('il periodo si può cambiare e resta nell’indirizzo', async ({ page }) => {
     await accedi(page, 'titolare')
+
+    // La panoramica arriva in streaming: cliccare mentre i riquadri si stanno
+    // ancora riempiendo significa chiedere al router una navigazione che non
+    // ha ancora di che partire.
+    await expect(indicatori(page).getByText('Venduto', { exact: true })).toBeVisible()
+
     await page.getByRole('link', { name: '90 giorni' }).click()
     await expect(page).toHaveURL(/periodo=90/)
     await expect(page.getByRole('link', { name: '90 giorni' })).toHaveAttribute('aria-current', 'true')

@@ -53,3 +53,34 @@ describe('file "use server"', () => {
     expect(offenders, 'Sposta questi export fuori dal file "use server"').toEqual([])
   })
 })
+
+describe('argomenti delle Server Action', () => {
+  it('ogni azione che riceve un identificativo lo verifica', async () => {
+    // Una Server Action è un endpoint HTTP: chiunque può chiamarla con quello
+    // che vuole. Chi accetta un uuid deve controllarlo, non fidarsi del tipo
+    // TypeScript, che a runtime non esiste più.
+    const file = await readFile(path.join(ACTIONS_DIR, 'pratiche.ts'), 'utf8')
+    const azioniConId = [
+      'confirmBookingAction',
+      'updateBookingStatusAction',
+      'deleteBookingServiceAction',
+      'removeBookingPassengerAction',
+      'deleteViewAction',
+    ]
+
+    for (const azione of azioniConId) {
+      const inizio = file.indexOf(`export async function ${azione}`)
+      expect(inizio, `${azione} non trovata`).toBeGreaterThan(-1)
+      const corpo = file.slice(inizio, inizio + 900)
+      expect(corpo, `${azione} non controlla i suoi argomenti`).toMatch(/isUuid|STATI_AMMESSI/)
+    }
+  })
+
+  it('lo stato della pratica non si può portare ad "annullata" da un comando diretto', async () => {
+    // L'annullamento pretende un motivo e passa da cancel_booking.
+    const file = await readFile(path.join(ACTIONS_DIR, 'pratiche.ts'), 'utf8')
+    const elenco = file.match(/const STATI_AMMESSI = \[([^\]]+)\]/)?.[1] ?? ''
+    expect(elenco).not.toContain('annullata')
+    expect(elenco).toContain('confermata')
+  })
+})

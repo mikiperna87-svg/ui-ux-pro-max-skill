@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { StatoNavigazione } from '@/components/layout/stato-navigazione'
 import { NAV_ITEMS, visibleNavItems } from '@/lib/navigation'
 import type { Role } from '@/lib/roles'
 import { cn } from '@/lib/utils'
@@ -43,6 +44,7 @@ export function SidebarNav({
               aria-hidden="true"
             />
             {collapsed ? <span className="sr-only">{item.label}</span> : <span className="truncate">{item.label}</span>}
+            <StatoNavigazione className={collapsed ? 'absolute right-1 top-1' : undefined} />
           </Link>
         )
       })}

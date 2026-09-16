@@ -383,13 +383,14 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          search_text: string | null
         }
         Insert: {
           id?: string
           agency_id: string
-          year: number
-          number: number
-          code: string
+          year?: number
+          number?: number
+          code?: string
           customer_id: string
           owner_id?: string | null
           quote_id?: string | null
@@ -801,9 +802,9 @@ export interface Database {
           id?: string
           agency_id: string
           kind?: Enums['invoice_kind']
-          year: number
-          number: number
-          code: string
+          year?: number
+          number?: number
+          code?: string
           customer_id: string
           booking_id?: string | null
           credit_note_of?: string | null
@@ -1231,9 +1232,9 @@ export interface Database {
         Insert: {
           id?: string
           agency_id: string
-          year: number
-          number: number
-          code: string
+          year?: number
+          number?: number
+          code?: string
           customer_id?: string | null
           owner_id?: string | null
           title: string
@@ -1314,6 +1315,51 @@ export interface Database {
           window_start?: string
           hits?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_views: {
+        Row: {
+          id: string
+          agency_id: string
+          membership_id: string | null
+          entity: string
+          name: string
+          query: string
+          is_default: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          agency_id: string
+          membership_id?: string | null
+          entity: string
+          name: string
+          query?: string
+          is_default?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          agency_id?: string
+          membership_id?: string | null
+          entity?: string
+          name?: string
+          query?: string
+          is_default?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
         }
         Relationships: []
       }
@@ -1492,6 +1538,72 @@ export interface Database {
         }
         Relationships: []
       }
+      booking_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          code: string | null
+          year: number | null
+          number: number | null
+          title: string | null
+          destination: string | null
+          country: string | null
+          departure_date: string | null
+          return_date: string | null
+          pax_count: number | null
+          status: Enums['booking_status'] | null
+          sale_type: Enums['sale_type'] | null
+          customer_id: string | null
+          customer_name: string | null
+          owner_id: string | null
+          owner_name: string | null
+          quote_id: string | null
+          confirmed_at: string | null
+          cancelled_at: string | null
+          created_at: string | null
+          created_by: string | null
+          search_text: string | null
+          customer_search: string | null
+          revenue_cents: number | null
+          cost_cents: number | null
+          commission_cents: number | null
+          margin_cents: number | null
+          margin_bps: number | null
+          paid_cents: number | null
+          balance_cents: number | null
+          supplier_due_cents: number | null
+          next_due_date: string | null
+          payment_state: Enums['payment_state'] | null
+          services_count: number | null
+          passengers_count: number | null
+          documents_count: number | null
+        }
+        Relationships: []
+      }
+      booking_passenger_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          booking_id: string | null
+          passenger_id: string | null
+          role: Enums['passenger_role'] | null
+          room_label: string | null
+          seat_label: string | null
+          notes: string | null
+          first_name: string | null
+          last_name: string | null
+          full_name: string | null
+          birth_date: string | null
+          nationality: string | null
+          email: string | null
+          phone: string | null
+          document_type: Enums['id_document_type'] | null
+          document_number: string | null
+          document_expires_at: string | null
+          document_state: string | null
+        }
+        Relationships: []
+      }
       booking_service_amounts: {
         Row: {
           id: string | null
@@ -1499,6 +1611,37 @@ export interface Database {
           booking_id: string | null
           total_price_cents: number | null
           total_cost_cents: number | null
+          commission_cents: number | null
+          margin_cents: number | null
+          taxable_cents: number | null
+          vat_cents: number | null
+        }
+        Relationships: []
+      }
+      booking_service_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          booking_id: string | null
+          service_type: Enums['service_type'] | null
+          supplier_id: string | null
+          supplier_name: string | null
+          description: string | null
+          details: string | null
+          confirmation_code: string | null
+          date_from: string | null
+          date_to: string | null
+          quantity: number | null
+          unit_cost_cents: number | null
+          unit_price_cents: number | null
+          commission_bps: number | null
+          commission_override_cents: number | null
+          vat_bps: number | null
+          vat_regime: Enums['vat_regime'] | null
+          supplier_due_date: string | null
+          sort_order: number | null
+          total_cost_cents: number | null
+          total_price_cents: number | null
           commission_cents: number | null
           margin_cents: number | null
           taxable_cents: number | null
@@ -1651,9 +1794,17 @@ export interface Database {
         Args: { p_customer_id: string | null }
         Returns: undefined
       }
+      cancel_booking: {
+        Args: { p_booking_id: string | null; p_reason: string | null; p_penalty_cents?: number | null }
+        Returns: unknown
+      }
       check_rate_limit: {
         Args: { p_bucket: string | null; p_limit?: number | null; p_window_seconds?: number | null }
         Returns: boolean
+      }
+      confirm_booking: {
+        Args: { p_booking_id: string | null }
+        Returns: unknown
       }
       create_agency_with_owner: {
         Args: { p_agency_name: string | null; p_full_name: string | null; p_vat_number?: string | null; p_email?: string | null }

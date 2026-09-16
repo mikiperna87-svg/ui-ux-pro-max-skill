@@ -1,8 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import {
   adminClient,
   AGENCY_A,
-  AGENCY_B,
   asUser,
   seedTenants,
   USER_A_ADMIN,
@@ -20,11 +19,6 @@ beforeAll(async () => {
   await seedTenants()
 }, 60_000)
 
-afterAll(async () => {
-  const client = await adminClient()
-  await client.query(`delete from public.agencies where id = '${AGENCY_B}'`)
-  await client.end()
-})
 
 describe('ricerca normalizzata', () => {
   it('trova ignorando accenti e maiuscole', async () => {

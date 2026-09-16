@@ -259,7 +259,11 @@ export function DataTable<T>({
                               type="button"
                               onClick={() => toggleSort(header.column.id)}
                               className={cn(
-                                'inline-flex items-center gap-1 rounded transition-colors hover:text-text',
+                                // Il reset di Tailwind toglie ai bottoni il
+                                // text-transform ereditato: senza "uppercase"
+                                // le intestazioni ordinabili sarebbero scritte
+                                // diversamente dalle altre.
+                                'inline-flex items-center gap-1 rounded uppercase transition-colors hover:text-text',
                                 active && 'text-text',
                               )}
                             >

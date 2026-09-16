@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import {
   adminClient,
   AGENCY_A,
@@ -21,11 +21,6 @@ beforeAll(async () => {
   await seedTenants()
 }, 60_000)
 
-afterAll(async () => {
-  const client = await adminClient()
-  await client.query(`delete from public.agencies where id = '${AGENCY_B}'`)
-  await client.end()
-})
 
 describe('isolamento fra agenzie', () => {
   it('il titolare di A vede le pratiche di A', async () => {

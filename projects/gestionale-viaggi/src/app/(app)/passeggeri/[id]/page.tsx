@@ -203,7 +203,14 @@ export default async function PasseggeroPage({ params }: { params: Promise<{ id:
                 <TableBody>
                   {bookings.map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="num font-medium">{booking.code}</TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/pratiche/${booking.id}`}
+                          className="num font-medium text-text underline-offset-2 hover:text-accent hover:underline"
+                        >
+                          {booking.code}
+                        </Link>
+                      </TableCell>
                       <TableCell className="max-w-64 truncate">{booking.destination}</TableCell>
                       <TableCell className="num">
                         {formatDateRange(booking.departure_date, booking.return_date)}
