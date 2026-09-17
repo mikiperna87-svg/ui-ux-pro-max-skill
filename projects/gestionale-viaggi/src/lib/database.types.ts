@@ -1700,6 +1700,38 @@ export interface Database {
         }
         Relationships: []
       }
+      installment_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          plan_id: string | null
+          booking_id: string | null
+          kind: Enums['installment_kind'] | null
+          due_date: string | null
+          amount_cents: number | null
+          sort_order: number | null
+          notes: string | null
+          created_at: string | null
+          booking_code: string | null
+          booking_title: string | null
+          destination: string | null
+          departure_date: string | null
+          booking_status: Enums['booking_status'] | null
+          owner_id: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_email: string | null
+          customer_phone: string | null
+          booking_search: string | null
+          customer_search: string | null
+          covered_cents: number | null
+          residual_cents: number | null
+          state: string | null
+          is_late: boolean | null
+          days_late: number | null
+        }
+        Relationships: []
+      }
       passenger_documents: {
         Row: {
           passenger_id: string | null
@@ -1735,6 +1767,68 @@ export interface Database {
           days_to_expiry: number | null
           next_return_date: string | null
           bookings_count: number | null
+        }
+        Relationships: []
+      }
+      payment_in_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          booking_id: string | null
+          installment_id: string | null
+          invoice_id: string | null
+          customer_id: string | null
+          kind: Enums['payment_in_kind'] | null
+          method: Enums['payment_method'] | null
+          amount_cents: number | null
+          paid_at: string | null
+          reference: string | null
+          notes: string | null
+          created_at: string | null
+          created_by: string | null
+          booking_code: string | null
+          booking_title: string | null
+          destination: string | null
+          booking_status: Enums['booking_status'] | null
+          owner_id: string | null
+          customer_name: string | null
+          installment_kind: Enums['installment_kind'] | null
+          installment_due_date: string | null
+          booking_search: string | null
+          customer_search: string | null
+        }
+        Relationships: []
+      }
+      payout_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          booking_id: string | null
+          booking_service_id: string | null
+          supplier_id: string | null
+          amount_cents: number | null
+          due_date: string | null
+          paid_at: string | null
+          status: Enums['payout_status'] | null
+          method: Enums['payment_method'] | null
+          reference: string | null
+          supplier_invoice_number: string | null
+          notes: string | null
+          created_at: string | null
+          supplier_name: string | null
+          supplier_iban: string | null
+          booking_code: string | null
+          booking_title: string | null
+          destination: string | null
+          departure_date: string | null
+          booking_status: Enums['booking_status'] | null
+          owner_id: string | null
+          service_description: string | null
+          service_type: Enums['service_type'] | null
+          is_late: boolean | null
+          days_late: number | null
+          booking_search: string | null
+          supplier_search: string | null
         }
         Relationships: []
       }
@@ -1830,6 +1924,18 @@ export interface Database {
         Args: { p_older_than_hours?: number | null }
         Returns: number
       }
+      record_payment_in: {
+        Args: { p_booking_id: string | null; p_amount_cents: number | null; p_paid_at: string | null; p_kind: Enums['payment_in_kind'] | null; p_method: Enums['payment_method'] | null; p_installment_id?: string | null; p_reference?: string | null; p_notes?: string | null; p_idempotency_key?: string | null }
+        Returns: unknown
+      }
+      set_payout_status: {
+        Args: { p_payout_id: string | null; p_status: Enums['payout_status'] | null; p_paid_at?: string | null; p_method?: Enums['payment_method'] | null; p_reference?: string | null; p_supplier_invoice_number?: string | null }
+        Returns: unknown
+      }
+      sync_booking_payouts: {
+        Args: { p_booking_id: string | null }
+        Returns: number
+      }
       upcoming_departures: {
         Args: { p_days?: number | null; p_limit?: number | null; p_owner_id?: string | null }
         Returns: { booking_id: string | null; code: string | null; title: string | null; destination: string | null; departure_date: string | null; return_date: string | null; pax_count: number | null; status: Enums['booking_status'] | null; customer_name: string | null; owner_name: string | null; revenue_cents: number | null; balance_cents: number | null; payment_state: Enums['payment_state'] | null }[]
@@ -1837,6 +1943,10 @@ export interface Database {
       upcoming_supplier_payments: {
         Args: { p_days?: number | null; p_limit?: number | null }
         Returns: { payment_id: string | null; supplier_name: string | null; booking_code: string | null; amount_cents: number | null; due_date: string | null; status: Enums['payout_status'] | null; days_left: number | null }[]
+      }
+      void_payment_in: {
+        Args: { p_payment_id: string | null; p_reason: string | null }
+        Returns: unknown
       }
     }
     Enums: Enums

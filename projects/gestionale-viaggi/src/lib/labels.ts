@@ -24,6 +24,24 @@ export const PAYOUT_STATUS: Record<Enums['payout_status'], { label: string; tone
   stornato: { label: 'Stornato', tone: 'neutral' },
 }
 
+/**
+ * Stato di una scadenza verso il cliente, com'è calcolato dalla vista
+ * `installment_list` e da `attribuisciIncassi()`. Non è un enum del database:
+ * nasce dall'incrocio fra la rata e gli incassi già attribuiti.
+ */
+export type InstallmentState = 'saldata' | 'parziale' | 'scaduta' | 'attesa'
+
+export const INSTALLMENT_STATE: Record<InstallmentState, { label: string; tone: Tone }> = {
+  saldata: { label: 'Saldata', tone: 'success' },
+  parziale: { label: 'Parziale', tone: 'info' },
+  scaduta: { label: 'Scaduta', tone: 'danger' },
+  attesa: { label: 'Da incassare', tone: 'neutral' },
+}
+
+export function isInstallmentState(value: string | null | undefined): value is InstallmentState {
+  return value === 'saldata' || value === 'parziale' || value === 'scaduta' || value === 'attesa'
+}
+
 export const TASK_STATUS: Record<Enums['task_status'], { label: string; tone: Tone }> = {
   aperto: { label: 'Aperto', tone: 'warning' },
   in_corso: { label: 'In corso', tone: 'info' },

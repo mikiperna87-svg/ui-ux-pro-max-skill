@@ -15,17 +15,18 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 2. [Che cosa vedi appena entri](#2-che-cosa-vedi-appena-entri)
 3. [Muoversi velocemente](#3-muoversi-velocemente)
 4. [Le pratiche di viaggio](#4-le-pratiche-di-viaggio)
-5. [I clienti](#5-i-clienti)
-6. [I passeggeri](#6-i-passeggeri)
-7. [I fornitori](#7-i-fornitori)
-8. [Importare ed esportare gli elenchi](#8-importare-ed-esportare-gli-elenchi)
-9. [Chi vede che cosa: i quattro ruoli](#9-chi-vede-che-cosa-i-quattro-ruoli)
-10. [Impostazioni dell'agenzia](#10-impostazioni-dellagenzia)
-11. [Invitare un collaboratore](#11-invitare-un-collaboratore)
-12. [I parametri che governano le scadenze](#12-i-parametri-che-governano-le-scadenze)
-13. [Le numerazioni](#13-le-numerazioni)
-14. [Aspetto e accessibilità](#14-aspetto-e-accessibilità)
-15. [Domande frequenti](#15-domande-frequenti)
+5. [Incassi, scadenze e pagamenti](#5-incassi-scadenze-e-pagamenti)
+6. [I clienti](#6-i-clienti)
+7. [I passeggeri](#7-i-passeggeri)
+8. [I fornitori](#8-i-fornitori)
+9. [Importare ed esportare gli elenchi](#9-importare-ed-esportare-gli-elenchi)
+10. [Chi vede che cosa: i quattro ruoli](#10-chi-vede-che-cosa-i-quattro-ruoli)
+11. [Impostazioni dell'agenzia](#11-impostazioni-dellagenzia)
+12. [Invitare un collaboratore](#12-invitare-un-collaboratore)
+13. [I parametri che governano le scadenze](#13-i-parametri-che-governano-le-scadenze)
+14. [Le numerazioni](#14-le-numerazioni)
+15. [Aspetto e accessibilità](#15-aspetto-e-accessibilità)
+16. [Domande frequenti](#16-domande-frequenti)
 
 ---
 
@@ -126,6 +127,7 @@ righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **⌘/** / **Ctrl+/** | Elenco delle scorciatoie |
 | **G** poi **P** | Vai alla panoramica |
 | **G** poi **R** | Vai alle pratiche |
+| **G** poi **D** | Vai allo scadenzario |
 | **G** poi **C** | Vai ai clienti |
 | **G** poi **S** | Vai ai passeggeri |
 | **G** poi **F** | Vai ai fornitori |
@@ -244,7 +246,110 @@ l'agenzia; gli altri salvano la propria.
 
 ---
 
-## 5. I clienti
+## 5. Incassi, scadenze e pagamenti
+
+Una pratica confermata genera due promesse: quella del cliente verso di te
+(l'acconto, il saldo) e quella tua verso i fornitori. Questo capitolo spiega
+come si tengono sotto controllo.
+
+### Le scadenze del cliente
+
+Le trovi nella scheda **Incassi e scadenze** della pratica. Alla conferma ne
+nascono due, secondo i parametri dell'agenzia: l'acconto (una percentuale del
+venduto, entro pochi giorni) e il saldo (l'importo restante, un certo numero di
+giorni prima della partenza).
+
+Il piano non è scolpito nella pietra: **Aggiungi una scadenza** ne inserisce
+un'altra — utile quando il cliente chiede di pagare in tre volte — e ogni riga
+si modifica o si toglie. Una scadenza a cui è già stato attribuito un incasso
+non si può togliere: prima si storna l'incasso.
+
+### Registrare un incasso
+
+**Registra un incasso** chiede importo, data, tipo e metodo. Due cose fanno
+risparmiare tempo:
+
+- la **scadenza** è già scelta: quella aperta più vicina;
+- l'**importo** è già proposto: il residuo di quella scadenza.
+
+Nella maggior parte dei casi basta confermare. Il riferimento (numero del
+bonifico, della ricevuta) non è obbligatorio ma è quello che, fra sei mesi,
+permette di ritrovare il movimento in banca.
+
+Ogni incasso aggiorna il residuo della pratica e chiude da solo il promemoria
+della scadenza che ha coperto.
+
+> **Come vengono attribuiti i soldi.** In ordine di data: il primo denaro
+> entrato copre la prima scadenza, quello che avanza scende a quella dopo. È
+> ciò che faresti a mano, e spiega perché una scadenza può risultare
+> *Parziale*: l'incasso l'ha coperta solo in parte.
+
+Gli stati di una scadenza sono quattro:
+
+| Stato | Significato |
+| --- | --- |
+| **Da incassare** | Nessun incasso attribuito, data non ancora arrivata |
+| **Parziale** | Coperta in parte |
+| **Scaduta** | Data passata e nulla incassato |
+| **Saldata** | Coperta per intero |
+
+### Rimborsi e storni
+
+Sono due cose diverse.
+
+Un **rimborso** è denaro che restituisci al cliente: si registra come un
+incasso di tipo *Rimborso*, con importo negativo (`-150,00`). L'incassato
+scende e il residuo si riapre.
+
+Uno **storno** corregge un errore: un bonifico tornato indietro, un importo
+sbagliato, una doppia registrazione. Si chiede il motivo e si conferma.
+L'incasso non viene cancellato — resta nel registro attività con il motivo
+scritto accanto — ma smette di contare.
+
+### I pagamenti ai fornitori
+
+Nascono dalle righe di servizio: ogni riga con un fornitore e un costo diventa
+un pagamento da fare, con l'importo netto e la scadenza indicata sulla riga (o,
+se manca, una settimana prima della partenza). Il comando è **Allinea dai
+servizi**, e si può premere tutte le volte che serve: non duplica nulla.
+
+Ogni pagamento passa per quattro stati — *Da pagare*, *Programmato*, *Pagato*,
+*Stornato* — e quando lo segni pagato puoi indicare data, metodo, numero della
+fattura del fornitore e riferimento del bonifico.
+
+> Un pagamento già eseguito non viene toccato da un nuovo allineamento, anche
+> se il costo della riga cambia: il denaro è uscito per quell'importo, e
+> riscriverlo racconterebbe una cassa che non è mai esistita. La differenza si
+> sistema con un secondo movimento.
+
+### Lo scadenzario
+
+**Scadenzario** (`G` poi `D`) è la vista di insieme: che cosa deve entrare e
+che cosa deve uscire, per tutta l'agenzia.
+
+In cima quattro numeri: da incassare, incassi in ritardo, da pagare, pagamenti
+in ritardo. Sotto, due elenchi che si scelgono con i pulsanti **Da incassare** e
+**Da pagare**.
+
+Su entrambi puoi:
+
+- **cercare** per pratica, destinazione, cliente o fornitore;
+- **filtrare** per stato e per quando (*in ritardo*, *entro 7 giorni*, *entro 30
+  giorni*, *già scadute*);
+- **ordinare** per data, importo o residuo;
+- **esportare** in CSV esattamente ciò che hai filtrato.
+
+Dall'elenco delle scadenze, **Incassa** porta sulla pratica con il modulo già
+aperto sulla riga giusta. Dall'elenco dei pagamenti puoi selezionare più righe e
+segnarle pagate in un colpo solo: la data sarà quella di oggi, e ogni riga
+finisce comunque nel registro attività.
+
+Chi ha il ruolo **Operatore** o **Sola lettura** vede lo scadenzario ma non
+trova i comandi per incassare o pagare: quelli sono del titolare e
+dell'amministrativo.
+
+---
+## 6. I clienti
 
 **Clienti** è l'anagrafica di chi compra: privati e aziende.
 
@@ -301,7 +406,7 @@ obbligo di conservazione contabile.
 
 ---
 
-## 6. I passeggeri
+## 7. I passeggeri
 
 I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
 manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
@@ -326,7 +431,7 @@ al momento della prenotazione, non dopo.
 
 ---
 
-## 7. I fornitori
+## 8. I fornitori
 
 I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
 ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
@@ -348,7 +453,7 @@ dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serv
 
 ---
 
-## 8. Importare ed esportare gli elenchi
+## 9. Importare ed esportare gli elenchi
 
 Ogni elenco ha due comandi in alto a destra.
 
@@ -379,7 +484,7 @@ le intestazioni giuste.
 
 ---
 
-## 9. Chi vede che cosa: i quattro ruoli
+## 10. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -397,7 +502,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 10. Impostazioni dell'agenzia
+## 11. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -412,7 +517,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 11. Invitare un collaboratore
+## 12. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -435,7 +540,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 12. I parametri che governano le scadenze
+## 13. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -454,7 +559,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 13. Le numerazioni
+## 14. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -469,7 +574,7 @@ esempio `AG` produce `AG2026/0001`. Lasciandolo vuoto ottieni `2026/0001`.
 
 ---
 
-## 14. Aspetto e accessibilità
+## 15. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -489,7 +594,7 @@ un'etichetta scritta.
 
 ---
 
-## 15. Domande frequenti
+## 16. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.
@@ -513,6 +618,24 @@ Se hai il ruolo Operatore vedi soltanto le pratiche di cui sei titolare.
 sbagliate.**
 Premi di nuovo **Conferma**: acconto e saldo si riallineano al nuovo venduto.
 Non vengono create scadenze doppie.
+
+**Ho registrato due volte lo stesso bonifico.**
+Se hai premuto due volte "Registra" sullo stesso modulo, l'incasso è stato
+scritto una volta sola: il gestionale riconosce il movimento ripetuto. Se
+invece sono due registrazioni diverse, stornane una indicando il motivo.
+
+**Il cliente ha pagato meno dell'acconto.**
+Registra quello che è arrivato: la scadenza resta *Parziale* e mostra il
+residuo. Nello scadenzario continua a comparire fra quelle in ritardo finché
+non è coperta.
+
+**Come rimborso un cliente?**
+Registra un incasso di tipo *Rimborso* con l'importo in negativo (per esempio
+`-150,00`). L'incassato della pratica scende e il residuo si riapre.
+
+**Il fornitore ha cambiato il prezzo dopo che l'ho pagato.**
+Il pagamento già eseguito non si tocca: correggi il costo sulla riga di
+servizio e registra la differenza come un secondo pagamento.
 
 **Il cliente ha rinunciato. Elimino la pratica?**
 No: si **annulla**, indicando il motivo. La pratica resta, con la sua penale e

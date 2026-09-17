@@ -1,5 +1,6 @@
 import {
   Building2,
+  CalendarClock,
   Luggage,
   LayoutDashboard,
   Settings,
@@ -45,6 +46,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: 'r',
     icon: Luggage,
     description: 'Viaggi venduti, scadenze, incassi e margine',
+  },
+  {
+    href: '/scadenzario',
+    label: 'Scadenzario',
+    shortcut: 'd',
+    icon: CalendarClock,
+    description: 'Incassi da ricevere e pagamenti ai fornitori',
   },
   {
     href: '/clienti',

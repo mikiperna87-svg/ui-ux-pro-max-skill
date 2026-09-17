@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { toCents } from '@/lib/money'
+import { importiInCentesimi } from '@/server/queries/incassi'
 import { createClient } from '@/lib/supabase/server'
 import type { Enums, Tables, Views } from '@/lib/database.types'
 import {
@@ -139,9 +140,9 @@ export interface BookingDetail {
   > | null
   readonly services: readonly BookingServiceRow[]
   readonly passengers: readonly BookingPassengerRow[]
-  readonly installments: readonly Tables<'installments'>[]
-  readonly paymentsIn: readonly Tables<'payments_in'>[]
-  readonly paymentsOut: readonly Tables<'payments_out'>[]
+  readonly installments: readonly Views<'installment_list'>[]
+  readonly paymentsIn: readonly Views<'payment_in_list'>[]
+  readonly paymentsOut: readonly Views<'payout_list'>[]
   readonly documents: readonly Tables<'documents'>[]
   readonly tasks: readonly Tables<'tasks'>[]
   readonly invoices: readonly Tables<'invoices'>[]
@@ -185,24 +186,16 @@ export async function getBookingDetail(id: string): Promise<BookingDetail | null
       .maybeSingle(),
     supabase.from('booking_service_list').select('*').eq('booking_id', id).order('sort_order'),
     supabase.from('booking_passenger_list').select('*').eq('booking_id', id).order('full_name'),
+    // Le tre viste del modulo incassi portano gia' lo stato calcolato: la
+    // scheda della pratica e lo scadenzario leggono le stesse colonne, quindi
+    // non possono raccontare due storie diverse sulla stessa rata.
+    supabase.from('installment_list').select('*').eq('booking_id', id).order('due_date'),
     supabase
-      .from('installments')
+      .from('payment_in_list')
       .select('*')
       .eq('booking_id', id)
-      .is('deleted_at', null)
-      .order('due_date'),
-    supabase
-      .from('payments_in')
-      .select('*')
-      .eq('booking_id', id)
-      .is('deleted_at', null)
       .order('paid_at', { ascending: false }),
-    supabase
-      .from('payments_out')
-      .select('*')
-      .eq('booking_id', id)
-      .is('deleted_at', null)
-      .order('due_date'),
+    supabase.from('payout_list').select('*').eq('booking_id', id).order('due_date'),
     supabase
       .from('documents')
       .select('*')
@@ -236,9 +229,11 @@ export async function getBookingDetail(id: string): Promise<BookingDetail | null
     customer: customer ?? null,
     services: services ?? [],
     passengers: passengers ?? [],
-    installments: installments ?? [],
-    paymentsIn: paymentsIn ?? [],
-    paymentsOut: paymentsOut ?? [],
+    installments: (installments ?? []).map((riga) =>
+      importiInCentesimi(riga, ['amount_cents', 'covered_cents', 'residual_cents']),
+    ),
+    paymentsIn: (paymentsIn ?? []).map((riga) => importiInCentesimi(riga, ['amount_cents'])),
+    paymentsOut: (paymentsOut ?? []).map((riga) => importiInCentesimi(riga, ['amount_cents'])),
     documents: documents ?? [],
     tasks: tasks ?? [],
     invoices: invoices ?? [],

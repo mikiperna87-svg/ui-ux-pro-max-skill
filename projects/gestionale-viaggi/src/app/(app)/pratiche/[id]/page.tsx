@@ -17,11 +17,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@/components/dashboard/page-header'
-import {
-  BookingStatusBadge,
-  PaymentStateBadge,
-  PayoutStatusBadge,
-} from '@/components/domain/status-badge'
+import { BookingStatusBadge, PaymentStateBadge } from '@/components/domain/status-badge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -38,16 +34,8 @@ import {
   TableWrapper,
 } from '@/components/ui/table'
 import { formatDateLong, formatDateShort, formatDateTime, formatRelativeDays } from '@/lib/date'
-import {
-  INSTALLMENT_KIND,
-  PAYMENT_IN_KIND,
-  PAYMENT_METHOD,
-  SALE_TYPE,
-  TASK_STATUS,
-  plurale,
-} from '@/lib/labels'
+import { SALE_TYPE, TASK_STATUS, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
-import { attribuisciIncassi } from '@/lib/scadenze'
 import {
   bookingAmounts,
   getBookingDetail,
@@ -57,8 +45,26 @@ import {
 import { requireSession } from '@/server/session'
 import { AzioniPratica } from './azioni-pratica'
 import { DocumentiPratica } from './documenti-pratica'
+import { IncassiPratica } from './incassi-pratica'
 import { PasseggeriPratica } from './passeggeri-pratica'
 import { ServiziPratica } from './servizi-pratica'
+
+/** Schede della pratica raggiungibili da un collegamento esterno. */
+const SCHEDE = ['riepilogo', 'passeggeri', 'servizi', 'incassi', 'documenti', 'cronologia'] as const
+
+function schedaValida(value: string | string[] | undefined): (typeof SCHEDE)[number] {
+  const primo = Array.isArray(value) ? value[0] : value
+  return (SCHEDE as readonly string[]).includes(primo ?? '')
+    ? (primo as (typeof SCHEDE)[number])
+    : 'riepilogo'
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function uuidOppureNulla(value: string | string[] | undefined): string | undefined {
+  const primo = Array.isArray(value) ? value[0] : value
+  return primo !== undefined && UUID.test(primo) ? primo : undefined
+}
 
 export async function generateMetadata({
   params,
@@ -70,9 +76,16 @@ export async function generateMetadata({
   return { title: detail ? `${detail.booking.code} · ${detail.booking.destination}` : 'Pratica' }
 }
 
-export default async function PraticaPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PraticaPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const session = await requireSession()
   const { id } = await params
+  const raw = await searchParams
   const detail = await getBookingDetail(id)
 
   if (!detail) notFound()
@@ -101,11 +114,19 @@ export default async function PraticaPage({ params }: { params: Promise<{ id: st
   const canWrite = session.permissions.write
   const showMargins = session.permissions.margins
 
-  // Gli incassi vengono attribuiti alle scadenze in ordine di data: è la
-  // riconciliazione che farebbe una persona, e senza la quale una rata già
-  // pagata resterebbe scritta "da incassare" accanto al suo stesso incasso.
-  const copertura = attribuisciIncassi(importi.paid, installments)
-  const statoRate = installments.map((rata, indice) => ({ rata, stato: copertura[indice]! }))
+  // Lo scadenzario manda qui con la scheda e la rata gia' scelte: "Incassa"
+  // deve aprire il modulo giusto, non lasciare l'operatore a ritrovare la riga.
+  const schedaIniziale = schedaValida(raw.scheda)
+  const rataDaIncassare = uuidOppureNulla(raw.rata)
+
+  const depositHint = `Nascono alla conferma della pratica: acconto del ${formatPercent(
+    session.settings.deposit_percent_bps,
+    0,
+  )} entro ${plurale(session.settings.deposit_due_days, 'giorno', 'giorni')}, saldo ${plurale(
+    session.settings.balance_due_days_before_departure,
+    'giorno',
+    'giorni',
+  )} prima della partenza.`
 
   // Passeggeri il cui documento non copre il rientro: è l'informazione che
   // trasforma un imbarco negato in una telefonata fatta per tempo.
@@ -176,7 +197,7 @@ export default async function PraticaPage({ params }: { params: Promise<{ id: st
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="min-w-0 space-y-4">
-          <Tabs defaultValue="riepilogo">
+          <Tabs defaultValue={schedaIniziale}>
             <TabsList>
               <TabsTrigger value="riepilogo">Riepilogo</TabsTrigger>
               <TabsTrigger value="passeggeri">
@@ -308,146 +329,17 @@ export default async function PraticaPage({ params }: { params: Promise<{ id: st
 
             <TabsContent value="incassi">
               <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <div className="space-y-1">
-                      <CardTitle>Scadenze verso il cliente</CardTitle>
-                      <p className="text-small text-text-muted">
-                        Nascono alla conferma della pratica: acconto del{' '}
-                        {formatPercent(session.settings.deposit_percent_bps, 0)} entro{' '}
-                        {plurale(session.settings.deposit_due_days, 'giorno', 'giorni')}, saldo{' '}
-                        {plurale(session.settings.balance_due_days_before_departure, 'giorno', 'giorni')}{' '}
-                        prima della partenza.
-                      </p>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {installments.length === 0 ? (
-                      <div className="p-4">
-                        <EmptyState
-                          icon={<CalendarClock />}
-                          title="Nessuna scadenza"
-                          description="Conferma la pratica e le scadenze vengono generate secondo i parametri dell’agenzia."
-                        />
-                      </div>
-                    ) : (
-                      <TableWrapper className="rounded-none border-0 shadow-none">
-                        <Table>
-                          <caption className="sr-only">Scadenze di pagamento del cliente</caption>
-                          <TableHead>
-                            <tr>
-                              <TableHeaderCell>Tipo</TableHeaderCell>
-                              <TableHeaderCell>Scadenza</TableHeaderCell>
-                              <TableHeaderCell className="text-right">Importo</TableHeaderCell>
-                              <TableHeaderCell>Stato</TableHeaderCell>
-                            </tr>
-                          </TableHead>
-                          <TableBody>
-                            {statoRate.map(({ rata, stato }) => (
-                              <TableRow key={rata.id}>
-                                <TableCell>{INSTALLMENT_KIND[rata.kind]}</TableCell>
-                                <TableCell className="num">
-                                  {formatDateShort(rata.due_date)}
-                                  <span className="ml-2 text-caption text-text-muted">
-                                    {formatRelativeDays(rata.due_date)}
-                                  </span>
-                                </TableCell>
-                                <TableCellNumeric className="font-medium">
-                                  {formatEuro(rata.amount_cents)}
-                                </TableCellNumeric>
-                                <TableCell>
-                                  <Badge tone={stato.tone}>{stato.label}</Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableWrapper>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Incassi registrati</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {paymentsIn.length === 0 ? (
-                      <div className="p-4">
-                        <EmptyState
-                          icon={<Wallet />}
-                          title="Nessun incasso"
-                          description="La registrazione degli incassi arriva con il modulo Incassi e scadenze."
-                        />
-                      </div>
-                    ) : (
-                      <TableWrapper className="rounded-none border-0 shadow-none">
-                        <Table>
-                          <caption className="sr-only">Incassi della pratica</caption>
-                          <TableHead>
-                            <tr>
-                              <TableHeaderCell>Data</TableHeaderCell>
-                              <TableHeaderCell>Tipo</TableHeaderCell>
-                              <TableHeaderCell>Metodo</TableHeaderCell>
-                              <TableHeaderCell className="text-right">Importo</TableHeaderCell>
-                            </tr>
-                          </TableHead>
-                          <TableBody>
-                            {paymentsIn.map((incasso) => (
-                              <TableRow key={incasso.id}>
-                                <TableCell className="num">
-                                  {formatDateShort(incasso.paid_at)}
-                                </TableCell>
-                                <TableCell>{PAYMENT_IN_KIND[incasso.kind]}</TableCell>
-                                <TableCell>{PAYMENT_METHOD[incasso.method]}</TableCell>
-                                <TableCellNumeric className="font-medium text-success">
-                                  {formatEuro(incasso.amount_cents)}
-                                </TableCellNumeric>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableWrapper>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {paymentsOut.length > 0 && session.permissions.accounting ? (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Da pagare ai fornitori</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <TableWrapper className="rounded-none border-0 shadow-none">
-                        <Table>
-                          <caption className="sr-only">Pagamenti verso i fornitori</caption>
-                          <TableHead>
-                            <tr>
-                              <TableHeaderCell>Scadenza</TableHeaderCell>
-                              <TableHeaderCell className="text-right">Importo</TableHeaderCell>
-                              <TableHeaderCell>Stato</TableHeaderCell>
-                            </tr>
-                          </TableHead>
-                          <TableBody>
-                            {paymentsOut.map((pagamento) => (
-                              <TableRow key={pagamento.id}>
-                                <TableCell className="num">
-                                  {formatDateShort(pagamento.due_date)}
-                                </TableCell>
-                                <TableCellNumeric>
-                                  {formatEuro(pagamento.amount_cents)}
-                                </TableCellNumeric>
-                                <TableCell>
-                                  <PayoutStatusBadge status={pagamento.status} />
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableWrapper>
-                    </CardContent>
-                  </Card>
-                ) : null}
+                <IncassiPratica
+                  bookingId={booking.id}
+                  bookingCode={booking.code}
+                  installments={installments}
+                  paymentsIn={paymentsIn}
+                  payouts={session.permissions.accounting ? paymentsOut : []}
+                  residuoCents={importi.balance}
+                  depositHint={depositHint}
+                  canManage={session.permissions.accounting}
+                  rataDaIncassare={rataDaIncassare}
+                />
 
                 {invoices.length > 0 ? (
                   <Card>

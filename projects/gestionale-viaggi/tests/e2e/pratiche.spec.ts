@@ -193,15 +193,16 @@ test.describe('Creazione e gestione di una pratica', () => {
     await expect(page.getByText(/scadenze e controllo documenti creati/)).toBeVisible()
 
     await page.getByRole('tab', { name: /Incassi e scadenze/ }).click()
-    await expect(page.getByRole('cell', { name: 'Acconto' })).toBeVisible()
-    await expect(page.getByRole('cell', { name: 'Saldo' })).toBeVisible()
+    // Su schermo largo le scadenze sono una tabella, su telefono un elenco di
+    // schede: si cerca ciò che si vede, non il markup di uno dei due.
+    await expect(page.getByText('Acconto').filter({ visible: true }).first()).toBeVisible()
+    await expect(page.getByText('Saldo').filter({ visible: true }).first()).toBeVisible()
 
     // Acconto e saldo insieme fanno il venduto: è la regola, e resta vera
     // qualunque percentuale abbia impostato l'agenzia.
     const importi = await page
-      .getByRole('row')
-      .filter({ hasText: /Acconto|Saldo/ })
-      .locator('td:nth-child(3)')
+      .locator('[data-rata="importo"]')
+      .filter({ visible: true })
       .allInnerTexts()
     const centesimi = importi.map((testo) =>
       Number(testo.replace(/[^\d,]/g, '').replace('.', '').replace(',', '')),

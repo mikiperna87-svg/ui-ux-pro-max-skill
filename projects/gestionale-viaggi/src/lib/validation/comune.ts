@@ -6,6 +6,7 @@
  * due copie della stessa regola divergono al primo ritocco.
  */
 import { z } from 'zod'
+import { parseAmountToCents } from '@/lib/money'
 import { isValidIban, isValidTaxCode, isValidVatNumber, normalizeVatNumber } from '@/lib/fiscal'
 
 /** Campo di testo facoltativo: la stringa vuota diventa null, non ''. */
@@ -121,3 +122,71 @@ export const checkbox = z
   .unknown()
   .optional()
   .transform((value) => value === 'on' || value === 'true' || value === true)
+
+// --- Numeri e denaro ----------------------------------------------------------
+
+/**
+ * Importo digitato dall'utente → centesimi interi.
+ *
+ * La conversione avviene qui, al confine: da questo punto in poi nel sistema
+ * non esiste più un prezzo scritto come "1.234,56", esiste 123456. È la
+ * traduzione della regola "mai virgola mobile sul denaro" in una sola riga
+ * che nessun modulo può aggirare.
+ */
+export const amountCents = (etichetta: string, { obbligatorio = false } = {}) =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === undefined || value === '' ? null : value))
+    .superRefine((value, ctx) => {
+      if (value === null) {
+        if (obbligatorio) {
+          ctx.addIssue({ code: 'custom', message: `${etichetta}: indica un importo` })
+        }
+        return
+      }
+      try {
+        parseAmountToCents(value)
+      } catch {
+        ctx.addIssue({ code: 'custom', message: `${etichetta}: importo non valido` })
+      }
+    })
+    .transform((value) => (value === null ? null : parseAmountToCents(value)))
+
+/** Percentuale digitata come "12,5" → punti base interi (1250). */
+export const percentBps = (etichetta: string, max = 100) =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === undefined || value === '' ? '0' : value.replace(',', '.')))
+    .superRefine((value, ctx) => {
+      const numero = Number(value)
+      if (!Number.isFinite(numero)) {
+        ctx.addIssue({ code: 'custom', message: `${etichetta}: indica un numero` })
+        return
+      }
+      if (numero < 0 || numero > max) {
+        ctx.addIssue({ code: 'custom', message: `${etichetta}: ammesso fra 0 e ${max}` })
+      }
+    })
+    .transform((value) => Math.round(Number(value) * 100))
+
+export const intero = (etichetta: string, min: number, max: number, predefinito: number) =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === undefined || value === '' ? String(predefinito) : value))
+    .superRefine((value, ctx) => {
+      if (!/^-?\d+$/.test(value)) {
+        ctx.addIssue({ code: 'custom', message: `${etichetta}: indica un numero intero` })
+        return
+      }
+      const numero = Number(value)
+      if (numero < min || numero > max) {
+        ctx.addIssue({ code: 'custom', message: `${etichetta}: ammesso fra ${min} e ${max}` })
+      }
+    })
+    .transform((value) => Number(value))

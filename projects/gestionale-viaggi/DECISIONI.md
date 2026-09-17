@@ -514,13 +514,87 @@ numeri.
 
 ---
 
-## 36. Scelte rinviate, con motivo
+## 36. Gli incassi coprono le scadenze in ordine di data, e la regola sta in SQL
+
+Registrare un incasso non dice da solo *quale* scadenza è stata pagata. La
+regola scelta è quella che userebbe chiunque riconciliando a mano: il primo
+denaro entrato copre la prima scadenza, il resto scende alla successiva.
+
+La regola vive nella vista `installment_list`, non in TypeScript. La fase 3
+aveva una funzione `attribuisciIncassi()` che faceva lo stesso calcolo per la
+scheda della pratica; con lo scadenzario sarebbero diventate due
+implementazioni della stessa regola, e due implementazioni divergono al primo
+ritocco — con il risultato che la stessa rata si leggerebbe "saldata" in una
+pagina e "da incassare" nell'altra. La funzione è stata tolta: scheda e
+scadenzario interrogano la stessa vista.
+
+Lo stato di una rata ha quattro valori (`saldata`, `parziale`, `scaduta`,
+`attesa`) e una colonna a parte, `is_late`. Servono entrambi: una rata coperta
+a metà si legge "parziale" — è il fatto più utile da vedere — ma resta in
+ritardo, ed è su `is_late` che filtra lo scadenzario. Senza la distinzione, un
+pagamento parziale sparirebbe dall'elenco dei solleciti.
+
+---
+
+## 37. Un incasso ha una chiave di idempotenza
+
+`record_payment_in` accetta una chiave costruita da pratica, data, importo,
+tipo e riferimento. Se arriva due volte la stessa chiave, la seconda chiamata
+restituisce l'incasso già scritto invece di crearne un altro.
+
+Un doppio clic su "Registra", una connessione che cade dopo l'invio o un
+tentativo ripetuto non devono diventare un doppio incasso: sarebbe un errore
+che si scopre alla chiusura del mese, quando ritrovare l'origine costa più che
+prevenirla. Le due tabelle avevano già la colonna e il vincolo unico dalla
+fase 1; qui viene finalmente usata.
+
+---
+
+## 38. Un rimborso si scrive in negativo
+
+`payment_in_kind` prevede `rimborso`. Un rimborso è denaro che torna al
+cliente, quindi si registra con importo negativo: l'incassato della pratica
+scende e il residuo si riapre da solo, senza una seconda tabella e senza segni
+da interpretare. Il vincolo è in due punti — nello schema Zod e nella funzione
+di dominio — perché la seconda difende anche dalle chiamate che non passano
+dal modulo.
+
+---
+
+## 39. I pagamenti ai fornitori nascono dalle righe di servizio, senza riscrivere quelli già eseguiti
+
+`sync_booking_payouts` allinea i pagamenti alle righe di servizio con un
+fornitore e un costo: importo netto, scadenza dichiarata sulla riga o, in
+mancanza, sette giorni prima della partenza. È ripetibile e non duplica nulla.
+
+Quello che **non** fa è toccare un pagamento già eseguito. Se il costo di una
+riga cambia dopo che il fornitore è stato pagato, il denaro è uscito per
+l'importo vecchio: riallinearlo falsificherebbe la cassa. La differenza si
+gestisce con un secondo movimento, non riscrivendo la storia.
+
+---
+
+## 40. Il modulo di un'azione non vive dentro la riga che l'azione fa sparire
+
+Lo storno di un incasso apriva un dialogo montato dentro la riga della
+tabella. Funzionava a metà: l'incasso veniva stornato, ma il dialogo restava
+aperto e l'esito non compariva.
+
+Il motivo è che l'azione server rivalida la pagina, e il nuovo albero arriva
+al browser insieme al risultato dell'azione: nello stesso commit React
+applica il successo *e* toglie la riga, così l'effetto che chiude il dialogo e
+mostra l'avviso non viene mai eseguito. I moduli delle azioni distruttive
+stanno quindi nel componente che sopravvive all'operazione, e la riga contiene
+solo il bottone che li apre.
+
+---
+
+## 41. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
-| Registrazione di incassi e pagamenti | Fase 4 | La scheda li mostra già; inserirli è il modulo successivo |
 | Generazione PDF | Fase 5 | La scelta della libreria dipende dal layout dei preventivi |
 | Email transazionali (Resend) | Fase 8 | Servono i modelli, che dipendono dai moduli precedenti |
-| TanStack Query | Fase 4 | Serve dove c'è stato client vero: lo scadenzario, non gli elenchi |
-| Realtime | Fase 4 | Utile sullo scadenzario condiviso, inutile finché non esiste |
+| TanStack Query | — | Lo scadenzario si è rivelato una griglia come le altre: stato nell'indirizzo, dati dal server. Una libreria di stato client non avrebbe nulla da gestire |
+| Realtime | Fase 8 | Ha senso con le notifiche, non da solo |
 | Esportazione XLSX | Fase 9 | Il CSV si apre in Excel italiano senza passaggi: una libreria in più va giustificata da un bisogno vero |
