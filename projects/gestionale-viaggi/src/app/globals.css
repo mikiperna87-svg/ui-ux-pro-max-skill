@@ -1,0 +1,483 @@
+@import 'tailwindcss';
+
+/* =============================================================================
+   DESIGN SYSTEM — Gestionale Viaggi
+   Unica fonte di verita per colore, tipografia, spaziatura, raggi, elevazioni
+   e motion. Nessun componente deve contenere valori esadecimali o pixel sparsi.
+   ---------------------------------------------------------------------------
+   Struttura:
+   1. Primitive      -> scale grezze (neutrale calda, accento, semantici)
+   2. Semantici      -> ruoli (superficie, testo, bordo, stato) — tema chiaro
+   3. Tema scuro     -> stessi ruoli, valori ridefiniti (nessun filtro)
+   4. @theme inline  -> mappatura ruoli -> utility Tailwind
+   5. Base           -> reset tipografico, focus, scrollbar, motion
+   ============================================================================= */
+
+/* --- 1. PRIMITIVE ---------------------------------------------------------- */
+:root {
+  /* Neutrale calda, 11 gradazioni (hue ~70: grigi con temperatura, mai freddi) */
+  --warm-50: oklch(0.985 0.003 75);
+  --warm-100: oklch(0.967 0.004 75);
+  --warm-200: oklch(0.928 0.005 74);
+  --warm-300: oklch(0.872 0.006 72);
+  --warm-400: oklch(0.714 0.008 70);
+  --warm-500: oklch(0.576 0.009 66);
+  --warm-600: oklch(0.470 0.010 62);
+  --warm-700: oklch(0.385 0.011 60);
+  --warm-800: oklch(0.284 0.011 58);
+  --warm-900: oklch(0.212 0.010 60);
+  --warm-950: oklch(0.154 0.009 62);
+
+  /* Accento unico: teal profondo (mare + viaggio). Usato per significare, non decorare. */
+  --brand-50: oklch(0.972 0.018 191);
+  --brand-100: oklch(0.941 0.036 191);
+  --brand-200: oklch(0.886 0.060 190);
+  --brand-300: oklch(0.812 0.083 189);
+  --brand-400: oklch(0.727 0.099 188);
+  --brand-500: oklch(0.645 0.105 188);
+  --brand-600: oklch(0.559 0.097 189);
+  --brand-700: oklch(0.470 0.082 190);
+  --brand-800: oklch(0.392 0.066 192);
+  --brand-900: oklch(0.330 0.053 195);
+  --brand-950: oklch(0.232 0.039 197);
+
+  /* Semantici discreti: solo 4 tinte, ognuna con base / superficie / bordo */
+  --green-100: oklch(0.945 0.045 155);
+  --green-500: oklch(0.640 0.130 155);
+  --green-700: oklch(0.470 0.100 155);
+  --green-900: oklch(0.320 0.070 155);
+
+  --amber-100: oklch(0.955 0.050 85);
+  --amber-500: oklch(0.720 0.130 75);
+  --amber-700: oklch(0.545 0.110 68);
+  --amber-900: oklch(0.360 0.075 65);
+
+  --red-100: oklch(0.945 0.035 25);
+  --red-500: oklch(0.615 0.180 25);
+  --red-700: oklch(0.505 0.170 26);
+  --red-900: oklch(0.340 0.110 27);
+
+  --blue-100: oklch(0.945 0.035 250);
+  --blue-500: oklch(0.620 0.130 250);
+  --blue-700: oklch(0.490 0.120 252);
+  --blue-900: oklch(0.330 0.080 254);
+}
+
+/* --- 2. SEMANTICI — tema chiaro (definizione completa su :root nudo) -------- */
+:root {
+  --bg: var(--warm-100);
+  --bg-subtle: var(--warm-200);
+  --surface: oklch(1 0 0);
+  --surface-2: var(--warm-50);
+  --surface-hover: var(--warm-100);
+  --surface-active: var(--warm-200);
+  --overlay: oklch(0.154 0.009 62 / 0.45);
+
+  --border: var(--warm-200);
+  --border-strong: var(--warm-300);
+  --border-accent: var(--brand-300);
+
+  --text: var(--warm-900);
+  --text-muted: var(--warm-600);
+  --text-subtle: var(--warm-500);
+  --text-inverse: var(--warm-50);
+
+  --accent: var(--brand-700);
+  --accent-hover: var(--brand-800);
+  --accent-active: var(--brand-900);
+  --accent-fg: oklch(1 0 0);
+  --accent-subtle: var(--brand-50);
+  --accent-subtle-fg: var(--brand-900);
+  --accent-border: var(--brand-200);
+  --ring: var(--brand-600);
+
+  --success: var(--green-700);
+  --success-subtle: var(--green-100);
+  --success-fg: var(--green-900);
+  --warning: var(--amber-700);
+  --warning-subtle: var(--amber-100);
+  --warning-fg: var(--amber-900);
+  --danger: var(--red-700);
+  --danger-subtle: var(--red-100);
+  --danger-fg: var(--red-900);
+  --danger-contrast: oklch(1 0 0);
+  --info: var(--blue-700);
+  --info-subtle: var(--blue-100);
+  --info-fg: var(--blue-900);
+
+  /* Elevazioni sobrie: ombre corte, mai diffuse */
+  --shadow-e1: 0 1px 2px oklch(0.154 0.009 62 / 0.06), 0 1px 1px oklch(0.154 0.009 62 / 0.04);
+  --shadow-e2: 0 2px 4px oklch(0.154 0.009 62 / 0.06), 0 4px 12px oklch(0.154 0.009 62 / 0.05);
+  --shadow-e3: 0 8px 24px oklch(0.154 0.009 62 / 0.10), 0 2px 6px oklch(0.154 0.009 62 / 0.06);
+
+  color-scheme: light;
+}
+
+/* --- 3. TEMA SCURO --------------------------------------------------------- */
+/* a) preferenza di sistema, salvo scelta esplicita "chiaro" */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: var(--warm-950);
+    --bg-subtle: oklch(0.128 0.008 62);
+    --surface: var(--warm-900);
+    --surface-2: oklch(0.246 0.010 60);
+    --surface-hover: oklch(0.256 0.010 60);
+    --surface-active: oklch(0.290 0.011 58);
+    --overlay: oklch(0.098 0.006 62 / 0.65);
+
+    --border: oklch(0.300 0.010 60);
+    --border-strong: oklch(0.372 0.011 60);
+    --border-accent: var(--brand-800);
+
+    --text: var(--warm-100);
+    --text-muted: var(--warm-400);
+    --text-subtle: var(--warm-500);
+    --text-inverse: var(--warm-950);
+
+    --accent: var(--brand-400);
+    --accent-hover: var(--brand-300);
+    --accent-active: var(--brand-200);
+    --accent-fg: var(--warm-950);
+    --accent-subtle: oklch(0.283 0.045 195);
+    --accent-subtle-fg: var(--brand-200);
+    --accent-border: oklch(0.360 0.055 194);
+    --ring: var(--brand-400);
+
+    --success: oklch(0.760 0.135 155);
+    --success-subtle: oklch(0.290 0.060 155);
+    --success-fg: oklch(0.900 0.060 155);
+    --warning: oklch(0.815 0.130 80);
+    --warning-subtle: oklch(0.310 0.060 70);
+    --warning-fg: oklch(0.925 0.060 85);
+    --danger: oklch(0.720 0.150 25);
+    --danger-subtle: oklch(0.305 0.080 25);
+    --danger-fg: oklch(0.905 0.050 25);
+    --danger-contrast: var(--warm-950);
+    --info: oklch(0.740 0.120 250);
+    --info-subtle: oklch(0.300 0.070 252);
+    --info-fg: oklch(0.905 0.045 250);
+
+    --shadow-e1: 0 1px 2px oklch(0 0 0 / 0.30);
+    --shadow-e2: 0 2px 4px oklch(0 0 0 / 0.32), 0 4px 12px oklch(0 0 0 / 0.28);
+    --shadow-e3: 0 8px 24px oklch(0 0 0 / 0.42), 0 2px 6px oklch(0 0 0 / 0.32);
+
+    color-scheme: dark;
+  }
+}
+
+/* b) scelta esplicita dell'utente: vince sempre, in entrambe le direzioni */
+:root[data-theme='dark'] {
+  --bg: var(--warm-950);
+  --bg-subtle: oklch(0.128 0.008 62);
+  --surface: var(--warm-900);
+  --surface-2: oklch(0.246 0.010 60);
+  --surface-hover: oklch(0.256 0.010 60);
+  --surface-active: oklch(0.290 0.011 58);
+  --overlay: oklch(0.098 0.006 62 / 0.65);
+
+  --border: oklch(0.300 0.010 60);
+  --border-strong: oklch(0.372 0.011 60);
+  --border-accent: var(--brand-800);
+
+  --text: var(--warm-100);
+  --text-muted: var(--warm-400);
+  --text-subtle: var(--warm-500);
+  --text-inverse: var(--warm-950);
+
+  --accent: var(--brand-400);
+  --accent-hover: var(--brand-300);
+  --accent-active: var(--brand-200);
+  --accent-fg: var(--warm-950);
+  --accent-subtle: oklch(0.283 0.045 195);
+  --accent-subtle-fg: var(--brand-200);
+  --accent-border: oklch(0.360 0.055 194);
+  --ring: var(--brand-400);
+
+  --success: oklch(0.760 0.135 155);
+  --success-subtle: oklch(0.290 0.060 155);
+  --success-fg: oklch(0.900 0.060 155);
+  --warning: oklch(0.815 0.130 80);
+  --warning-subtle: oklch(0.310 0.060 70);
+  --warning-fg: oklch(0.925 0.060 85);
+  --danger: oklch(0.720 0.150 25);
+  --danger-subtle: oklch(0.305 0.080 25);
+  --danger-fg: oklch(0.905 0.050 25);
+  --danger-contrast: var(--warm-950);
+  --info: oklch(0.740 0.120 250);
+  --info-subtle: oklch(0.300 0.070 252);
+  --info-fg: oklch(0.905 0.045 250);
+
+  --shadow-e1: 0 1px 2px oklch(0 0 0 / 0.30);
+  --shadow-e2: 0 2px 4px oklch(0 0 0 / 0.32), 0 4px 12px oklch(0 0 0 / 0.28);
+  --shadow-e3: 0 8px 24px oklch(0 0 0 / 0.42), 0 2px 6px oklch(0 0 0 / 0.32);
+
+  color-scheme: dark;
+}
+
+/* --- 4. MAPPATURA TOKEN -> UTILITY TAILWIND -------------------------------- */
+@theme inline {
+  /* Colori semantici: l'unico modo consentito di colorare un componente */
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-overlay: var(--overlay);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-accent: var(--border-accent);
+
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-subtle-fg: var(--accent-subtle-fg);
+  --color-accent-border: var(--accent-border);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-fg: var(--success-fg);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-fg: var(--warning-fg);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-contrast: var(--danger-contrast);
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-fg: var(--info-fg);
+
+  /* Tipografia: un solo font variabile, 6 livelli, nient'altro */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+
+  --text-display: 1.75rem;
+  --text-display--line-height: 2.125rem;
+  --text-display--letter-spacing: -0.021em;
+  --text-display--font-weight: 620;
+
+  --text-title: 1.3125rem;
+  --text-title--line-height: 1.75rem;
+  --text-title--letter-spacing: -0.017em;
+  --text-title--font-weight: 600;
+
+  --text-heading: 1.0625rem;
+  --text-heading--line-height: 1.5rem;
+  --text-heading--letter-spacing: -0.012em;
+  --text-heading--font-weight: 600;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-body--letter-spacing: -0.005em;
+
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.25rem;
+  --text-small--letter-spacing: -0.003em;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.0625rem;
+  --text-caption--letter-spacing: 0.002em;
+
+  /* Spaziatura su scala 4px (--spacing * n) */
+  --spacing: 0.25rem;
+
+  /* Raggi */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Elevazioni */
+  --shadow-e1: var(--shadow-e1);
+  --shadow-e2: var(--shadow-e2);
+  --shadow-e3: var(--shadow-e3);
+
+  /* Motion: 150-200 ms, mai oltre */
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  --animate-in-fade: fade-in 150ms var(--ease-out-soft);
+  --animate-in-scale: scale-in 160ms var(--ease-out-soft);
+  --animate-in-slide: slide-up 180ms var(--ease-out-soft);
+  --animate-shimmer: shimmer 1.4s linear infinite;
+
+  /* Layout */
+  --container-sidebar: 15.5rem;
+  --container-sidebar-collapsed: 3.75rem;
+  --container-topbar: 3.5rem;
+}
+
+/* Variante `dark:` coerente con la strategia a due canali (sistema + scelta) */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']) *, :root:not([data-theme='light'])) {
+      @slot;
+    }
+  }
+  &:where(:root[data-theme='dark'] *, :root[data-theme='dark']) {
+    @slot;
+  }
+}
+
+/* --- 5. BASE --------------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    letter-spacing: var(--text-body--letter-spacing);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus sempre visibile, mai rimosso: requisito AA */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--accent-subtle);
+    color: var(--accent-subtle-fg);
+  }
+
+  /* Numeri tabulari ovunque compaiano importi, date e codici */
+  table,
+  [data-numeric],
+  input[type='number'],
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scrollbar sobria, coerente col tema */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-subtle);
+  }
+}
+
+/* --- UTILITY DI DOMINIO ---------------------------------------------------- */
+
+/* Importi e codici: cifre a larghezza fissa perche le colonne restino allineate */
+@utility num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.008em;
+}
+
+/* Superficie standard di una scheda */
+@utility card-surface {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* Solo per screen reader */
+@utility sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+
+  &:focus-visible {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -180% 0;
+  }
+  to {
+    background-position: 180% 0;
+  }
+}
+
+/* Nessuna animazione deve ostacolare chi la disattiva */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
