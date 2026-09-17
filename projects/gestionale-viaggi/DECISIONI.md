@@ -589,7 +589,41 @@ solo il bottone che li apre.
 
 ---
 
-## 41. Scelte rinviate, con motivo
+## 41. Un solo confine Suspense per pagina
+
+La panoramica aveva cinque `<Suspense>` fratelli — indicatori, andamento,
+attività, partenze, pagamenti — che si sospendevano tutti insieme a ogni cambio
+di periodo. Circa una volta su quattro il clic su "90 giorni" non faceva nulla:
+la risposta del server arrivava completa, e il router non applicava mai la
+navigazione. È lo stesso difetto della decisione 35, questa volta su una
+navigazione invece che su una mutazione.
+
+Misurato sulla build di produzione, stesso gesto ripetuto:
+
+| Pagina | Confini Suspense | Navigazioni bloccate |
+| --- | --- | --- |
+| Panoramica, prima | 5 | 4-6 su 16 |
+| Panoramica, dopo | 1 | 0 su 20 |
+| Elenco pratiche | 1 | 0 su 16 |
+
+Il numero di confini che si sospendono insieme è la causa, non il modo in cui
+la navigazione parte: convertire le voci del periodo da `<Link>` a comandi con
+`router.replace` non cambiava niente (4 su 16), consolidare i confini li ha
+azzerati entrambi. Le voci sono quindi rimaste collegamenti, che è la cosa
+giusta per un indirizzo condivisibile.
+
+Il corpo della panoramica è ora un solo componente con un solo scheletro. Si
+perde il riempimento a scaglioni dei singoli riquadri: le sezioni partono
+insieme con `Promise.all` e compaiono insieme. L'intestazione con il selettore
+del periodo resta fuori dal confine, quindi visibile e cliccabile da subito.
+
+La regola vale per tutto il gestionale: un confine per pagina, attorno all'area
+dati. Gli elenchi lo rispettavano già, ed è il motivo per cui non hanno mai
+mostrato il problema.
+
+---
+
+## 42. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |

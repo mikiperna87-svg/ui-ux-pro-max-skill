@@ -81,31 +81,67 @@ export default async function PanoramicaPage({
         }
       />
 
-      <Suspense fallback={<KpiSkeleton showMargins={session.permissions.margins} />}>
-        <KpiSection from={from} to={to} ownerId={ownerId} showMargins={session.permissions.margins} />
+      {/* Un solo confine Suspense per tutto il corpo della pagina.
+          Cinque confini fratelli che si sospendevano insieme a ogni cambio di
+          periodo mandavano in stallo la transizione del router di Next 15 una
+          volta su quattro: il periodo restava quello di prima senza spiegazioni
+          (misurato, e documentato in DECISIONI.md). L'intestazione compare
+          comunque subito, e le aree dati si riempiono insieme. */}
+      <Suspense
+        key={period.key}
+        fallback={<PanoramicaScheletro showMargins={session.permissions.margins} />}
+      >
+        <CorpoPanoramica
+          from={from}
+          to={to}
+          ownerId={ownerId}
+          showMargins={session.permissions.margins}
+          showAccounting={session.permissions.accounting}
+        />
       </Suspense>
+    </div>
+  )
+}
+
+async function CorpoPanoramica({
+  from,
+  to,
+  ownerId,
+  showMargins,
+  showAccounting,
+}: {
+  from: string
+  to: string
+  ownerId: string | null
+  showMargins: boolean
+  showAccounting: boolean
+}) {
+  // Le sezioni non dipendono l'una dall'altra: partono insieme.
+  const [kpi, andamento, attivita, partenze, fornitori] = await Promise.all([
+    KpiSection({ from, to, ownerId, showMargins }),
+    TrendSection({ ownerId }),
+    ActivitySection(),
+    DeparturesSection({ ownerId }),
+    showAccounting ? SupplierSection() : Promise.resolve(null),
+  ])
+
+  return (
+    <>
+      {kpi}
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader>
             <CardTitle>Andamento mensile</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Suspense fallback={<Skeleton className="h-40 w-full" />}>
-              <TrendSection ownerId={ownerId} />
-            </Suspense>
-          </CardContent>
+          <CardContent>{andamento}</CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Ultime attività</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <Suspense fallback={<ListSkeleton rows={6} />}>
-              <ActivitySection />
-            </Suspense>
-          </CardContent>
+          <CardContent className="p-0">{attivita}</CardContent>
         </Card>
       </div>
 
@@ -114,27 +150,66 @@ export default async function PanoramicaPage({
           <CardHeader>
             <CardTitle>Partenze nei prossimi 30 giorni</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <Suspense fallback={<ListSkeleton rows={5} />}>
-              <DeparturesSection ownerId={ownerId} />
-            </Suspense>
-          </CardContent>
+          <CardContent className="p-0">{partenze}</CardContent>
         </Card>
 
-        {session.permissions.accounting ? (
+        {fornitori ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pagamenti a fornitore in scadenza</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">{fornitori}</CardContent>
+          </Card>
+        ) : null}
+      </div>
+    </>
+  )
+}
+
+/** Scheletro dell'intero corpo: stessa forma di ciò che sta arrivando. */
+function PanoramicaScheletro({ showMargins }: { showMargins: boolean }) {
+  return (
+    <>
+      <KpiSkeleton showMargins={showMargins} />
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Andamento mensile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-40 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Ultime attività</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ListSkeleton rows={6} />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Partenze nei prossimi 30 giorni</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ListSkeleton rows={5} />
+          </CardContent>
+        </Card>
+        {showMargins ? (
           <Card>
             <CardHeader>
               <CardTitle>Pagamenti a fornitore in scadenza</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <Suspense fallback={<ListSkeleton rows={5} />}>
-                <SupplierSection />
-              </Suspense>
+              <ListSkeleton rows={5} />
             </CardContent>
           </Card>
         ) : null}
       </div>
-    </div>
+    </>
   )
 }
 

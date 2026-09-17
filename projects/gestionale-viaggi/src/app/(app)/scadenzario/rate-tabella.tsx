@@ -228,9 +228,20 @@ export function RateTabella({
             <p className="num min-w-0 truncate font-medium text-text">
               {formatDateShort(row.due_date)}
             </p>
-            <span className="num shrink-0 text-small font-medium">
-              {formatEuro(row.residual_cents ?? 0)}
-            </span>
+            <div className="shrink-0 text-right">
+              {/* L'importo è il numero della riga; il residuo compare solo
+                  quando racconta qualcosa di diverso, cioè a copertura
+                  parziale. Un "0,00 €" in grande su una rata saldata sarebbe
+                  la cosa più vistosa della scheda e la meno utile. */}
+              <span className="num text-small font-medium">
+                {formatEuro(row.amount_cents ?? 0)}
+              </span>
+              {(row.covered_cents ?? 0) > 0 && (row.residual_cents ?? 0) > 0 ? (
+                <p className="num text-caption text-text-muted">
+                  residuo {formatEuro(row.residual_cents ?? 0)}
+                </p>
+              ) : null}
+            </div>
           </div>
           <p className="mt-0.5 truncate text-text">{row.customer_name ?? '—'}</p>
           <p className="num truncate text-caption text-text-muted">
