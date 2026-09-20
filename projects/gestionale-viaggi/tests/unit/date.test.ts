@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatRelativeDays,
   parseItalianDate,
+  toDateInput,
   toIsoDateOnly,
 } from '@/lib/date'
 
@@ -65,5 +66,21 @@ describe('lettura delle date inserite a mano', () => {
   it('rifiuta le date impossibili', () => {
     expect(parseItalianDate('32/13/2026')).toBeNull()
     expect(parseItalianDate('non una data')).toBeNull()
+  })
+})
+
+describe('valore per un campo data', () => {
+  it('accetta la forma AAAA-MM-GG e taglia un istante ISO completo', () => {
+    expect(toDateInput('2026-09-20')).toBe('2026-09-20')
+    // È la forma che il driver Postgres produce per una colonna `date`: un
+    // campo <input type="date"> la rifiuterebbe restando vuoto.
+    expect(toDateInput('2026-09-20T00:00:00.000Z')).toBe('2026-09-20')
+  })
+
+  it('su un valore assente o incomprensibile restituisce la stringa vuota', () => {
+    expect(toDateInput(null)).toBe('')
+    expect(toDateInput(undefined)).toBe('')
+    expect(toDateInput('')).toBe('')
+    expect(toDateInput('20/09/2026')).toBe('')
   })
 })

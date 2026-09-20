@@ -20,6 +20,7 @@ import {
 import { IDLE } from '@/lib/action-state'
 import type { Tables } from '@/lib/database.types'
 import { saveQuoteAction } from '@/server/actions/preventivi'
+import { toDateInput } from '@/lib/date'
 
 const SALE_TYPE_NOTE: Record<'intermediazione' | 'organizzazione', string> = {
   intermediazione:
@@ -170,7 +171,7 @@ export function PreventivoForm({
                   {...props}
                   name="departure_date"
                   type="date"
-                  defaultValue={initial('departure_date', quote?.departure_date)}
+                  defaultValue={initial('departure_date', toDateInput(quote?.departure_date))}
                 />
               )}
             </Field>
@@ -181,7 +182,7 @@ export function PreventivoForm({
                   {...props}
                   name="return_date"
                   type="date"
-                  defaultValue={initial('return_date', quote?.return_date)}
+                  defaultValue={initial('return_date', toDateInput(quote?.return_date))}
                 />
               )}
             </Field>
@@ -209,7 +210,7 @@ export function PreventivoForm({
                   {...props}
                   name="valid_until"
                   type="date"
-                  defaultValue={initial('valid_until', quote?.valid_until ?? fraUnMese())}
+                  defaultValue={initial('valid_until', toDateInput(quote?.valid_until) || fraUnMese())}
                 />
               )}
             </Field>

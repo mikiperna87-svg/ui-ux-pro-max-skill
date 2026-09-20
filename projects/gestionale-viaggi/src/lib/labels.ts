@@ -121,6 +121,58 @@ export const INVOICE_KIND: Record<Enums['invoice_kind'], string> = {
   nota_credito: 'Nota di credito',
 }
 
+/**
+ * Stato di incasso di un documento, calcolato dalla vista e non scritto sulla
+ * riga. "Non dovuta" è la bozza o il documento annullato: non c'è ancora nulla
+ * da incassare.
+ */
+export type InvoicePaymentState =
+  | 'da_incassare'
+  | 'parziale'
+  | 'pagata'
+  | 'non_dovuta'
+  | 'nota_credito'
+
+export const INVOICE_PAYMENT_STATE: Record<InvoicePaymentState, { label: string; tone: Tone }> = {
+  da_incassare: { label: 'Da incassare', tone: 'warning' },
+  parziale: { label: 'Incassata in parte', tone: 'info' },
+  pagata: { label: 'Incassata', tone: 'success' },
+  non_dovuta: { label: 'Non dovuta', tone: 'neutral' },
+  nota_credito: { label: 'A storno', tone: 'neutral' },
+}
+
+export function isInvoicePaymentState(
+  value: string | null | undefined,
+): value is InvoicePaymentState {
+  return (
+    value === 'da_incassare' ||
+    value === 'parziale' ||
+    value === 'pagata' ||
+    value === 'non_dovuta' ||
+    value === 'nota_credito'
+  )
+}
+
+/** I mesi come li scrive un registro IVA: per esteso, in minuscolo. */
+export const MESI = [
+  'gennaio',
+  'febbraio',
+  'marzo',
+  'aprile',
+  'maggio',
+  'giugno',
+  'luglio',
+  'agosto',
+  'settembre',
+  'ottobre',
+  'novembre',
+  'dicembre',
+] as const
+
+export function nomeMese(mese: number): string {
+  return MESI[mese - 1] ?? ''
+}
+
 export const SALE_TYPE: Record<Enums['sale_type'], string> = {
   intermediazione: 'Intermediazione',
   organizzazione: 'Organizzazione',

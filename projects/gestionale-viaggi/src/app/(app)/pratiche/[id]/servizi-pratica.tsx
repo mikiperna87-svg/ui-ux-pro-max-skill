@@ -40,7 +40,7 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { IDLE } from '@/lib/action-state'
 import type { Enums } from '@/lib/database.types'
-import { formatDateShort } from '@/lib/date'
+import { formatDateShort, toDateInput } from '@/lib/date'
 import { SERVICE_TYPE, VAT_REGIME } from '@/lib/labels'
 import { centsToInputValue, formatEuro, formatPercent } from '@/lib/money'
 import { deleteBookingServiceAction, saveBookingServiceAction } from '@/server/actions/pratiche'
@@ -492,7 +492,7 @@ function RigaServizioDialog({
                     {...props}
                     name="date_from"
                     type="date"
-                    defaultValue={initial('date_from', service?.date_from)}
+                    defaultValue={initial('date_from', toDateInput(service?.date_from))}
                   />
                 )}
               </Field>
@@ -502,7 +502,7 @@ function RigaServizioDialog({
                     {...props}
                     name="date_to"
                     type="date"
-                    defaultValue={initial('date_to', service?.date_to)}
+                    defaultValue={initial('date_to', toDateInput(service?.date_to))}
                   />
                 )}
               </Field>
@@ -647,7 +647,7 @@ function RigaServizioDialog({
                     {...props}
                     name="supplier_due_date"
                     type="date"
-                    defaultValue={initial('supplier_due_date', service?.supplier_due_date)}
+                    defaultValue={initial('supplier_due_date', toDateInput(service?.supplier_due_date))}
                   />
                 )}
               </Field>

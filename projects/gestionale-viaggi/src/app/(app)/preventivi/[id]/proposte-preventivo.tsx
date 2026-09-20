@@ -42,7 +42,7 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { IDLE, type ActionState } from '@/lib/action-state'
 import type { Enums } from '@/lib/database.types'
-import { formatDateShort } from '@/lib/date'
+import { formatDateShort, toDateInput } from '@/lib/date'
 import { QUOTE_VARIANT, SERVICE_TYPE, VAT_REGIME, plurale } from '@/lib/labels'
 import { centsToInputValue, formatEuro } from '@/lib/money'
 import { copyVariantAction, deleteQuoteItemAction, saveQuoteItemAction } from '@/server/actions/preventivi'
@@ -535,7 +535,7 @@ function DialogoVoce({
                     {...props}
                     name="date_from"
                     type="date"
-                    defaultValue={valoreIniziale(state, 'date_from', riga?.date_from ?? '')}
+                    defaultValue={valoreIniziale(state, 'date_from', toDateInput(riga?.date_from))}
                   />
                 )}
               </Field>
@@ -545,7 +545,7 @@ function DialogoVoce({
                     {...props}
                     name="date_to"
                     type="date"
-                    defaultValue={valoreIniziale(state, 'date_to', riga?.date_to ?? '')}
+                    defaultValue={valoreIniziale(state, 'date_to', toDateInput(riga?.date_to))}
                   />
                 )}
               </Field>

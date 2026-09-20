@@ -20,6 +20,7 @@ import {
 import { IDLE } from '@/lib/action-state'
 import type { Tables } from '@/lib/database.types'
 import { saveBookingAction } from '@/server/actions/pratiche'
+import { toDateInput } from '@/lib/date'
 
 const SALE_TYPE_NOTE: Record<'intermediazione' | 'organizzazione', string> = {
   intermediazione:
@@ -167,7 +168,7 @@ export function PraticaForm({
                   {...props}
                   name="departure_date"
                   type="date"
-                  defaultValue={initial('departure_date', booking?.departure_date)}
+                  defaultValue={initial('departure_date', toDateInput(booking?.departure_date))}
                 />
               )}
             </Field>
@@ -178,7 +179,7 @@ export function PraticaForm({
                   {...props}
                   name="return_date"
                   type="date"
-                  defaultValue={initial('return_date', booking?.return_date)}
+                  defaultValue={initial('return_date', toDateInput(booking?.return_date))}
                 />
               )}
             </Field>

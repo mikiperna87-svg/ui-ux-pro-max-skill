@@ -17,6 +17,7 @@ export interface SearchHit {
 export interface SearchResults {
   readonly pratiche: readonly SearchHit[]
   readonly preventivi: readonly SearchHit[]
+  readonly fatture: readonly SearchHit[]
   readonly clienti: readonly SearchHit[]
   readonly passeggeri: readonly SearchHit[]
   readonly fornitori: readonly SearchHit[]
@@ -25,6 +26,7 @@ export interface SearchResults {
 const VUOTO: SearchResults = {
   pratiche: [],
   preventivi: [],
+  fatture: [],
   clienti: [],
   passeggeri: [],
   fornitori: [],
@@ -49,7 +51,7 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
   const supabase = await createClient()
   const pattern = `%${cercato}%`
 
-  const [pratiche, preventivi, clienti, passeggeri, fornitori] = await Promise.all([
+  const [pratiche, preventivi, fatture, clienti, passeggeri, fornitori] = await Promise.all([
     supabase
       .from('booking_list')
       .select('id, code, destination, customer_name, departure_date, search_text')
@@ -61,6 +63,12 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
       .select('id, code, destination, customer_name, valid_until, search_text')
       .ilike('search_text', pattern)
       .order('created_at', { ascending: false })
+      .limit(PER_GRUPPO),
+    supabase
+      .from('invoice_list')
+      .select('id, code, customer_name, issue_date, total_cents, search_text')
+      .ilike('search_text', pattern)
+      .order('issue_date', { ascending: false, nullsFirst: false })
       .limit(PER_GRUPPO),
     supabase
       .from('customer_list')
@@ -100,6 +108,15 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
         row.customer_name,
         row.valid_until ? `valido fino al ${formatDateShort(row.valid_until)}` : null,
       ]
+        .filter(Boolean)
+        .join(' · '),
+      terms: row.search_text ?? '',
+    })),
+    fatture: (fatture.data ?? []).map((row) => ({
+      id: row.id ?? '',
+      href: `/fatture/${row.id}`,
+      label: row.code ?? 'Bozza',
+      hint: [row.customer_name, row.issue_date ? formatDateShort(row.issue_date) : null]
         .filter(Boolean)
         .join(' · '),
       terms: row.search_text ?? '',

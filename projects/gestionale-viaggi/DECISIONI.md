@@ -714,7 +714,110 @@ di premerlo una volta.
 
 ---
 
-## 48. Scelte rinviate, con motivo
+## 48. Il numero si assegna all'emissione, non alla creazione
+
+Prima una fattura riceveva il numero nel momento in cui nasceva la riga. Basta
+aprire una bozza e cambiare idea per lasciare un buco nella numerazione, che
+per le fatture non è ammesso.
+
+Numero e codice sono quindi annullabili finché lo stato è `bozza`, e un vincolo
+li rende obbligatori appena non lo è più:
+
+```sql
+check (status = 'bozza' or (number is not null and code is not null))
+```
+
+Il trigger che numera lavora sullo stesso passaggio, e ricalcola l'anno dalla
+data di emissione: una bozza aperta a dicembre ed emessa a gennaio prende il
+primo numero dell'anno nuovo, non l'ultimo del vecchio. Emettere due volte non
+rinumera, perché `issue_invoice` su un documento già emesso restituisce quello
+che c'è.
+
+La 0010 aveva dato a queste colonne un segnaposto (0 e stringa vuota) perché un
+inserimento da PostgREST non può omettere una colonna NOT NULL senza default.
+Ora che sono annullabili il segnaposto è il valore nullo, e il trigger
+normalizza comunque lo zero che un client vecchio potrebbe mandare.
+
+---
+
+## 49. Un documento emesso è fermo: si corregge con una nota di credito
+
+Due trigger impediscono di toccare una fattura emessa: uno sulla testata
+(cliente, data, imponibile, imposta, totale, cancellazione logica) e uno sulle
+righe, che blocca inserimenti, modifiche e cancellazioni. Restano liberi lo
+stato e la data di invio, che sono le uniche cose che cambiano dopo.
+
+Non è una scelta di prudenza: è il modo in cui funziona un documento fiscale.
+La conseguenza pratica è che il lavoro si fa sulla bozza, dove tutto è
+modificabile, e che il pulsante «Modifica» sparisce dopo l'emissione invece di
+portare a un modulo che al salvataggio darebbe errore.
+
+Il prezzo lo paga il seed, che prima creava le fatture già emesse e poi ci
+aggiungeva le righe: ora apre la bozza, la riempie e la emette, come farebbe una
+persona.
+
+---
+
+## 50. Gli importi di una nota di credito restano positivi
+
+Una nota di credito dice «ti tolgo 500 €», non «contiene -500 €». Le sue righe
+hanno quindi importi positivi, e il segno lo mettono la vista e il registro,
+dove serve davvero: `invoice_list` espone `signed_total_cents`, e `vat_register`
+somma con il segno del tipo di documento.
+
+L'alternativa — righe negative — avrebbe reso il totale della nota negativo e il
+PDF pieno di meno da stampare in valore assoluto, spostando la complessità dal
+punto giusto (due colonne di una vista) a quello sbagliato (ogni schermata che
+mostra un importo).
+
+---
+
+## 51. L'incasso della pratica vale sulla fattura, fino a concorrenza
+
+Il cliente paga la pratica; la fattura è il documento di quella pratica. Se il
+collegamento non lo tiene il database, l'elenco delle fatture mostra «da
+incassare» su documenti già pagati.
+
+Due trigger lo mantengono, e solo dove non c'è ambiguità: un incasso senza
+fattura indicata si attacca all'unica fattura emessa della pratica, e
+l'emissione ricollega gli incassi già registrati. Con due fatture sulla stessa
+pratica l'attribuzione la fa una persona.
+
+L'importo attribuito è però limitato al totale del documento:
+
+```sql
+least(coalesce(incassi.paid_cents, 0), i.total_cents) as paid_cents
+```
+
+Il motivo è il caso dell'intermediazione: il cliente ha versato il pacchetto
+intero mentre la fattura riguarda la sola provvigione. Oltre il totale il numero
+non significherebbe niente per il documento, e l'eccedenza si legge sulla
+pratica, dove sta davvero.
+
+---
+
+## 52. Il campo data accetta una forma sola, e il banco di prova deve rispettarla
+
+Un `<input type="date">` accetta soltanto «AAAA-MM-GG»: qualunque altra cosa lo
+lascia vuoto senza dire niente. PostgREST restituisce le colonne `date` proprio
+in quella forma, ma il driver `pg` usato dal banco di prova locale le trasformava
+in oggetti `Date`, che JSON serializza come istanti UTC
+(`2026-09-20T00:00:00.000Z`). Risultato: in sviluppo e nei test end-to-end ogni
+modulo di modifica mostrava le date vuote, mentre in produzione erano piene.
+
+Il difetto è stato corretto in due punti, perché entrambi erano sbagliati:
+
+- il banco di prova ora registra un parser per il tipo `date` che restituisce la
+  stringa così com'è, e si comporta come la produzione;
+- `toDateInput()` taglia alla forma accettata qualunque valore la contenga, ed è
+  usata da tutti i campi data del gestionale.
+
+Un banco di prova che si comporta diversamente dalla produzione non è un banco
+di prova: nasconde i difetti veri e ne inventa di falsi.
+
+---
+
+## 53. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
@@ -723,3 +826,4 @@ di premerlo una volta.
 | TanStack Query | — | Lo scadenzario si è rivelato una griglia come le altre: stato nell'indirizzo, dati dal server. Una libreria di stato client non avrebbe nulla da gestire |
 | Realtime | Fase 8 | Ha senso con le notifiche, non da solo |
 | Esportazione XLSX | Fase 9 | Il CSV si apre in Excel italiano senza passaggi: una libreria in più va giustificata da un bisogno vero |
+| Fatturazione elettronica (XML SdI) | Dopo la fase 9 | Il tracciato FatturaPA e l'invio al Sistema di Interscambio sono un modulo a sé: servono l'accreditamento, la firma e un canale. Lo schema dei documenti è già quello giusto per generarlo |

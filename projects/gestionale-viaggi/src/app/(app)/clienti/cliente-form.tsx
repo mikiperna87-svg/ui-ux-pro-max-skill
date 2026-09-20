@@ -14,6 +14,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { IDLE } from '@/lib/action-state'
 import type { Tables } from '@/lib/database.types'
 import { saveCustomerAction } from '@/server/actions/anagrafiche'
+import { toDateInput } from '@/lib/date'
 
 export function ClienteForm({ customer }: { customer?: Tables<'customers'> }) {
   const [state, submit] = useActionState(saveCustomerAction, IDLE)
@@ -118,7 +119,7 @@ export function ClienteForm({ customer }: { customer?: Tables<'customers'> }) {
               <>
                 <Field label="Data di nascita" error={state.fieldErrors?.birth_date}>
                   {(props) => (
-                    <Input {...props} name="birth_date" type="date" defaultValue={initial('birth_date', customer?.birth_date ?? '')} />
+                    <Input {...props} name="birth_date" type="date" defaultValue={initial('birth_date', toDateInput(customer?.birth_date))} />
                   )}
                 </Field>
                 <Field label="Luogo di nascita" error={state.fieldErrors?.birth_place}>

@@ -19,6 +19,7 @@ import {
 import { IDLE } from '@/lib/action-state'
 import type { Tables } from '@/lib/database.types'
 import { savePassengerAction } from '@/server/actions/anagrafiche'
+import { toDateInput } from '@/lib/date'
 
 const DOCUMENT_TYPES = [
   { value: 'nessuno', label: 'Nessun documento' },
@@ -119,7 +120,7 @@ export function PasseggeroForm({
 
             <Field label="Data di nascita" error={state.fieldErrors?.birth_date}>
               {(props) => (
-                <Input {...props} name="birth_date" type="date" defaultValue={initial('birth_date', passenger?.birth_date ?? '')} />
+                <Input {...props} name="birth_date" type="date" defaultValue={initial('birth_date', toDateInput(passenger?.birth_date))} />
               )}
             </Field>
             <Field label="Luogo di nascita" error={state.fieldErrors?.birth_place}>
@@ -201,12 +202,12 @@ export function PasseggeroForm({
             </Field>
             <Field label="Rilasciato il" error={state.fieldErrors?.document_issued_at}>
               {(props) => (
-                <Input {...props} name="document_issued_at" type="date" defaultValue={initial('document_issued_at', passenger?.document_issued_at ?? '')} />
+                <Input {...props} name="document_issued_at" type="date" defaultValue={initial('document_issued_at', toDateInput(passenger?.document_issued_at))} />
               )}
             </Field>
             <Field label="Scade il" error={state.fieldErrors?.document_expires_at}>
               {(props) => (
-                <Input {...props} name="document_expires_at" type="date" defaultValue={initial('document_expires_at', passenger?.document_expires_at ?? '')} />
+                <Input {...props} name="document_expires_at" type="date" defaultValue={initial('document_expires_at', toDateInput(passenger?.document_expires_at))} />
               )}
             </Field>
             <Field label="Rilasciato da" className="sm:col-span-2" error={state.fieldErrors?.document_issuer}>

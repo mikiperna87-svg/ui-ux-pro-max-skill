@@ -236,7 +236,9 @@ export async function getBookingDetail(id: string): Promise<BookingDetail | null
     paymentsOut: (paymentsOut ?? []).map((riga) => importiInCentesimi(riga, ['amount_cents'])),
     documents: documents ?? [],
     tasks: tasks ?? [],
-    invoices: invoices ?? [],
+    invoices: (invoices ?? []).map((riga) =>
+      importiInCentesimi(riga, ['taxable_cents', 'vat_cents', 'total_cents']),
+    ),
     activity: activity ?? [],
   }
 }

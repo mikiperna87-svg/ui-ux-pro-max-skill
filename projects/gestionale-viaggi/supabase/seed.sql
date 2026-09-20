@@ -717,13 +717,15 @@ begin
       select coalesce(sum(amount_cents), 0) into v_paid
         from public.payments_in where booking_id = v_booking_id;
 
+      -- Si apre come bozza e si emette dopo le righe: una fattura emessa non
+      -- accetta più modifiche, nemmeno dal seed.
       insert into public.invoices (
         agency_id, kind, customer_id, booking_id, issue_date, due_date, status, vat_regime,
         payment_terms, notes, legal_notes, created_by, created_at
       )
       values (
         v_agency_id, 'fattura', v_customer_id, v_booking_id, v_departure - 25, v_departure - 5,
-        case when v_paid >= v_revenue then 'pagata'::app.invoice_status else 'emessa'::app.invoice_status end,
+        'bozza',
         case when v_sale = 'organizzazione' then 'art_74_ter'::app.vat_regime else 'ordinaria'::app.vat_regime end,
         'Bonifico bancario a 30 giorni data fattura.',
         'Riferimento pratica ' || (select code from public.bookings where id = v_booking_id),
@@ -758,6 +760,12 @@ begin
           1, greatest(v_margin, 0), 0, 2200, 'ordinaria', 1, v_admin_user
         );
       end if;
+
+      update public.invoices
+      set status = case when v_paid >= v_revenue
+                        then 'pagata'::app.invoice_status
+                        else 'emessa'::app.invoice_status end
+      where id = v_invoice_id;
     end if;
 
     -- Nota di credito sulle pratiche annullate che erano gia' state fatturate
@@ -768,20 +776,24 @@ begin
       )
       values (
         v_agency_id, 'nota_credito', v_customer_id, v_booking_id, (v_created + interval '26 days')::date,
-        'emessa', 'ordinaria', 'Storno per annullamento pratica.',
+        'bozza', 'ordinaria', 'Storno per annullamento pratica.',
         'Nota di credito emessa ai sensi dell''art. 26 D.P.R. 633/72.',
         v_admin_user, v_created + interval '26 days'
       )
       returning id into v_credit_id;
 
+      -- Importo positivo: la nota dice "ti tolgo questa cifra". Il segno meno
+      -- lo mettono le viste e il registro IVA, dove serve.
       insert into public.invoice_items (
         agency_id, invoice_id, description, quantity, unit_price_cents, cost_cents,
         vat_bps, vat_regime, sort_order, created_by
       )
       values (
         v_agency_id, v_credit_id, 'Storno commissione per annullamento', 1,
-        -1 * greatest(v_margin, 0), 0, 2200, 'ordinaria', 1, v_admin_user
+        greatest(v_margin, 0), 0, 2200, 'ordinaria', 1, v_admin_user
       );
+
+      update public.invoices set status = 'emessa' where id = v_credit_id;
     end if;
 
     -- --- Task operativi --------------------------------------------------------

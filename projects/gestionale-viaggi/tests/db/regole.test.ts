@@ -292,8 +292,17 @@ describe('regime IVA', () => {
 
   it('i totali della fattura seguono le righe', async () => {
     const totals = await asUser(USER_A_ADMIN, async (s) => {
+      // Una bozza, non una fattura emessa: dalla 0013 un documento emesso non
+      // accetta più righe, ed è proprio la regola che si vuole rispettare qui.
+      const cliente = await s.query<{ id: string }>(
+        `select id from public.customers where agency_id = $1 limit 1`,
+        [AGENCY_A],
+      )
       const invoice = await s.query<{ id: string }>(
-        `select id from public.invoices where kind = 'fattura' limit 1`,
+        `insert into public.invoices (agency_id, kind, customer_id, issue_date, status, vat_regime)
+         values ($1, 'fattura', $2, current_date, 'bozza', 'ordinaria')
+         returning id`,
+        [AGENCY_A, cliente.rows[0]?.id],
       )
       const invoiceId = invoice.rows[0]?.id
       await s.query(

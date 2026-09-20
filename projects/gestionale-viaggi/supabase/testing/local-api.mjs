@@ -31,6 +31,13 @@ const STORAGE_DIR = process.env.LOCAL_API_STORAGE ?? '/tmp/gestionale-storage'
 // altrimenti il banco di prova si comporterebbe diversamente dalla produzione.
 pg.types.setTypeParser(20, (value) => Number(value))
 
+// Una colonna `date` esce da PostgREST come "2026-09-20". Il driver pg, invece,
+// la trasforma in un oggetto Date e JSON la serializza come istante UTC
+// ("2026-09-20T00:00:00.000Z"), che un campo <input type="date"> rifiuta. Senza
+// questa riga il banco di prova mostrerebbe moduli vuoti dove la produzione
+// mostra una data.
+pg.types.setTypeParser(1082, (value) => value)
+
 // Ogni richiesta tiene una connessione per tutta la transazione, e la scheda di
 // una pratica ne apre una decina in parallelo: con la suite end-to-end su due
 // viewport il vecchio limite di 24 faceva la coda, non il lavoro.

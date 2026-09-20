@@ -23,16 +23,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableCellNumeric,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-  TableWrapper,
-} from '@/components/ui/table'
 import { formatDateLong, formatDateShort, formatDateTime, formatRelativeDays } from '@/lib/date'
 import { SALE_TYPE, TASK_STATUS, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
@@ -45,6 +35,7 @@ import {
 import { requireSession } from '@/server/session'
 import { AzioniPratica } from './azioni-pratica'
 import { DocumentiPratica } from './documenti-pratica'
+import { FatturePratica } from './fatture-pratica'
 import { IncassiPratica } from './incassi-pratica'
 import { PasseggeriPratica } from './passeggeri-pratica'
 import { ServiziPratica } from './servizi-pratica'
@@ -341,46 +332,13 @@ export default async function PraticaPage({
                   rataDaIncassare={rataDaIncassare}
                 />
 
-                {invoices.length > 0 ? (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Fatture</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <TableWrapper className="rounded-none border-0 shadow-none">
-                        <Table>
-                          <caption className="sr-only">Fatture della pratica</caption>
-                          <TableHead>
-                            <tr>
-                              <TableHeaderCell>Numero</TableHeaderCell>
-                              <TableHeaderCell>Data</TableHeaderCell>
-                              <TableHeaderCell className="text-right">Imponibile</TableHeaderCell>
-                              <TableHeaderCell className="text-right">IVA</TableHeaderCell>
-                              <TableHeaderCell className="text-right">Totale</TableHeaderCell>
-                            </tr>
-                          </TableHead>
-                          <TableBody>
-                            {invoices.map((fattura) => (
-                              <TableRow key={fattura.id}>
-                                <TableCell className="num font-medium">{fattura.code}</TableCell>
-                                <TableCell className="num">
-                                  {formatDateShort(fattura.issue_date)}
-                                </TableCell>
-                                <TableCellNumeric>
-                                  {formatEuro(fattura.taxable_cents)}
-                                </TableCellNumeric>
-                                <TableCellNumeric>{formatEuro(fattura.vat_cents)}</TableCellNumeric>
-                                <TableCellNumeric className="font-medium">
-                                  {formatEuro(fattura.total_cents)}
-                                </TableCellNumeric>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableWrapper>
-                    </CardContent>
-                  </Card>
-                ) : null}
+                <FatturePratica
+                  bookingId={booking.id}
+                  saleType={booking.sale_type}
+                  invoices={invoices}
+                  canManage={session.permissions.accounting}
+                  canInvoice={booking.status !== 'opzione' && booking.status !== 'annullata'}
+                />
               </div>
             </TabsContent>
 

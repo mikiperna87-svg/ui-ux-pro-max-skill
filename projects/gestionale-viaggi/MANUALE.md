@@ -17,17 +17,18 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 4. [Le pratiche di viaggio](#4-le-pratiche-di-viaggio)
 5. [I preventivi](#5-i-preventivi)
 6. [Incassi, scadenze e pagamenti](#6-incassi-scadenze-e-pagamenti)
-7. [I clienti](#7-i-clienti)
-8. [I passeggeri](#8-i-passeggeri)
-9. [I fornitori](#9-i-fornitori)
-10. [Importare ed esportare gli elenchi](#10-importare-ed-esportare-gli-elenchi)
-11. [Chi vede che cosa: i quattro ruoli](#11-chi-vede-che-cosa-i-quattro-ruoli)
-12. [Impostazioni dell'agenzia](#12-impostazioni-dellagenzia)
-13. [Invitare un collaboratore](#13-invitare-un-collaboratore)
-14. [I parametri che governano le scadenze](#14-i-parametri-che-governano-le-scadenze)
-15. [Le numerazioni](#15-le-numerazioni)
-16. [Aspetto e accessibilità](#16-aspetto-e-accessibilità)
-17. [Domande frequenti](#17-domande-frequenti)
+7. [Fatture e registro IVA](#7-fatture-e-registro-iva)
+8. [I clienti](#8-i-clienti)
+9. [I passeggeri](#9-i-passeggeri)
+10. [I fornitori](#10-i-fornitori)
+11. [Importare ed esportare gli elenchi](#11-importare-ed-esportare-gli-elenchi)
+12. [Chi vede che cosa: i quattro ruoli](#12-chi-vede-che-cosa-i-quattro-ruoli)
+13. [Impostazioni dell'agenzia](#13-impostazioni-dellagenzia)
+14. [Invitare un collaboratore](#14-invitare-un-collaboratore)
+15. [I parametri che governano le scadenze](#15-i-parametri-che-governano-le-scadenze)
+16. [Le numerazioni](#16-le-numerazioni)
+17. [Aspetto e accessibilità](#17-aspetto-e-accessibilità)
+18. [Domande frequenti](#18-domande-frequenti)
 
 ---
 
@@ -113,7 +114,7 @@ prevedeva due rate.
 
 Premi **⌘K** (Mac) o **Ctrl+K** (Windows) da qualsiasi punto: si apre una
 casella in cui scrivere. Trova le sezioni, i comandi e — soprattutto — le
-**pratiche, i preventivi, i clienti, i passeggeri e i fornitori**, cercando per codice,
+**pratiche, i preventivi, le fatture, i clienti, i passeggeri e i fornitori**, cercando per codice,
 destinazione, nome, email, telefono, partita IVA o codice fiscale. Le frecce scorrono i risultati, Invio apre la
 scheda.
 
@@ -130,6 +131,7 @@ righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **G** poi **R** | Vai alle pratiche |
 | **G** poi **V** | Vai ai preventivi |
 | **G** poi **D** | Vai allo scadenzario |
+| **G** poi **A** | Vai alle fatture |
 | **G** poi **C** | Vai ai clienti |
 | **G** poi **S** | Vai ai passeggeri |
 | **G** poi **F** | Vai ai fornitori |
@@ -443,7 +445,103 @@ trova i comandi per incassare o pagare: quelli sono del titolare e
 dell'amministrativo.
 
 ---
-## 7. I clienti
+## 7. Fatture e registro IVA
+
+**Fatture** contiene i documenti fiscali dell'agenzia: fatture e note di
+credito. La sezione è riservata al titolare e all'amministrativo; chi ha la sola
+lettura la consulta senza poterci scrivere.
+
+### Il ciclo di un documento
+
+| Stato | Che cosa significa |
+| --- | --- |
+| **Bozza** | Ci stai lavorando. Non ha ancora un numero e si modifica in ogni sua parte |
+| **Emessa** | Ha preso il numero progressivo dell'anno. Da qui in poi è ferma |
+| **Inviata** | L'hai mandata al cliente |
+| **Pagata** | Il cliente ha versato l'intero importo |
+
+> **Il numero si assegna quando emetti, non quando apri la bozza.** Così una
+> bozza che scarti non lascia un buco nella numerazione, che per le fatture non
+> è ammesso. Una bozza aperta a dicembre ed emessa a gennaio prende il primo
+> numero dell'anno nuovo.
+
+### Fatturare una pratica
+
+È la strada normale. Apri la pratica, scheda **Incassi e scadenze**, pulsante
+**Fattura questa pratica**. Che cosa finisce nella fattura dipende dal tipo di
+vendita, e il gestionale lo sceglie da solo:
+
+- **Organizzazione** → le righe di servizio diventano le righe della fattura, in
+  regime **art. 74-ter**;
+- **Intermediazione** → una sola riga con la provvigione dell'agenzia, con IVA
+  ordinaria.
+
+Nasce una bozza: la controlli, correggi quello che serve e poi la emetti. Una
+pratica in opzione o annullata non si fattura.
+
+Per un documento che non nasce da una pratica c'è **Fatture → Nuova fattura**.
+
+### L'IVA sul margine (art. 74-ter)
+
+Nel regime speciale delle agenzie di viaggio l'IVA non si calcola sul prezzo ma
+sul **margine**: corrispettivo meno costi del viaggio. Per questo ogni riga
+chiede due importi, l'importo al cliente e il costo del viaggio, e la tabella
+mostra tutti i passaggi:
+
+```
+Corrispettivo   3.191,60 €
+Costi           2.749,20 €
+Margine           442,40 €   ← base di calcolo
+Imponibile        362,63 €   ← margine meno IVA
+IVA                79,77 €   ← 22% scorporato dal margine
+```
+
+Se il margine è zero o negativo l'imposta è zero: è il caso di un viaggio
+venduto in perdita, e il gestionale non inventa un'imposta che non c'è.
+
+### Correggere un documento emesso
+
+Non si corregge: si **storna**. Dalla fattura, **Nota di credito** apre una
+bozza con le stesse righe e ti chiede il motivo. Puoi toglierne righe o
+correggerne gli importi — per uno storno parziale — e poi la emetti: prende la
+propria numerazione, con il prefisso che hai scelto in *Impostazioni →
+Numerazioni* (di serie `NC`).
+
+La fattura originale resta com'è, e nella sua scheda compare quanto è stato
+stornato.
+
+Una **bozza**, invece, si elimina: non essendo numerata non lascia buchi.
+
+### Incassi e residuo
+
+L'incasso registrato sulla pratica si attribuisce da solo alla fattura, quando
+la pratica ne ha una sola emessa. La scheda mostra **Incassato** e **Residuo**,
+e l'elenco segnala in rosso le fatture scadute e non incassate. Il filtro
+**Incasso** trova in un colpo tutto ciò che è da incassare o in ritardo.
+
+Su una pratica in intermediazione il cliente ha versato il pacchetto intero
+mentre la fattura riguarda la sola provvigione: l'attribuzione si ferma al
+totale del documento, e l'eccedenza si legge sulla pratica.
+
+### Il PDF
+
+**PDF** scarica il documento A4 con l'intestazione dell'agenzia, i dati del
+cliente (compresi codice SDI e PEC, se in anagrafica), le righe e il riepilogo
+per aliquota. Una bozza non si scarica: senza numero non è una fattura.
+
+### Il registro IVA
+
+**Fatture → Registro IVA** (o la voce *Registro IVA* nel menu) mostra, per
+l'anno scelto, imponibile, imposta e margine divisi per mese, regime e aliquota.
+Le note di credito ci sono già con il segno meno, e le bozze non compaiono
+affatto: non sono documenti.
+
+**Esporta** produce il file da mandare al commercialista per la liquidazione,
+con la riga di totale in fondo.
+
+---
+
+## 8. I clienti
 
 **Clienti** è l'anagrafica di chi compra: privati e aziende.
 
@@ -500,7 +598,7 @@ obbligo di conservazione contabile.
 
 ---
 
-## 8. I passeggeri
+## 9. I passeggeri
 
 I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
 manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
@@ -525,7 +623,7 @@ al momento della prenotazione, non dopo.
 
 ---
 
-## 9. I fornitori
+## 10. I fornitori
 
 I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
 ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
@@ -547,7 +645,7 @@ dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serv
 
 ---
 
-## 10. Importare ed esportare gli elenchi
+## 11. Importare ed esportare gli elenchi
 
 Ogni elenco ha due comandi in alto a destra.
 
@@ -578,7 +676,7 @@ le intestazioni giuste.
 
 ---
 
-## 11. Chi vede che cosa: i quattro ruoli
+## 12. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -596,7 +694,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 12. Impostazioni dell'agenzia
+## 13. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -611,7 +709,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 13. Invitare un collaboratore
+## 14. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -634,7 +732,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 14. I parametri che governano le scadenze
+## 15. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -653,7 +751,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 15. Le numerazioni
+## 16. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -662,13 +760,17 @@ momento in cui il documento viene creato, e non si può modificare.
 In *Impostazioni → Parametri → Numerazioni* scegli solo il **prefisso**: per
 esempio `AG` produce `AG2026/0001`. Lasciandolo vuoto ottieni `2026/0001`.
 
+Pratiche e preventivi prendono il numero quando li crei. Le **fatture** e le
+**note di credito**, invece, lo prendono quando le **emetti**: finché sono bozze
+non consumano numerazione, e una bozza scartata non lascia buchi.
+
 > Perché non si può correggere un numero: la numerazione delle fatture non ammette
 > buchi. Se un documento viene annullato non si riusa il numero, si emette una
 > nota di credito.
 
 ---
 
-## 16. Aspetto e accessibilità
+## 17. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -688,7 +790,7 @@ un'etichetta scritta.
 
 ---
 
-## 17. Domande frequenti
+## 18. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.
@@ -744,7 +846,7 @@ Controlla i filtri in alto: uno stato o un periodo attivo può nasconderla.
 **Un cliente chiede la cancellazione dei suoi dati.**
 Apri la sua scheda, menu **⋮** in alto a destra. **Esporta i dati (GDPR)** gli
 consegna tutto ciò che conserviamo; **Anonimizza** rimuove i dati personali e
-conserva soltanto quanto la legge impone di tenere. Vedi la sezione 7.
+conserva soltanto quanto la legge impone di tenere. Vedi la sezione 8.
 
 **Ho sbagliato a scrivere una partita IVA e il gestionale non me la accetta.**
 La cifra di controllo non torna: è la stessa verifica che farebbe il Sistema di

@@ -3,6 +3,8 @@ import {
   CalendarClock,
   FileText,
   Luggage,
+  Receipt,
+  Table2,
   LayoutDashboard,
   Settings,
   Truck,
@@ -30,8 +32,8 @@ export interface NavItem {
 /**
  * Voci di navigazione. Contiene solo le sezioni realmente implementate:
  * una voce che porta a una pagina inesistente è peggio di una voce assente.
- * Le sezioni successive (amministrazione, agenda) si aggiungono qui quando il
- * modulo viene consegnato.
+ * Le sezioni successive (agenda) si aggiungono qui quando il modulo viene
+ * consegnato.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   {
@@ -61,6 +63,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: 'd',
     icon: CalendarClock,
     description: 'Incassi da ricevere e pagamenti ai fornitori',
+  },
+  {
+    href: '/fatture',
+    label: 'Fatture',
+    shortcut: 'a',
+    icon: Receipt,
+    description: 'Fatture, note di credito e regime 74-ter',
+    roles: ['titolare', 'amministrativo', 'sola_lettura'],
   },
   {
     href: '/clienti',
@@ -94,6 +104,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
 ]
 
 export const SECONDARY_NAV: readonly NavItem[] = [
+  {
+    href: '/registri',
+    label: 'Registro IVA',
+    icon: Table2,
+    description: 'Imponibile, imposta e margine per mese',
+    roles: ['titolare', 'amministrativo', 'sola_lettura'],
+  },
   {
     href: '/impostazioni/agenzia',
     label: 'Dati agenzia',

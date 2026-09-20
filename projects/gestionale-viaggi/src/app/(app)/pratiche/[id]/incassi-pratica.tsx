@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/table'
 import { useToast } from '@/components/ui/toast'
 import { IDLE, type ActionState } from '@/lib/action-state'
-import { formatDateShort, formatRelativeDays } from '@/lib/date'
+import { formatDateShort, formatRelativeDays, toDateInput } from '@/lib/date'
 import {
   INSTALLMENT_KIND,
   PAYMENT_IN_KIND,
@@ -875,7 +875,7 @@ function DialogoRata({
                   <Input {...props}
                     name="due_date"
                     type="date"
-                    defaultValue={valoreIniziale(state, 'due_date', rata?.due_date ?? '')}
+                    defaultValue={valoreIniziale(state, 'due_date', toDateInput(rata?.due_date))}
                   />
                 )}
               </Field>

@@ -776,8 +776,8 @@ export interface Database {
           agency_id: string
           kind: Enums['invoice_kind']
           year: number
-          number: number
-          code: string
+          number: number | null
+          code: string | null
           customer_id: string
           booking_id: string | null
           credit_note_of: string | null
@@ -797,14 +797,15 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          search_text: string | null
         }
         Insert: {
           id?: string
           agency_id: string
           kind?: Enums['invoice_kind']
           year?: number
-          number?: number
-          code?: string
+          number?: number | null
+          code?: string | null
           customer_id: string
           booking_id?: string | null
           credit_note_of?: string | null
@@ -830,8 +831,8 @@ export interface Database {
           agency_id?: string
           kind?: Enums['invoice_kind']
           year?: number
-          number?: number
-          code?: string
+          number?: number | null
+          code?: string | null
           customer_id?: string
           booking_id?: string | null
           credit_note_of?: string | null
@@ -1733,6 +1734,69 @@ export interface Database {
         }
         Relationships: []
       }
+      invoice_item_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          invoice_id: string | null
+          description: string | null
+          quantity: number | null
+          unit_price_cents: number | null
+          cost_cents: number | null
+          gross_cents: number | null
+          vat_bps: number | null
+          vat_regime: Enums['vat_regime'] | null
+          sort_order: number | null
+          taxable_cents: number | null
+          vat_cents: number | null
+          margin_cents: number | null
+        }
+        Relationships: []
+      }
+      invoice_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          kind: Enums['invoice_kind'] | null
+          code: string | null
+          year: number | null
+          number: number | null
+          status: Enums['invoice_status'] | null
+          issue_date: string | null
+          due_date: string | null
+          vat_regime: Enums['vat_regime'] | null
+          taxable_cents: number | null
+          vat_cents: number | null
+          total_cents: number | null
+          signed_total_cents: number | null
+          payment_terms: string | null
+          notes: string | null
+          legal_notes: string | null
+          sent_at: string | null
+          pdf_path: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_email: string | null
+          customer_vat: string | null
+          booking_id: string | null
+          booking_code: string | null
+          destination: string | null
+          owner_id: string | null
+          credit_note_of: string | null
+          credit_note_of_code: string | null
+          created_at: string | null
+          created_by: string | null
+          search_text: string | null
+          customer_search: string | null
+          paid_cents: number | null
+          residual_cents: number | null
+          credited_cents: number | null
+          payment_state: string | null
+          is_overdue: boolean | null
+          days_late: number | null
+        }
+        Relationships: []
+      }
       passenger_documents: {
         Row: {
           passenger_id: string | null
@@ -1969,6 +2033,22 @@ export interface Database {
         }
         Relationships: []
       }
+      vat_register: {
+        Row: {
+          agency_id: string | null
+          year: number | null
+          month: number | null
+          kind: Enums['invoice_kind'] | null
+          vat_regime: Enums['vat_regime'] | null
+          vat_bps: number | null
+          documents_count: number | null
+          taxable_cents: number | null
+          vat_cents: number | null
+          total_cents: number | null
+          margin_cents: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_quote: {
@@ -1999,6 +2079,10 @@ export interface Database {
         Args: { p_agency_name: string | null; p_full_name: string | null; p_vat_number?: string | null; p_email?: string | null }
         Returns: string
       }
+      credit_note_for: {
+        Args: { p_invoice_id: string | null; p_reason: string | null }
+        Returns: unknown
+      }
       dashboard_kpis: {
         Args: { p_from: string | null; p_to: string | null; p_owner_id?: string | null }
         Returns: { bookings_count: number | null; confirmed_count: number | null; revenue_cents: number | null; cost_cents: number | null; margin_cents: number | null; margin_bps: number | null; average_ticket_cents: number | null; collected_cents: number | null; receivable_cents: number | null; overdue_cents: number | null; supplier_due_cents: number | null }[]
@@ -2006,6 +2090,14 @@ export interface Database {
       export_customer_data: {
         Args: { p_customer_id: string | null }
         Returns: Json
+      }
+      invoice_from_booking: {
+        Args: { p_booking_id: string | null; p_mode?: string | null }
+        Returns: unknown
+      }
+      issue_invoice: {
+        Args: { p_invoice_id: string | null; p_issue_date?: string | null }
+        Returns: unknown
       }
       log_activity: {
         Args: { p_agency_id: string | null; p_action: Enums['activity_action'] | null; p_entity_type: string | null; p_entity_id: string | null; p_entity_label: string | null; p_summary: string | null; p_before?: Json | null; p_after?: Json | null }
@@ -2035,6 +2127,10 @@ export interface Database {
         Args: { p_token: string | null; p_reason: string | null; p_ip?: string | null }
         Returns: unknown
       }
+      send_invoice: {
+        Args: { p_invoice_id: string | null }
+        Returns: unknown
+      }
       set_payout_status: {
         Args: { p_payout_id: string | null; p_status: Enums['payout_status'] | null; p_paid_at?: string | null; p_method?: Enums['payment_method'] | null; p_reference?: string | null; p_supplier_invoice_number?: string | null }
         Returns: unknown
@@ -2050,6 +2146,10 @@ export interface Database {
       upcoming_supplier_payments: {
         Args: { p_days?: number | null; p_limit?: number | null }
         Returns: { payment_id: string | null; supplier_name: string | null; booking_code: string | null; amount_cents: number | null; due_date: string | null; status: Enums['payout_status'] | null; days_left: number | null }[]
+      }
+      void_draft_invoice: {
+        Args: { p_invoice_id: string | null }
+        Returns: undefined
       }
       void_payment_in: {
         Args: { p_payment_id: string | null; p_reason: string | null }

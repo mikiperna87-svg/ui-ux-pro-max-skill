@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
   // il documento uscirebbe senza il simbolo dell'euro.
   outputFileTracingIncludes: {
     '/preventivi/[id]/pdf': ['./src/server/pdf/fonts/*.ttf'],
+    '/fatture/[id]/pdf': ['./src/server/pdf/fonts/*.ttf'],
   },
   async headers() {
     return [

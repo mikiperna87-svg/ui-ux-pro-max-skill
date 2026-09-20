@@ -91,6 +91,21 @@ export function formatRelativeDays(value: DateInput | null | undefined): string 
 }
 
 /** Data pura in formato ISO (yyyy-MM-dd), il formato usato dalle colonne `date`. */
+
+/**
+ * Il valore da dare a un campo `<input type="date">`.
+ *
+ * Il campo accetta soltanto la forma "AAAA-MM-GG": qualunque altra cosa — un
+ * istante ISO completo, per esempio — lo lascia vuoto senza dire niente, e chi
+ * compila il modulo si ritrova un campo obbligatorio in bianco. Qui si taglia
+ * a quella forma tutto ciò che la contiene.
+ */
+export function toDateInput(value: string | null | undefined): string {
+  if (!value) return ''
+  const match = value.match(/^(\d{4}-\d{2}-\d{2})/)
+  return match?.[1] ?? ''
+}
+
 export function toIsoDateOnly(value: DateInput): string {
   return format(toRome(value), 'yyyy-MM-dd')
 }

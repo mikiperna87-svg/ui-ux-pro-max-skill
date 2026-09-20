@@ -1,10 +1,10 @@
-import { Document, type DocumentProps, Font, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
-import path from 'node:path'
+import { Document, type DocumentProps, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { ReactElement } from 'react'
 import { formatDateLong, formatDateShort } from '@/lib/date'
 import type { Enums, Tables } from '@/lib/database.types'
 import { QUOTE_VARIANT, SERVICE_TYPE, plurale } from '@/lib/labels'
 import { formatEuro } from '@/lib/money'
+import { FAMIGLIA_PDF } from '@/server/pdf/caratteri'
 import type { QuoteItemRow, QuoteVariantTotals } from '@/server/queries/preventivi'
 
 type Variante = Enums['quote_variant']
@@ -19,32 +19,6 @@ const ORDINE: readonly Variante[] = ['base', 'consigliata', 'premium']
  * colori sono i pochi che servono, scritti in chiaro e scelti perché reggono
  * anche la stampa in bianco e nero.
  */
-/**
- * Il carattere del documento.
- *
- * I font standard del PDF (Helvetica e compagnia) usano la codifica del 1985:
- * non contengono né il simbolo dell'euro né l'apostrofo tipografico, e
- * react-pdf li lascia semplicemente cadere. Un preventivo di viaggio senza il
- * segno € non è un'opzione, quindi il documento porta con sé Inter — lo stesso
- * carattere dell'applicazione — in due pesi.
- *
- * Il file viene letto dal disco: `outputFileTracingIncludes` in next.config.ts
- * lo tiene dentro il pacchetto della funzione anche in produzione.
- */
-const CARTELLA_FONT = path.join(process.cwd(), 'src/server/pdf/fonts')
-
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: path.join(CARTELLA_FONT, 'Inter-Regular.ttf'), fontWeight: 400 },
-    { src: path.join(CARTELLA_FONT, 'Inter-SemiBold.ttf'), fontWeight: 600 },
-  ],
-})
-
-// Inter non ha crenature da sillabazione utili qui: spezzare "Zanzibar" a metà
-// riga in un preventivo fa un'impressione pessima.
-Font.registerHyphenationCallback((parola) => [parola])
-
 const NERO = '#1d1c1a'
 const GRIGIO = '#6b6862'
 const LINEA = '#d9d5cd'
@@ -56,7 +30,7 @@ const styles = StyleSheet.create({
     paddingBottom: 56,
     paddingHorizontal: 44,
     fontSize: 9.5,
-    fontFamily: 'Inter',
+    fontFamily: FAMIGLIA_PDF,
     color: NERO,
     lineHeight: 1.45,
   },

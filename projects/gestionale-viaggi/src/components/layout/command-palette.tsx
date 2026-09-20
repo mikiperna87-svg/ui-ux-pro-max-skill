@@ -4,6 +4,7 @@ import { Command } from 'cmdk'
 import {
   FileText,
   Keyboard,
+  Receipt,
   LogOut,
   Luggage,
   Monitor,
@@ -29,6 +30,7 @@ import { cn } from '@/lib/utils'
 const NESSUN_RISULTATO: SearchResults = {
   pratiche: [],
   preventivi: [],
+  fatture: [],
   clienti: [],
   passeggeri: [],
   fornitori: [],
@@ -104,6 +106,7 @@ export function CommandPalette({
   const gruppi: ReadonlyArray<{ titolo: string; icona: typeof Search; voci: readonly SearchHit[] }> = [
     { titolo: 'Pratiche', icona: Luggage, voci: hits.pratiche },
     { titolo: 'Preventivi', icona: FileText, voci: hits.preventivi },
+    { titolo: 'Fatture', icona: Receipt, voci: hits.fatture },
     { titolo: 'Clienti', icona: Users, voci: hits.clienti },
     { titolo: 'Passeggeri', icona: UsersRound, voci: hits.passeggeri },
     { titolo: 'Fornitori', icona: Truck, voci: hits.fornitori },
