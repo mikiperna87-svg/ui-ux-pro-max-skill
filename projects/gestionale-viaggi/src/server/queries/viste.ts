@@ -16,7 +16,7 @@ export interface SavedViewRow {
  * proprie. La RLS ha già escluso quelle degli altri.
  */
 export async function savedViewsFor(
-  entity: 'pratiche' | 'clienti' | 'passeggeri' | 'fornitori',
+  entity: 'pratiche' | 'preventivi' | 'clienti' | 'passeggeri' | 'fornitori',
 ): Promise<readonly SavedViewRow[]> {
   const session = await requireSession()
   const supabase = await createClient()

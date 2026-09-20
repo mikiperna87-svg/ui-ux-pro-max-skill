@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
     // Le Server Action ricevono solo payload piccoli (form): limite stretto per sicurezza.
     serverActions: { bodySizeLimit: '2mb' },
   },
+  // Il PDF del preventivo legge i due file del carattere dal disco: senza
+  // questa riga finiscono fuori dal pacchetto della funzione e in produzione
+  // il documento uscirebbe senza il simbolo dell'euro.
+  outputFileTracingIncludes: {
+    '/preventivi/[id]/pdf': ['./src/server/pdf/fonts/*.ttf'],
+  },
   async headers() {
     return [
       {

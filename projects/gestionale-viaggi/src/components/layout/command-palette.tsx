@@ -2,6 +2,7 @@
 
 import { Command } from 'cmdk'
 import {
+  FileText,
   Keyboard,
   LogOut,
   Luggage,
@@ -27,6 +28,7 @@ import { cn } from '@/lib/utils'
 
 const NESSUN_RISULTATO: SearchResults = {
   pratiche: [],
+  preventivi: [],
   clienti: [],
   passeggeri: [],
   fornitori: [],
@@ -41,10 +43,10 @@ const VOCE =
 /**
  * Ricerca e comandi rapidi (Cmd/Ctrl + K).
  *
- * Oltre a sezioni e comandi cerca nelle anagrafiche: chi digita un cognome, una
- * email o una partita IVA arriva alla scheda senza passare dagli elenchi. Le
- * pratiche e i preventivi si aggiungono qui quando i relativi moduli esistono,
- * per non offrire risultati che non portano da nessuna parte.
+ * Oltre a sezioni e comandi cerca in pratiche, preventivi e anagrafiche: chi
+ * digita un cognome, una destinazione o una partita IVA arriva alla scheda
+ * senza passare dagli elenchi. Un gruppo si aggiunge qui quando il modulo
+ * esiste, per non offrire risultati che non portano da nessuna parte.
  */
 export function CommandPalette({
   role,
@@ -101,6 +103,7 @@ export function CommandPalette({
 
   const gruppi: ReadonlyArray<{ titolo: string; icona: typeof Search; voci: readonly SearchHit[] }> = [
     { titolo: 'Pratiche', icona: Luggage, voci: hits.pratiche },
+    { titolo: 'Preventivi', icona: FileText, voci: hits.preventivi },
     { titolo: 'Clienti', icona: Users, voci: hits.clienti },
     { titolo: 'Passeggeri', icona: UsersRound, voci: hits.passeggeri },
     { titolo: 'Fornitori', icona: Truck, voci: hits.fornitori },

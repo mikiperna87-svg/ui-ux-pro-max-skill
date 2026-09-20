@@ -1,5 +1,6 @@
 'use server'
 
+import { formatDateShort } from '@/lib/date'
 import { createClient } from '@/lib/supabase/server'
 import { normalizeSearch } from '@/lib/list-params'
 import { requireSession } from '@/server/session'
@@ -15,12 +16,19 @@ export interface SearchHit {
 
 export interface SearchResults {
   readonly pratiche: readonly SearchHit[]
+  readonly preventivi: readonly SearchHit[]
   readonly clienti: readonly SearchHit[]
   readonly passeggeri: readonly SearchHit[]
   readonly fornitori: readonly SearchHit[]
 }
 
-const VUOTO: SearchResults = { pratiche: [], clienti: [], passeggeri: [], fornitori: [] }
+const VUOTO: SearchResults = {
+  pratiche: [],
+  preventivi: [],
+  clienti: [],
+  passeggeri: [],
+  fornitori: [],
+}
 
 const PER_GRUPPO = 5
 
@@ -41,12 +49,18 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
   const supabase = await createClient()
   const pattern = `%${cercato}%`
 
-  const [pratiche, clienti, passeggeri, fornitori] = await Promise.all([
+  const [pratiche, preventivi, clienti, passeggeri, fornitori] = await Promise.all([
     supabase
       .from('booking_list')
       .select('id, code, destination, customer_name, departure_date, search_text')
       .ilike('search_text', pattern)
       .order('departure_date', { ascending: false, nullsFirst: false })
+      .limit(PER_GRUPPO),
+    supabase
+      .from('quote_list')
+      .select('id, code, destination, customer_name, valid_until, search_text')
+      .ilike('search_text', pattern)
+      .order('created_at', { ascending: false })
       .limit(PER_GRUPPO),
     supabase
       .from('customer_list')
@@ -73,7 +87,21 @@ export async function searchEverywhereAction(term: string): Promise<SearchResult
       id: row.id ?? '',
       href: `/pratiche/${row.id}`,
       label: `${row.code} · ${row.destination}`,
-      hint: [row.customer_name, row.departure_date].filter(Boolean).join(' · '),
+      hint: [row.customer_name, row.departure_date ? formatDateShort(row.departure_date) : null]
+        .filter(Boolean)
+        .join(' · '),
+      terms: row.search_text ?? '',
+    })),
+    preventivi: (preventivi.data ?? []).map((row) => ({
+      id: row.id ?? '',
+      href: `/preventivi/${row.id}`,
+      label: `${row.code} · ${row.destination}`,
+      hint: [
+        row.customer_name,
+        row.valid_until ? `valido fino al ${formatDateShort(row.valid_until)}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
       terms: row.search_text ?? '',
     })),
     clienti: (clienti.data ?? []).map((row) => ({

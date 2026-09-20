@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarClock,
+  FileText,
   Luggage,
   LayoutDashboard,
   Settings,
@@ -29,8 +30,8 @@ export interface NavItem {
 /**
  * Voci di navigazione. Contiene solo le sezioni realmente implementate:
  * una voce che porta a una pagina inesistente è peggio di una voce assente.
- * Le sezioni successive (preventivi, amministrazione, agenda) si aggiungono
- * qui quando il modulo viene consegnato.
+ * Le sezioni successive (amministrazione, agenda) si aggiungono qui quando il
+ * modulo viene consegnato.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   {
@@ -46,6 +47,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: 'r',
     icon: Luggage,
     description: 'Viaggi venduti, scadenze, incassi e margine',
+  },
+  {
+    href: '/preventivi',
+    label: 'Preventivi',
+    shortcut: 'v',
+    icon: FileText,
+    description: 'Proposte inviate ai clienti e risposte ricevute',
   },
   {
     href: '/scadenzario',

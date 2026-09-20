@@ -5,6 +5,7 @@ import {
   INSTALLMENT_STATE,
   PAYMENT_STATE,
   PAYOUT_STATUS,
+  QUOTE_STATUS,
   isInstallmentState,
 } from '@/lib/labels'
 
@@ -43,6 +44,26 @@ export function PayoutStatusBadge({ status }: { status: Enums['payout_status'] }
  */
 export function InstallmentStateBadge({ state }: { state: string | null }) {
   const { label, tone } = INSTALLMENT_STATE[isInstallmentState(state) ? state : 'attesa']
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
+
+/**
+ * Stato di un preventivo. La scadenza non è un valore dell'enum: un preventivo
+ * inviato e scaduto resta "inviato" sul database, e si legge "Scaduto" qui,
+ * dove conta.
+ */
+export function QuoteStatusBadge({
+  status,
+  expired = false,
+}: {
+  status: Enums['quote_status']
+  expired?: boolean
+}) {
+  const { label, tone } = expired && status === 'inviato' ? QUOTE_STATUS.scaduto : QUOTE_STATUS[status]
   return (
     <Badge tone={tone} dot>
       {label}

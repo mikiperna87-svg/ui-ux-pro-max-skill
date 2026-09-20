@@ -108,7 +108,7 @@ export const cancelBookingSchema = z.object({
 
 // --- Vista salvata ------------------------------------------------------------
 export const savedViewSchema = z.object({
-  entity: z.enum(['pratiche', 'clienti', 'passeggeri', 'fornitori'], {
+  entity: z.enum(['pratiche', 'preventivi', 'clienti', 'passeggeri', 'fornitori'], {
     error: 'Elenco non valido',
   }),
   name: z.string().trim().min(2, 'Dai un nome alla vista').max(60),

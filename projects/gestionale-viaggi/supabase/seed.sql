@@ -851,3 +851,214 @@ begin
   raise notice 'Seed: 60 pratiche create.';
 end;
 $$;
+
+-- =============================================================================
+-- 14 preventivi in stati diversi, con due o tre proposte a confronto.
+-- Servono a mostrare il modulo e a verificare l'accettazione dalla pagina
+-- pubblica senza dover prima costruire un preventivo a mano.
+-- =============================================================================
+
+do $$
+declare
+  v_agency_id  uuid := '11111111-1111-4111-8111-111111111111';
+  v_owner_user uuid := '22222222-2222-4222-8222-222222222221';
+  v_oper_user  uuid := '22222222-2222-4222-8222-222222222223';
+  v_m_owner    uuid;
+  v_m_operator uuid;
+
+  dest_names text[] := array[
+    'Polinesia francese','Patagonia e Terra del Fuoco','Namibia, deserto e oceano',
+    'Capitali del Nord','Vietnam e Cambogia','Costa Azzurra in treno',
+    'Isole Eolie in barca','Scozia e isole Ebridi','Rajasthan e Taj Mahal',
+    'Lisbona e Algarve','Canada, Rocky Mountains','Seychelles, La Digue',
+    'Grecia classica','Norvegia dei fiordi'];
+  dest_countries text[] := array[
+    'PF','AR','NA','DK','VN','FR','IT','GB','IN','PT','CA','SC','GR','NO'];
+  base_prices bigint[] := array[
+    412000,378000,295000,148000,232000,96000,118000,172000,264000,
+    88000,318000,356000,124000,198000];
+  quote_titles text[] := array[
+    'Viaggio di nozze','Anniversario','Vacanza in famiglia','Ponte lungo',
+    'Viaggio di gruppo','Fuga romantica'];
+
+  v_customer_ids uuid[];
+  v_supplier_to  uuid[];
+  v_supplier_air uuid[];
+  v_supplier_ins uuid;
+
+  v_quote_id    uuid;
+  v_customer_id uuid;
+  v_created     timestamptz;
+  v_departure   date;
+  v_status      app.quote_status;
+  v_variant     app.quote_variant;
+  v_prezzo      bigint;
+  v_moltiplica  numeric;
+  v_indice      integer;
+  v_pax         integer;
+  v_owner_m     uuid;
+  v_booking     public.bookings;
+begin
+  select id into v_m_owner from public.memberships
+  where agency_id = v_agency_id and user_id = v_owner_user;
+  select id into v_m_operator from public.memberships
+  where agency_id = v_agency_id and user_id = v_oper_user;
+
+  select array_agg(id order by created_at) into v_customer_ids
+  from public.customers where agency_id = v_agency_id;
+
+  select array_agg(id order by name) into v_supplier_to
+  from public.suppliers where agency_id = v_agency_id and kind = 'tour_operator';
+  select array_agg(id order by name) into v_supplier_air
+  from public.suppliers where agency_id = v_agency_id and kind = 'compagnia_aerea';
+  select id into v_supplier_ins
+  from public.suppliers where agency_id = v_agency_id and kind = 'assicurazione' limit 1;
+
+  perform setseed(0.31);
+
+  for v_indice in 1..14 loop
+    v_created := now() - ((60 - v_indice * 4) || ' days')::interval;
+    v_departure := (v_created + ((90 + v_indice * 9) || ' days')::interval)::date;
+    v_customer_id := v_customer_ids[1 + ((v_indice * 3) % array_length(v_customer_ids, 1))];
+    v_pax := 2 + (v_indice % 4);
+    v_prezzo := base_prices[v_indice];
+
+    -- Stati distribuiti: due bozze, sei inviati, tre accettati, due rifiutati,
+    -- uno convertito in pratica.
+    v_status := case
+      when v_indice <= 2 then 'bozza'
+      when v_indice <= 8 then 'inviato'
+      when v_indice <= 11 then 'accettato'
+      when v_indice <= 13 then 'rifiutato'
+      else 'accettato'
+    end::app.quote_status;
+
+    v_owner_m := case when v_indice % 3 = 0 then v_m_operator else v_m_owner end;
+
+    insert into public.quotes (
+      agency_id, customer_id, owner_id, title, destination, departure_date, return_date,
+      pax_count, status, sale_type, valid_until, intro_text, terms_text, notes,
+      created_by, created_at, updated_at,
+      sent_at, accepted_variant, accepted_at, accepted_by_name, rejected_at, rejection_reason
+    )
+    values (
+      v_agency_id, v_customer_id, v_owner_m,
+      quote_titles[1 + (v_indice % array_length(quote_titles, 1))],
+      dest_names[v_indice], v_departure, v_departure + (7 + v_indice % 6),
+      v_pax, v_status, 'organizzazione',
+      -- Due preventivi inviati sono gia' scaduti: servono a mostrare il filtro.
+      case when v_indice in (5, 7) then (current_date - 6) else (current_date + (10 + v_indice * 2)) end,
+      'Gentile cliente, di seguito la proposta per ' || dest_names[v_indice] ||
+        '. Restiamo a disposizione per adattarla alle vostre esigenze.',
+      'Quotazione valida salvo disponibilità al momento della conferma. ' ||
+        'Acconto del 30% alla conferma, saldo 30 giorni prima della partenza. ' ||
+        'Condizioni di annullamento secondo le condizioni generali di contratto.',
+      case when v_indice % 4 = 0 then 'Cliente interessato anche a un''estensione di tre notti.' else null end,
+      v_owner_user, v_created, v_created,
+      case when v_status <> 'bozza' then v_created + interval '1 day' else null end,
+      case when v_status in ('accettato') then 'consigliata'::app.quote_variant else null end,
+      case when v_status in ('accettato') then v_created + interval '6 days' else null end,
+      case when v_status in ('accettato') then
+        (select display_name from public.customers where id = v_customer_id) else null end,
+      case when v_status = 'rifiutato' then v_created + interval '9 days' else null end,
+      case when v_status = 'rifiutato' then 'Fuori budget per quest''anno' else null end
+    )
+    returning id into v_quote_id;
+
+    -- Due o tre proposte a confronto: la base, la consigliata e, sui viaggi
+    -- lunghi, una premium.
+    foreach v_variant in array (
+      case when v_prezzo >= 200000
+        then array['base', 'consigliata', 'premium']::app.quote_variant[]
+        else array['base', 'consigliata']::app.quote_variant[]
+      end
+    )
+    loop
+      v_moltiplica := case v_variant
+        when 'base' then 1.00
+        when 'consigliata' then 1.22
+        else 1.55
+      end;
+
+      insert into public.quote_items (
+        agency_id, quote_id, variant, service_type, supplier_id, description, details,
+        date_from, date_to, quantity, unit_cost_cents, unit_price_cents,
+        commission_bps, vat_bps, vat_regime, sort_order, created_by, created_at
+      )
+      values (
+        v_agency_id, v_quote_id, v_variant, 'volo',
+        v_supplier_air[1 + (v_indice % array_length(v_supplier_air, 1))],
+        'Voli di linea andata e ritorno',
+        case v_variant when 'premium' then 'Classe business, bagaglio incluso'
+                       when 'consigliata' then 'Economy flessibile, un bagaglio in stiva'
+                       else 'Economy base, solo bagaglio a mano' end,
+        v_departure, v_departure + 7, v_pax,
+        app.round_cents(v_prezzo * 0.28 * v_moltiplica * 0.78),
+        app.round_cents(v_prezzo * 0.28 * v_moltiplica),
+        0, 2200, 'art_74_ter', 0, v_owner_user, v_created
+      ),
+      (
+        v_agency_id, v_quote_id, v_variant, 'hotel',
+        v_supplier_to[1 + ((v_indice + 1) % array_length(v_supplier_to, 1))],
+        'Soggiorno con trattamento di mezza pensione',
+        case v_variant when 'premium' then 'Resort 5 stelle, suite vista mare'
+                       when 'consigliata' then 'Hotel 4 stelle centrale, camera superior'
+                       else 'Hotel 3 stelle, camera doppia standard' end,
+        v_departure, v_departure + 7, v_pax,
+        app.round_cents(v_prezzo * 0.52 * v_moltiplica * 0.74),
+        app.round_cents(v_prezzo * 0.52 * v_moltiplica),
+        0, 2200, 'art_74_ter', 1, v_owner_user, v_created
+      ),
+      (
+        v_agency_id, v_quote_id, v_variant, 'escursione',
+        v_supplier_to[1 + (v_indice % array_length(v_supplier_to, 1))],
+        'Escursioni e trasferimenti',
+        case v_variant when 'premium' then 'Guida privata per tutta la durata'
+                       when 'consigliata' then 'Tre escursioni con guida in italiano'
+                       else 'Trasferimenti da e per l''aeroporto' end,
+        v_departure, v_departure + 7, v_pax,
+        app.round_cents(v_prezzo * 0.16 * v_moltiplica * 0.70),
+        app.round_cents(v_prezzo * 0.16 * v_moltiplica),
+        0, 2200, 'art_74_ter', 2, v_owner_user, v_created
+      ),
+      (
+        v_agency_id, v_quote_id, v_variant, 'assicurazione', v_supplier_ins,
+        'Polizza medico-bagaglio-annullamento', null,
+        v_departure, v_departure + 7, v_pax,
+        app.round_cents(v_prezzo * 0.04 * 0.62),
+        app.round_cents(v_prezzo * 0.04),
+        1500, 2200, 'esente_art_10', 3, v_owner_user, v_created
+      );
+    end loop;
+
+    insert into public.activity_log (
+      agency_id, actor_id, actor_label, action, entity_type, entity_id, entity_label, summary, created_at
+    )
+    values (
+      v_agency_id, v_owner_user, 'Giulia Marchetti', 'creazione', 'quotes', v_quote_id,
+      (select code from public.quotes where id = v_quote_id),
+      'Creazione preventivo ' || dest_names[v_indice], v_created
+    );
+
+    if v_status <> 'bozza' then
+      insert into public.activity_log (
+        agency_id, actor_id, actor_label, action, entity_type, entity_id, entity_label, summary, created_at
+      )
+      values (
+        v_agency_id, v_owner_user, 'Giulia Marchetti', 'cambio_stato', 'quotes', v_quote_id,
+        (select code from public.quotes where id = v_quote_id),
+        'Preventivo inviato al cliente', v_created + interval '1 day'
+      );
+    end if;
+
+    -- L'ultimo accettato diventa una pratica, cosi' il collegamento fra i due
+    -- documenti si vede senza doverlo creare.
+    if v_indice = 14 then
+      select * into v_booking from public.convert_quote_to_booking(v_quote_id, 'consigliata');
+      update public.bookings set created_by = v_owner_user where id = v_booking.id;
+    end if;
+  end loop;
+
+  raise notice 'Seed: 14 preventivi creati.';
+end;
+$$;

@@ -8,9 +8,11 @@ Il cuore dell'applicazione è la **pratica di viaggio**: un contenitore che lega
 cliente, passeggeri, servizi acquistati, costi fornitore, ricavi, incassi,
 documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 
-> **Stato: fasi 1-4 di 9 completate** (fondamenta, anagrafiche, pratiche, incassi e scadenze).
+> **Stato: fasi 1-5 di 9 completate** (fondamenta, anagrafiche, pratiche, incassi
+> e scadenze, preventivi).
 > Le sezioni consegnate sono autenticazione, ruoli, panoramica, impostazioni,
-> clienti, passeggeri, fornitori e **pratiche di viaggio**. La roadmap completa
+> clienti, passeggeri, fornitori, **pratiche di viaggio** e **preventivi** con
+> pagina pubblica di accettazione. La roadmap completa
 > è in fondo a questo file; il registro delle scelte tecniche è in
 > [DECISIONI.md](./DECISIONI.md), la guida per il personale in
 > [MANUALE.md](./MANUALE.md).
@@ -26,13 +28,14 @@ documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 | **Impostazioni** | Dati fiscali dell'agenzia, utenti e ruoli, parametri delle scadenze, numerazioni, visibilità dei margini |
 | **Pratiche** | Il cuore del gestionale: elenco con ricerca (anche per cognome del cliente), filtri per stato, pagamento, periodo, tipo di vendita e operatore, viste salvate, esportazione · scheda a sei schede con barra laterale sempre visibile di venduto, costi, commissioni, margine, incassato e residuo · righe di servizio con IVA di riga in chiaro (compreso l'art. 74-ter) · conferma che genera acconto, saldo e controllo documenti · annullamento con motivo e penale · documenti allegati in deposito privato |
 | **Incassi e scadenze** | Registrazione degli incassi con attribuzione automatica alle scadenze in ordine di data, storno con motivo, piano rateale modificabile riga per riga · pagamenti ai fornitori generati dalle righe di servizio e segnabili come pagati anche in blocco · **scadenzario** con due elenchi (da incassare, da pagare), totali, filtri sul ritardo, ricerca ed esportazione filtrata |
+| **Preventivi** | Fino a tre proposte a confronto (Essenziale, Consigliata, Premium) sullo stesso viaggio, copiabili l'una dall'altra con un ritocco percentuale sui prezzi · elenco con ricerca, filtri per stato, validità, operatore e cliente, viste salvate ed esportazione · **PDF A4** con l'intestazione dell'agenzia · **collegamento pubblico** che il cliente apre senza account per accettare una proposta o rifiutare · conversione in pratica in un clic, con le voci che diventano righe di servizio |
 | **Clienti** | Elenco con ricerca insensibile ad accenti e maiuscole, filtri, ordinamento, colonne configurabili, selezione multipla, esportazione CSV e importazione guidata · scheda con valore generato, margine, viaggi, passeggeri, consensi e cronologia · esportazione e anonimizzazione GDPR |
 | **Passeggeri** | Anagrafica separata dai clienti, con documento di viaggio, scadenze e filtro su chi non è in regola |
 | **Fornitori** | Tipo, condizioni di pagamento, commissione predefinita, regime IVA, IBAN · acquistato, margine generato, da pagare e prossima scadenza · disattivazione senza perdita dello storico |
 
-Il database contiene già l'intero modello dati (preventivi, incassi, piani
-rateali, fatture, documenti, task, audit) con le relative policy di sicurezza:
-le fasi successive aggiungono le interfacce, non lo schema.
+Il database contiene già l'intero modello dati (incassi, piani rateali, fatture,
+documenti, task, audit) con le relative policy di sicurezza: le fasi successive
+aggiungono le interfacce, non lo schema.
 
 ## Stack
 
@@ -225,7 +228,7 @@ tests/
 | 2 | Anagrafiche: clienti, passeggeri, fornitori (CRUD, ricerca, import CSV) | **completata** |
 | 3 | Pratiche: righe di servizio, margine, stati, documenti, cronologia | **completata** |
 | 4 | Incassi e scadenze: registrazione incassi, piani rateali, pagamenti fornitore, scadenzario | **completata** |
-| 5 | Preventivi: varianti, PDF, invio, accettazione online, conversione | da fare |
+| 5 | Preventivi: varianti, PDF, invio, accettazione online, conversione | **completata** |
 | 6 | Amministrazione: fatture, note di credito, 74-ter, registri, export | da fare |
 | 7 | Dashboard e report per operatore, destinazione, fornitore | da fare |
 | 8 | Agenda, task, notifiche email | da fare |

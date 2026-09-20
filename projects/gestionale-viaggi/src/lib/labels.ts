@@ -42,6 +42,36 @@ export function isInstallmentState(value: string | null | undefined): value is I
   return value === 'saldata' || value === 'parziale' || value === 'scaduta' || value === 'attesa'
 }
 
+export const QUOTE_STATUS: Record<Enums['quote_status'], { label: string; tone: Tone }> = {
+  bozza: { label: 'Bozza', tone: 'neutral' },
+  inviato: { label: 'Inviato', tone: 'info' },
+  accettato: { label: 'Accettato', tone: 'success' },
+  rifiutato: { label: 'Rifiutato', tone: 'danger' },
+  scaduto: { label: 'Scaduto', tone: 'warning' },
+  convertito: { label: 'Convertito', tone: 'success' },
+}
+
+/**
+ * Le tre proposte di un preventivo. I nomi sono quelli che il cliente legge
+ * accanto al prezzo, quindi dicono che cosa cambia, non un livello astratto.
+ */
+export const QUOTE_VARIANT: Record<Enums['quote_variant'], { label: string; note: string }> = {
+  base: { label: 'Essenziale', note: 'Il viaggio con l’indispensabile' },
+  consigliata: { label: 'Consigliata', note: 'Il migliore equilibrio fra spesa e comodità' },
+  premium: { label: 'Premium', note: 'Sistemazioni e servizi superiori' },
+}
+
+/**
+ * Il nome di una proposta preceduto dall'articolo giusto.
+ *
+ * "Accetto la essenziale" è italiano sbagliato, e compare in un bottone che
+ * legge il cliente: davanti a vocale l'articolo si elide.
+ */
+export function varianteConArticolo(variant: Enums['quote_variant']): string {
+  const nome = QUOTE_VARIANT[variant].label.toLowerCase()
+  return /^[aeiou]/.test(nome) ? `l’${nome}` : `la ${nome}`
+}
+
 export const TASK_STATUS: Record<Enums['task_status'], { label: string; tone: Tone }> = {
   aperto: { label: 'Aperto', tone: 'warning' },
   in_corso: { label: 'In corso', tone: 'info' },

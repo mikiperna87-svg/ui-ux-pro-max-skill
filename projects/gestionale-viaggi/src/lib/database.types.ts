@@ -1228,6 +1228,7 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          search_text: string | null
         }
         Insert: {
           id?: string
@@ -1832,6 +1833,92 @@ export interface Database {
         }
         Relationships: []
       }
+      quote_item_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          quote_id: string | null
+          variant: Enums['quote_variant'] | null
+          service_type: Enums['service_type'] | null
+          supplier_id: string | null
+          supplier_name: string | null
+          description: string | null
+          details: string | null
+          date_from: string | null
+          date_to: string | null
+          quantity: number | null
+          unit_cost_cents: number | null
+          unit_price_cents: number | null
+          commission_bps: number | null
+          commission_override_cents: number | null
+          vat_bps: number | null
+          vat_regime: Enums['vat_regime'] | null
+          sort_order: number | null
+          total_cost_cents: number | null
+          total_price_cents: number | null
+          commission_cents: number | null
+          margin_cents: number | null
+          taxable_cents: number | null
+          vat_cents: number | null
+        }
+        Relationships: []
+      }
+      quote_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          code: string | null
+          year: number | null
+          number: number | null
+          title: string | null
+          destination: string | null
+          departure_date: string | null
+          return_date: string | null
+          pax_count: number | null
+          status: Enums['quote_status'] | null
+          sale_type: Enums['sale_type'] | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_email: string | null
+          owner_id: string | null
+          owner_name: string | null
+          valid_until: string | null
+          sent_at: string | null
+          accepted_variant: Enums['quote_variant'] | null
+          accepted_at: string | null
+          accepted_by_name: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          converted_booking_id: string | null
+          booking_code: string | null
+          public_token: string | null
+          created_at: string | null
+          created_by: string | null
+          search_text: string | null
+          customer_search: string | null
+          is_expired: boolean | null
+          variants_count: number | null
+          items_count: number | null
+          revenue_cents: number | null
+          margin_cents: number | null
+          shown_variant: Enums['quote_variant'] | null
+        }
+        Relationships: []
+      }
+      quote_variant_totals: {
+        Row: {
+          quote_id: string | null
+          agency_id: string | null
+          variant: Enums['quote_variant'] | null
+          items_count: number | null
+          revenue_cents: number | null
+          cost_cents: number | null
+          commission_cents: number | null
+          vat_cents: number | null
+          margin_cents: number | null
+        }
+        Relationships: []
+      }
       supplier_list: {
         Row: {
           id: string | null
@@ -1884,6 +1971,10 @@ export interface Database {
       }
     }
     Functions: {
+      accept_quote: {
+        Args: { p_token: string | null; p_variant: Enums['quote_variant'] | null; p_name: string | null; p_ip?: string | null }
+        Returns: unknown
+      }
       anonymize_customer: {
         Args: { p_customer_id: string | null }
         Returns: undefined
@@ -1898,6 +1989,10 @@ export interface Database {
       }
       confirm_booking: {
         Args: { p_booking_id: string | null }
+        Returns: unknown
+      }
+      convert_quote_to_booking: {
+        Args: { p_quote_id: string | null; p_variant?: Enums['quote_variant'] | null }
         Returns: unknown
       }
       create_agency_with_owner: {
@@ -1924,8 +2019,20 @@ export interface Database {
         Args: { p_older_than_hours?: number | null }
         Returns: number
       }
+      quote_public: {
+        Args: { p_token: string | null }
+        Returns: { id: string | null; code: string | null; title: string | null; destination: string | null; departure_date: string | null; return_date: string | null; pax_count: number | null; status: Enums['quote_status'] | null; valid_until: string | null; intro_text: string | null; terms_text: string | null; accepted_variant: Enums['quote_variant'] | null; accepted_at: string | null; accepted_by_name: string | null; rejected_at: string | null; rejection_reason: string | null; is_expired: boolean | null; customer_name: string | null; agency_name: string | null; agency_email: string | null; agency_phone: string | null; agency_vat: string | null }[]
+      }
+      quote_public_items: {
+        Args: { p_token: string | null }
+        Returns: { variant: Enums['quote_variant'] | null; service_type: Enums['service_type'] | null; description: string | null; details: string | null; date_from: string | null; date_to: string | null; quantity: number | null; total_price_cents: number | null; sort_order: number | null }[]
+      }
       record_payment_in: {
         Args: { p_booking_id: string | null; p_amount_cents: number | null; p_paid_at: string | null; p_kind: Enums['payment_in_kind'] | null; p_method: Enums['payment_method'] | null; p_installment_id?: string | null; p_reference?: string | null; p_notes?: string | null; p_idempotency_key?: string | null }
+        Returns: unknown
+      }
+      reject_quote: {
+        Args: { p_token: string | null; p_reason: string | null; p_ip?: string | null }
         Returns: unknown
       }
       set_payout_status: {

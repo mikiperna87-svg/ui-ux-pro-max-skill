@@ -623,11 +623,102 @@ mostrato il problema.
 
 ---
 
-## 42. Scelte rinviate, con motivo
+## 42. Il permesso della pagina pubblica è il token, non una chiave
+
+Il preventivo si apre a un cliente che non ha un account. La strada facile
+sarebbe leggere i dati con la chiave di servizio, che scavalca la Row Level
+Security: un'unica riga di codice sbagliata, lì dentro, e il collegamento di
+un preventivo diventerebbe una finestra su tutto il database.
+
+Le tre operazioni pubbliche — leggere, accettare, rifiutare — sono invece
+funzioni `security definer` che accettano **soltanto** il token. Filtrano da
+sole su token, cancellazione e stato, e l'applicazione le chiama con il client
+anonimo, lo stesso che userebbe un estraneo. Non c'è niente da scavalcare
+perché non c'è nessun privilegio in più: il `public_token` è un uuid casuale,
+non compare in nessun elenco e vale per un preventivo solo.
+
+Il ruolo `anon` non ha alcun permesso sulle tabelle `quotes` e `quote_items`:
+il test di database lo dimostra leggendole direttamente e ottenendo
+`permission denied`.
+
+---
+
+## 43. Lo stato "scaduto" non si scrive sul database
+
+Un preventivo scaduto resta `inviato` finché qualcuno non lo rinnova. La
+scadenza è un fatto derivato — `valid_until` è passato — e scriverla come stato
+vorrebbe dire un processo che ogni notte aggiorna delle righe, e una finestra
+in cui il database mente perché quel processo non è ancora passato.
+
+`quote_list` espone quindi la colonna calcolata `is_expired`, l'elenco ci
+filtra sopra e il distintivo mostra "Scaduto". Una bozza non è mai scaduta: la
+validità di un'offerta conta da quando la si manda.
+
+---
+
+## 44. Rispondere due volte non cambia la risposta
+
+Il cliente riapre l'email tre giorni dopo e preme di nuovo il bottone. Deve
+succedere niente, non un secondo cambio di scelta.
+
+`accept_quote` su un preventivo già accettato restituisce la riga così com'è,
+senza toccare variante, nome e data: chi conferma per primo decide. Il rifiuto
+si comporta allo stesso modo. Accettare dopo un rifiuto, o rifiutare dopo
+un'accettazione, sono invece errori espliciti: sono ripensamenti, e un
+ripensamento passa dall'agenzia.
+
+La stessa regola vale a monte: `convert_quote_to_booking` chiamata due volte
+restituisce la pratica che esiste già invece di aprirne una seconda con la sua
+numerazione.
+
+---
+
+## 45. Al cliente arrivano i prezzi, mai i costi
+
+`quote_public_items` non restituisce `unit_cost_cents`, né la commissione, né
+il margine: non li nasconde in interfaccia, proprio non li seleziona. È l'unico
+modo per essere certi che un ritocco al foglio di stile, o una riga aggiunta in
+fretta, non li mandi a chi non deve vederli.
+
+La stessa regola governa il PDF, che è il documento allegato all'email, e si
+ritrova nei test: la pagina pubblica viene controllata anche per ciò che **non**
+deve contenere.
+
+---
+
+## 46. Il PDF porta con sé il proprio carattere
+
+I font standard del formato PDF — Helvetica e famiglia — usano una codifica del
+1985 che non contiene il simbolo dell'euro né l'apostrofo tipografico. Non
+danno errore: i caratteri mancanti spariscono e basta. Il primo documento
+generato diceva "1.500,00" senza il segno € e "lintero gruppo" senza apostrofo.
+
+Il documento incorpora quindi Inter (SIL Open Font License) in due pesi, lo
+stesso carattere dell'applicazione, letto da `src/server/pdf/fonts/`. Solo i
+glifi usati finiscono nel file: un preventivo di due proposte pesa circa 16 kB.
+`outputFileTracingIncludes` in `next.config.ts` tiene i due file dentro il
+pacchetto della funzione anche in produzione, dove `public/` non basta.
+
+---
+
+## 47. Il ritocco percentuale della copia vale sul prezzo, non sul costo
+
+Costruire la proposta Premium riga per riga quando cambia solo il livello dei
+servizi è lavoro inutile: si copia la Consigliata e si ritocca. La percentuale
+si applica però al solo prezzo di vendita, perché il fornitore chiede quello
+che chiede: quello che cambia è il margine, e va visto cambiare.
+
+La copia sostituisce le righe già presenti nella proposta di destinazione
+invece di aggiungersi: premere due volte "Copia" deve dare lo stesso risultato
+di premerlo una volta.
+
+---
+
+## 48. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
-| Generazione PDF | Fase 5 | La scelta della libreria dipende dal layout dei preventivi |
+| Generazione PDF | — | Risolta in fase 5: `@react-pdf/renderer`, che compone il documento come l'interfaccia e non richiede un browser sul server |
 | Email transazionali (Resend) | Fase 8 | Servono i modelli, che dipendono dai moduli precedenti |
 | TanStack Query | — | Lo scadenzario si è rivelato una griglia come le altre: stato nell'indirizzo, dati dal server. Una libreria di stato client non avrebbe nulla da gestire |
 | Realtime | Fase 8 | Ha senso con le notifiche, non da solo |

@@ -15,18 +15,19 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 2. [Che cosa vedi appena entri](#2-che-cosa-vedi-appena-entri)
 3. [Muoversi velocemente](#3-muoversi-velocemente)
 4. [Le pratiche di viaggio](#4-le-pratiche-di-viaggio)
-5. [Incassi, scadenze e pagamenti](#5-incassi-scadenze-e-pagamenti)
-6. [I clienti](#6-i-clienti)
-7. [I passeggeri](#7-i-passeggeri)
-8. [I fornitori](#8-i-fornitori)
-9. [Importare ed esportare gli elenchi](#9-importare-ed-esportare-gli-elenchi)
-10. [Chi vede che cosa: i quattro ruoli](#10-chi-vede-che-cosa-i-quattro-ruoli)
-11. [Impostazioni dell'agenzia](#11-impostazioni-dellagenzia)
-12. [Invitare un collaboratore](#12-invitare-un-collaboratore)
-13. [I parametri che governano le scadenze](#13-i-parametri-che-governano-le-scadenze)
-14. [Le numerazioni](#14-le-numerazioni)
-15. [Aspetto e accessibilità](#15-aspetto-e-accessibilità)
-16. [Domande frequenti](#16-domande-frequenti)
+5. [I preventivi](#5-i-preventivi)
+6. [Incassi, scadenze e pagamenti](#6-incassi-scadenze-e-pagamenti)
+7. [I clienti](#7-i-clienti)
+8. [I passeggeri](#8-i-passeggeri)
+9. [I fornitori](#9-i-fornitori)
+10. [Importare ed esportare gli elenchi](#10-importare-ed-esportare-gli-elenchi)
+11. [Chi vede che cosa: i quattro ruoli](#11-chi-vede-che-cosa-i-quattro-ruoli)
+12. [Impostazioni dell'agenzia](#12-impostazioni-dellagenzia)
+13. [Invitare un collaboratore](#13-invitare-un-collaboratore)
+14. [I parametri che governano le scadenze](#14-i-parametri-che-governano-le-scadenze)
+15. [Le numerazioni](#15-le-numerazioni)
+16. [Aspetto e accessibilità](#16-aspetto-e-accessibilità)
+17. [Domande frequenti](#17-domande-frequenti)
 
 ---
 
@@ -112,7 +113,7 @@ prevedeva due rate.
 
 Premi **⌘K** (Mac) o **Ctrl+K** (Windows) da qualsiasi punto: si apre una
 casella in cui scrivere. Trova le sezioni, i comandi e — soprattutto — le
-**pratiche, i clienti, i passeggeri e i fornitori**, cercando per codice,
+**pratiche, i preventivi, i clienti, i passeggeri e i fornitori**, cercando per codice,
 destinazione, nome, email, telefono, partita IVA o codice fiscale. Le frecce scorrono i risultati, Invio apre la
 scheda.
 
@@ -127,6 +128,7 @@ righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **⌘/** / **Ctrl+/** | Elenco delle scorciatoie |
 | **G** poi **P** | Vai alla panoramica |
 | **G** poi **R** | Vai alle pratiche |
+| **G** poi **V** | Vai ai preventivi |
 | **G** poi **D** | Vai allo scadenzario |
 | **G** poi **C** | Vai ai clienti |
 | **G** poi **S** | Vai ai passeggeri |
@@ -246,7 +248,99 @@ l'agenzia; gli altri salvano la propria.
 
 ---
 
-## 5. Incassi, scadenze e pagamenti
+## 5. I preventivi
+
+Un preventivo è la proposta che mandi prima che ci sia una pratica. Qui dentro
+puoi metterne fino a tre, sullo stesso viaggio, e lasciare scegliere al cliente.
+
+### Le tre proposte
+
+| Proposta | Quando usarla |
+| --- | --- |
+| **Essenziale** | Il viaggio con l'indispensabile: il prezzo più basso che puoi fare |
+| **Consigliata** | L'equilibrio fra spesa e comodità. È quella che il gestionale mostra in elenco e che il cliente legge per prima |
+| **Premium** | Sistemazioni e servizi superiori |
+
+Non sei obbligato a compilarle tutte: una sola proposta va benissimo, e in quel
+caso il cliente vede una scheda sola.
+
+### Costruire un preventivo
+
+1. **Preventivi → Nuovo preventivo.** Servono titolo, destinazione e numero di
+   passeggeri; il cliente si può indicare dopo, perché spesso il preventivo
+   nasce prima della scheda anagrafica.
+2. **Valido fino al** è la data oltre la quale il collegamento non accetta più
+   risposte. Il gestionale propone un mese.
+3. **Introduzione** e **Condizioni** sono i due testi che il cliente legge, in
+   cima e in fondo alla proposta. Le **Note interne** non le vede nessuno fuori
+   dall'agenzia.
+4. Nella scheda del preventivo scegli una proposta e premi **Aggiungi una
+   voce**: volo, hotel, transfer, assicurazione… Per ogni voce indichi il costo
+   che paghi al fornitore e il prezzo che chiedi al cliente. Il margine si
+   calcola da solo e lo vedi riga per riga.
+
+### Copiare una proposta nell'altra
+
+Quando fra Consigliata e Premium cambia solo il livello dei servizi, non
+riscrivere tutto: **Copia da un'altra** duplica le voci e ti chiede un ritocco
+percentuale. Il ritocco si applica ai **prezzi**, non ai costi: il fornitore
+chiede quello che chiede, quello che cambia è il tuo margine.
+
+La copia sostituisce le voci già presenti nella proposta di destinazione: se la
+premi due volte non ti ritrovi le righe doppie.
+
+### Mandarlo al cliente
+
+**Segna come inviato** attiva il collegamento pubblico; prima di quel momento
+il collegamento esiste ma non apre niente. Poi:
+
+- **Copia il collegamento** lo mette negli appunti (e lo scrive comunque a
+  schermo, se il browser non concede gli appunti): lo incolli nell'email o nel
+  messaggio.
+- **PDF** scarica il documento A4 con l'intestazione dell'agenzia, le proposte e
+  le condizioni: è quello che si allega.
+
+In entrambi i casi il cliente vede i **prezzi**, mai i costi e mai il margine.
+
+### Che cosa vede il cliente
+
+Apre il collegamento dal telefono o dal computer, senza account e senza
+password. Trova il viaggio, le proposte a confronto con il totale e il prezzo a
+persona, e due comandi: accettare una proposta — gli viene chiesto solo il nome —
+oppure dire che non è interessato, con un motivo facoltativo.
+
+Appena risponde, la sua scelta compare nella scheda del preventivo con nome,
+data e proposta scelta, e resta nella cronologia. Se riapre il collegamento più
+tardi, trova la conferma di ciò che ha già scelto: premere di nuovo non cambia
+nulla.
+
+Dopo la data di validità il collegamento mostra le proposte ma non accetta più
+risposte, e lo dice chiaramente.
+
+### Trasformarlo in pratica
+
+**Converti in pratica** apre la pratica di viaggio con le voci della proposta
+scelta già dentro, come righe di servizio, e collega i due documenti: dalla
+pratica risali al preventivo e viceversa. Se il cliente non ha ancora accettato
+puoi scegliere tu quale proposta convertire.
+
+Serve il cliente intestatario: senza, il gestionale si ferma e te lo dice. Un
+preventivo già convertito non si converte una seconda volta e non si elimina.
+
+### Gli stati
+
+| Stato | Significato |
+| --- | --- |
+| **Bozza** | Ci stai ancora lavorando, il collegamento non apre nulla |
+| **Inviato** | Il cliente può aprirlo e rispondere |
+| **Scaduto** | Inviato, ma la data di validità è passata |
+| **Accettato** | Il cliente ha scelto una proposta |
+| **Rifiutato** | Il cliente ha detto di no |
+| **Convertito** | È diventato una pratica di viaggio |
+
+---
+
+## 6. Incassi, scadenze e pagamenti
 
 Una pratica confermata genera due promesse: quella del cliente verso di te
 (l'acconto, il saldo) e quella tua verso i fornitori. Questo capitolo spiega
@@ -349,7 +443,7 @@ trova i comandi per incassare o pagare: quelli sono del titolare e
 dell'amministrativo.
 
 ---
-## 6. I clienti
+## 7. I clienti
 
 **Clienti** è l'anagrafica di chi compra: privati e aziende.
 
@@ -406,7 +500,7 @@ obbligo di conservazione contabile.
 
 ---
 
-## 7. I passeggeri
+## 8. I passeggeri
 
 I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
 manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
@@ -431,7 +525,7 @@ al momento della prenotazione, non dopo.
 
 ---
 
-## 8. I fornitori
+## 9. I fornitori
 
 I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
 ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
@@ -453,7 +547,7 @@ dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serv
 
 ---
 
-## 9. Importare ed esportare gli elenchi
+## 10. Importare ed esportare gli elenchi
 
 Ogni elenco ha due comandi in alto a destra.
 
@@ -484,7 +578,7 @@ le intestazioni giuste.
 
 ---
 
-## 10. Chi vede che cosa: i quattro ruoli
+## 11. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -502,7 +596,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 11. Impostazioni dell'agenzia
+## 12. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -517,7 +611,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 12. Invitare un collaboratore
+## 13. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -540,7 +634,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 13. I parametri che governano le scadenze
+## 14. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -559,7 +653,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 14. Le numerazioni
+## 15. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -574,7 +668,7 @@ esempio `AG` produce `AG2026/0001`. Lasciandolo vuoto ottieni `2026/0001`.
 
 ---
 
-## 15. Aspetto e accessibilità
+## 16. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -594,7 +688,7 @@ un'etichetta scritta.
 
 ---
 
-## 16. Domande frequenti
+## 17. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.
@@ -650,7 +744,7 @@ Controlla i filtri in alto: uno stato o un periodo attivo può nasconderla.
 **Un cliente chiede la cancellazione dei suoi dati.**
 Apri la sua scheda, menu **⋮** in alto a destra. **Esporta i dati (GDPR)** gli
 consegna tutto ciò che conserviamo; **Anonimizza** rimuove i dati personali e
-conserva soltanto quanto la legge impone di tenere. Vedi la sezione 5.
+conserva soltanto quanto la legge impone di tenere. Vedi la sezione 7.
 
 **Ho sbagliato a scrivere una partita IVA e il gestionale non me la accetta.**
 La cifra di controllo non torna: è la stessa verifica che farebbe il Sistema di

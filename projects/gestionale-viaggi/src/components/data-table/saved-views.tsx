@@ -54,7 +54,7 @@ export function SavedViews({
   canWrite,
   canShare,
 }: {
-  entity: 'pratiche' | 'clienti' | 'passeggeri' | 'fornitori'
+  entity: 'pratiche' | 'preventivi' | 'clienti' | 'passeggeri' | 'fornitori'
   views: readonly SavedView[]
   canWrite: boolean
   canShare: boolean

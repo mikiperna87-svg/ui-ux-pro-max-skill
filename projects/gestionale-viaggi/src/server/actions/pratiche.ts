@@ -33,7 +33,7 @@ function isUuid(value: unknown): value is string {
 const STATI_AMMESSI = ['opzione', 'confermata', 'partita', 'rientrata'] as const
 type StatoAmmesso = (typeof STATI_AMMESSI)[number]
 
-const ENTITA_VISTE = ['pratiche', 'clienti', 'passeggeri', 'fornitori'] as const
+const ENTITA_VISTE = ['pratiche', 'preventivi', 'clienti', 'passeggeri', 'fornitori'] as const
 
 function formObject(formData: FormData): Record<string, FormDataEntryValue> {
   const entries: Record<string, FormDataEntryValue> = {}
