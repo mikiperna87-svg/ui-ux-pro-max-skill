@@ -1,0 +1,144 @@
+name: Gestionale Viaggi
+
+on:
+  pull_request:
+    paths:
+      - 'projects/gestionale-viaggi/**'
+      - '.github/workflows/gestionale-viaggi.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'projects/gestionale-viaggi/**'
+      - '.github/workflows/gestionale-viaggi.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: projects/gestionale-viaggi
+
+jobs:
+  verifica:
+    name: Lint, tipi, test e build
+    runs-on: ubuntu-latest
+
+    # Le migrazioni e le policy RLS si verificano su un Postgres vero, non su un
+    # sostituto: e' l'unico modo perche' i test dimostrino qualcosa.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:54329/postgres
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: chiave-anonima-di-sviluppo-locale-0000
+      SUPABASE_SERVICE_ROLE_KEY: chiave-di-servizio-di-sviluppo-locale-0000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      LIMITE_ACCESSO: '500'
+      LIMITE_MAGIC_LINK: '500'
+      LIMITE_RECUPERO: '500'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: projects/gestionale-viaggi/package-lock.json
+
+      - name: Installa le dipendenze
+        run: npm ci
+
+      - name: Applica migrazioni e dati dimostrativi
+        run: node scripts/db-apply.mjs --reset --shim --seed
+
+      - name: Verifica che i tipi corrispondano allo schema
+        run: |
+          node scripts/gen-types.mjs
+          git diff --exit-code src/lib/database.types.ts \
+            || (echo "I tipi non corrispondono allo schema: esegui npm run db:types" && exit 1)
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Controllo dei tipi
+        run: npm run typecheck
+
+      - name: Test di unita, componenti, RLS e regole economiche
+        run: npm run test
+
+      - name: Build di produzione
+        run: npm run build
+
+  end-to-end:
+    name: Percorsi end-to-end
+    runs-on: ubuntu-latest
+    needs: verifica
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:54329/postgres
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: chiave-anonima-di-sviluppo-locale-0000
+      SUPABASE_SERVICE_ROLE_KEY: chiave-di-servizio-di-sviluppo-locale-0000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      LIMITE_ACCESSO: '500'
+      LIMITE_MAGIC_LINK: '500'
+      LIMITE_RECUPERO: '500'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: projects/gestionale-viaggi/package-lock.json
+
+      - name: Installa le dipendenze
+        run: npm ci
+
+      - name: Installa Chromium per Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Applica migrazioni e dati dimostrativi
+        run: node scripts/db-apply.mjs --reset --shim --seed
+
+      - name: Avvia il banco di prova Supabase
+        run: |
+          node supabase/testing/local-api.mjs &
+          npx wait-on -t 30000 http-get://127.0.0.1:54321/rest/v1/agencies
+
+      - name: Percorsi end-to-end (desktop e mobile)
+        run: npm run test:e2e
+
+      - name: Conserva il rapporto in caso di errore
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: projects/gestionale-viaggi/playwright-report/
+          retention-days: 7
