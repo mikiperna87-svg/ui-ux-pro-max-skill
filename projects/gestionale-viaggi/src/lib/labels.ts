@@ -202,6 +202,25 @@ export const SERVICE_TYPE: Record<Enums['service_type'], string> = {
   altro: 'Altro',
 }
 
+/**
+ * Nome del paese da un codice ISO a due lettere, in italiano.
+ *
+ * L'elenco lo tiene già il motore JavaScript: duplicarlo in una tabella nostra
+ * significherebbe mantenerlo a mano, e sbagliarlo. Un codice che non esiste
+ * torna come codice, che è più utile di una stringa vuota.
+ */
+const NOMI_PAESE = new Intl.DisplayNames(['it'], { type: 'region' })
+
+export function nomePaese(codice: string | null | undefined): string {
+  if (!codice || !/^[A-Za-z]{2}$/.test(codice)) return ''
+  const maiuscolo = codice.toUpperCase()
+  try {
+    return NOMI_PAESE.of(maiuscolo) ?? maiuscolo
+  } catch {
+    return maiuscolo
+  }
+}
+
 export const SUPPLIER_KIND: Record<Enums['supplier_kind'], string> = {
   tour_operator: 'Tour operator',
   compagnia_aerea: 'Compagnia aerea',

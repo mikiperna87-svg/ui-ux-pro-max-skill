@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarClock,
+  ChartColumn,
   FileText,
   Luggage,
   Receipt,
@@ -71,6 +72,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: Receipt,
     description: 'Fatture, note di credito e regime 74-ter',
     roles: ['titolare', 'amministrativo', 'sola_lettura'],
+  },
+  {
+    href: '/report',
+    label: 'Report',
+    shortcut: 'o',
+    icon: ChartColumn,
+    description: 'Rendimento per operatore, destinazione e fornitore',
   },
   {
     href: '/clienti',

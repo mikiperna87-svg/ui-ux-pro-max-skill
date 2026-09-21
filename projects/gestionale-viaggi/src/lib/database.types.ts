@@ -2127,6 +2127,26 @@ export interface Database {
         Args: { p_token: string | null; p_reason: string | null; p_ip?: string | null }
         Returns: unknown
       }
+      report_by_destination: {
+        Args: { p_from: string | null; p_to: string | null; p_limit?: number | null }
+        Returns: { destination: string | null; country: string | null; bookings_count: number | null; pax_count: number | null; customers_count: number | null; revenue_cents: number | null; cost_cents: number | null; margin_cents: number | null; margin_bps: number | null; average_ticket_cents: number | null }[]
+      }
+      report_by_owner: {
+        Args: { p_from: string | null; p_to: string | null }
+        Returns: { owner_id: string | null; owner_name: string | null; bookings_count: number | null; pax_count: number | null; revenue_cents: number | null; cost_cents: number | null; commission_cents: number | null; margin_cents: number | null; margin_bps: number | null; average_ticket_cents: number | null; collected_cents: number | null; balance_cents: number | null; cancelled_count: number | null }[]
+      }
+      report_by_supplier: {
+        Args: { p_from: string | null; p_to: string | null }
+        Returns: { supplier_id: string | null; supplier_name: string | null; kind: Enums['supplier_kind'] | null; services_count: number | null; bookings_count: number | null; cost_cents: number | null; revenue_cents: number | null; commission_cents: number | null; margin_cents: number | null; margin_bps: number | null; due_cents: number | null; paid_cents: number | null }[]
+      }
+      report_monthly: {
+        Args: { p_from: string | null; p_to: string | null }
+        Returns: { month_start: string | null; revenue_cents: number | null; margin_cents: number | null; bookings_count: number | null }[]
+      }
+      report_quotes_by_owner: {
+        Args: { p_from: string | null; p_to: string | null }
+        Returns: { owner_id: string | null; owner_name: string | null; quotes_count: number | null; sent_count: number | null; accepted_count: number | null; converted_count: number | null; rejected_count: number | null; conversion_bps: number | null; accepted_cents: number | null }[]
+      }
       send_invoice: {
         Args: { p_invoice_id: string | null }
         Returns: unknown

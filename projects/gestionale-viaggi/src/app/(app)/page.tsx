@@ -1,3 +1,4 @@
+import { subYears } from 'date-fns'
 import {
   Banknote,
   CalendarClock,
@@ -9,17 +10,20 @@ import {
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { DeltaBadge } from '@/components/dashboard/delta-badge'
 import { KpiCard } from '@/components/dashboard/kpi-card'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { TrendChart } from '@/components/dashboard/trend-chart'
 import { BookingStatusBadge, PaymentStateBadge, PayoutStatusBadge } from '@/components/domain/status-badge'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatDateShort, formatDateTime, formatRelativeDays, toIsoDateOnly } from '@/lib/date'
+import { formatDateShort, formatDateTime, formatRelativeDays, toIsoDateOnly, toRome } from '@/lib/date'
 import { ACTIVITY_ACTION, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
+import { variazioneBps } from '@/lib/report-period'
 import { cn } from '@/lib/utils'
 import {
   getDashboardKpis,
@@ -61,6 +65,10 @@ export default async function PanoramicaPage({
         title={`Buongiorno, ${session.membership.full_name.split(' ')[0]}`}
         description={`${session.agency.name} · periodo di partenza: ultimi ${period.label} e partenze future`}
         actions={
+          <>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/report">Vai ai report</Link>
+          </Button>
           <nav aria-label="Periodo" className="flex items-center gap-1 rounded-lg bg-surface-2 p-1">
             {PERIODS.map((entry) => (
               <Link
@@ -78,6 +86,7 @@ export default async function PanoramicaPage({
               </Link>
             ))}
           </nav>
+          </>
         }
       />
 
@@ -224,7 +233,20 @@ async function KpiSection({
   ownerId: string | null
   showMargins: boolean
 }) {
-  const kpis = await getDashboardKpis(from, to, ownerId)
+  // Il confronto è con lo stesso periodo di un anno fa, non con quello
+  // immediatamente precedente: la finestra comprende le partenze future, e un
+  // intervallo che contiene il futuro non ha un "periodo prima" di pari
+  // significato. Anno su anno invece sì, ed è anche il modo in cui un'agenzia
+  // legge i propri numeri.
+  const annoPrima = {
+    from: toIsoDateOnly(subYears(toRome(from), 1)),
+    to: toIsoDateOnly(subYears(toRome(to), 1)),
+  }
+
+  const [kpis, prima] = await Promise.all([
+    getDashboardKpis(from, to, ownerId),
+    getDashboardKpis(annoPrima.from, annoPrima.to, ownerId),
+  ])
 
   return (
     <section aria-label="Indicatori del periodo" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -233,6 +255,12 @@ async function KpiSection({
         value={formatEuro(kpis.revenueCents)}
         hint={`${plurale(kpis.bookingsCount, 'pratica', 'pratiche')} · ${kpis.confirmedCount} ${kpis.confirmedCount === 1 ? 'confermata' : 'confermate'}`}
         icon={<TrendingUp />}
+        delta={
+          <DeltaBadge
+            bps={variazioneBps(kpis.revenueCents, prima.revenueCents)}
+            label="sullo stesso periodo di un anno fa"
+          />
+        }
       />
       {showMargins ? (
         <KpiCard
@@ -241,6 +269,12 @@ async function KpiSection({
           hint={`${formatPercent(kpis.marginBps)} sul venduto`}
           icon={<Percent />}
           tone={kpis.marginCents >= 0 ? 'positive' : 'critical'}
+          delta={
+            <DeltaBadge
+              bps={variazioneBps(kpis.marginCents, prima.marginCents)}
+              label="sull’anno scorso"
+            />
+          }
         />
       ) : (
         <KpiCard
@@ -248,6 +282,12 @@ async function KpiSection({
           value={formatEuro(kpis.averageTicketCents)}
           hint="Valore medio per pratica"
           icon={<Wallet />}
+          delta={
+            <DeltaBadge
+              bps={variazioneBps(kpis.averageTicketCents, prima.averageTicketCents)}
+              label="sull’anno scorso"
+            />
+          }
         />
       )}
       <KpiCard
@@ -417,6 +457,7 @@ function KpiSkeleton({ showMargins }: { showMargins: boolean }) {
         <div key={index} className="rounded-lg border border-border bg-surface p-4 shadow-e1">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="mt-3 h-7 w-32" />
+          <Skeleton className="mt-3 h-3 w-36" />
           <Skeleton className="mt-2 h-3 w-40" />
         </div>
       ))}

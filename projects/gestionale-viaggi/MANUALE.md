@@ -18,17 +18,18 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 5. [I preventivi](#5-i-preventivi)
 6. [Incassi, scadenze e pagamenti](#6-incassi-scadenze-e-pagamenti)
 7. [Fatture e registro IVA](#7-fatture-e-registro-iva)
-8. [I clienti](#8-i-clienti)
-9. [I passeggeri](#9-i-passeggeri)
-10. [I fornitori](#10-i-fornitori)
-11. [Importare ed esportare gli elenchi](#11-importare-ed-esportare-gli-elenchi)
-12. [Chi vede che cosa: i quattro ruoli](#12-chi-vede-che-cosa-i-quattro-ruoli)
-13. [Impostazioni dell'agenzia](#13-impostazioni-dellagenzia)
-14. [Invitare un collaboratore](#14-invitare-un-collaboratore)
-15. [I parametri che governano le scadenze](#15-i-parametri-che-governano-le-scadenze)
-16. [Le numerazioni](#16-le-numerazioni)
-17. [Aspetto e accessibilità](#17-aspetto-e-accessibilità)
-18. [Domande frequenti](#18-domande-frequenti)
+8. [I report](#8-i-report)
+9. [I clienti](#9-i-clienti)
+10. [I passeggeri](#10-i-passeggeri)
+11. [I fornitori](#11-i-fornitori)
+12. [Importare ed esportare gli elenchi](#12-importare-ed-esportare-gli-elenchi)
+13. [Chi vede che cosa: i quattro ruoli](#13-chi-vede-che-cosa-i-quattro-ruoli)
+14. [Impostazioni dell'agenzia](#14-impostazioni-dellagenzia)
+15. [Invitare un collaboratore](#15-invitare-un-collaboratore)
+16. [I parametri che governano le scadenze](#16-i-parametri-che-governano-le-scadenze)
+17. [Le numerazioni](#17-le-numerazioni)
+18. [Aspetto e accessibilità](#18-aspetto-e-accessibilità)
+19. [Domande frequenti](#19-domande-frequenti)
 
 ---
 
@@ -78,8 +79,13 @@ La **Panoramica** risponde a quattro domande, in alto, per il periodo scelto:
 | **Da incassare** | Quanto devono ancora versare i clienti, e quanto di quello è già scaduto. |
 | **Da pagare ai fornitori** | Gli impegni ancora aperti verso tour operator, hotel e compagnie. |
 
+Sotto ogni numero c'è la variazione rispetto allo **stesso periodo di un anno
+fa**: la freccia dice il verso, il colore lo conferma.
+
 Il selettore in alto a destra cambia il periodo: **30 giorni**, **90 giorni**,
-**12 mesi**. Riguarda le date di **partenza**, non quelle di prenotazione.
+**12 mesi**. Riguarda le date di **partenza**, non quelle di prenotazione, e
+comprende sempre anche le partenze future. Accanto, **Vai ai report** porta alle
+analisi per operatore, destinazione e fornitore (capitolo 8).
 
 Sotto trovi:
 
@@ -132,6 +138,7 @@ righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **G** poi **V** | Vai ai preventivi |
 | **G** poi **D** | Vai allo scadenzario |
 | **G** poi **A** | Vai alle fatture |
+| **G** poi **O** | Vai ai report |
 | **G** poi **C** | Vai ai clienti |
 | **G** poi **S** | Vai ai passeggeri |
 | **G** poi **F** | Vai ai fornitori |
@@ -541,7 +548,95 @@ con la riga di totale in fondo.
 
 ---
 
-## 8. I clienti
+## 8. I report
+
+I report rispondono a domande che la panoramica non può porre: **chi** ha
+venduto, **dove** si è venduto, **da chi** si è comprato. Si aprono da
+**Report** nella barra laterale, o con `G` seguito da `O`.
+
+### Scegliere il periodo
+
+In alto ci sono cinque periodi pronti — **mese corrente**, **trimestre**, **anno
+corrente**, **ultimi 12 mesi**, **anno scorso** — e, sotto «Periodo
+personalizzato», due date qualsiasi (al massimo ventiquattro mesi per volta).
+Il periodo finisce nell'indirizzo: puoi salvare fra i preferiti il report che
+guardi ogni lunedì mattina, o mandarne il collegamento a un collega.
+
+Le pratiche entrano nel periodo per la loro **data di partenza**, come in
+panoramica: è la stessa regola ovunque, così due schermate non dicono mai due
+numeri diversi.
+
+### I quattro indicatori e il confronto
+
+Sotto il periodo ci sono venduto, margine, numero di pratiche e residuo da
+incassare. A chi non è autorizzato a vedere i margini, al posto del margine
+compare il **ticket medio**. Sotto ciascun numero c'è la variazione rispetto al **periodo
+precedente di pari durata**: febbraio si confronta con i ventotto giorni
+precedenti, non con l'intero gennaio, altrimenti il mese corto sembrerebbe
+sempre debole.
+
+La freccia e il segno dicono il verso, il colore lo conferma: verde quando è una
+buona notizia, rosso quando non lo è. Sul residuo da incassare il verso è
+rovesciato — crescere è una brutta notizia — e il colore segue il significato,
+non la direzione. Quando nel periodo di paragone non c'era nulla, al posto della
+percentuale trovi scritto «Nessun dato nel periodo precedente»: da zero a
+cinquantamila euro non è una percentuale, è un confronto che non esiste.
+
+> In **panoramica** il confronto è diverso: lì è con lo **stesso periodo di un
+> anno fa**, perché quella schermata comprende anche le partenze dei prossimi
+> dodici mesi e un "periodo prima" non avrebbe senso.
+
+### Operatori
+
+La prima vista è il rendimento di ciascuno: pratiche, passeggeri, venduto,
+ticket medio, margine in euro e in percentuale, incassato, residuo e pratiche
+annullate. L'ultima riga è il totale, ed è esattamente la somma di quelle sopra.
+
+Le pratiche annullate non entrano nel venduto — sarebbe un fatturato che non
+esiste — ma hanno una colonna propria: tre annullamenti su otto pratiche sono
+un'informazione, non un vuoto da nascondere.
+
+Sotto c'è la tabella dei **preventivi creati nel periodo**, con inviati,
+accettati, rifiutati, convertiti in pratica e il tasso di **conversione**. Sta
+in una tabella a parte perché si conta in un altro modo: i preventivi entrano
+per **data di creazione**, non di partenza. La conversione è calcolata sugli
+inviati e non sui creati: una bozza non è mai stata un'offerta, e contarla
+penalizzerebbe chi prepara il lavoro con ordine.
+
+### Destinazioni
+
+Dove vanno i clienti, ordinato per venduto, con la **quota sul venduto** del
+periodo, i passeggeri, quanti clienti diversi, il ticket medio e il margine.
+
+La destinazione si scrive a mano sulla pratica, quindi la stessa meta può
+comparire in grafie diverse: «Santorini e Mykonos», «santorini e mykonos» e la
+stessa con uno spazio di troppo finiscono su **una riga sola**, con l'etichetta
+scritta nel modo che usate più spesso. Restano invece distinte le parole
+diverse: «Roma» e «Rome» sono due righe.
+
+### Fornitori
+
+Quanto si è comprato da ciascuno, quanto ha reso e quanto resta da pagargli. Il
+**venduto** attribuito a un fornitore è quello delle sole righe di servizio
+comprate da lui: una pratica con il volo di una compagnia e l'albergo di un
+altro pesa su entrambi, ciascuno per la sua parte. Il nome apre la scheda del
+fornitore.
+
+Questa vista è una lettura di costi, quindi la vede solo chi è autorizzato a
+vedere i margini. A chi non lo è la scheda non compare proprio: non è una
+schermata vuota, è una scheda che non esiste.
+
+### Esportare
+
+Il bottone **Esporta** produce un CSV della vista che stai guardando e del
+periodo scelto, pronto per Excel. Le colonne sono quelle che il tuo ruolo può
+vedere: se i margini non ti sono visibili a schermo, non compaiono nemmeno nel
+file. Nell'esportazione degli operatori i preventivi stanno in un secondo
+blocco, in coda, separato da una riga vuota.
+
+---
+
+## 9. I clienti
 
 **Clienti** è l'anagrafica di chi compra: privati e aziende.
 
@@ -598,7 +693,7 @@ obbligo di conservazione contabile.
 
 ---
 
-## 9. I passeggeri
+## 10. I passeggeri
 
 I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
 manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
@@ -623,7 +718,7 @@ al momento della prenotazione, non dopo.
 
 ---
 
-## 10. I fornitori
+## 11. I fornitori
 
 I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
 ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
@@ -645,7 +740,7 @@ dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serv
 
 ---
 
-## 11. Importare ed esportare gli elenchi
+## 12. Importare ed esportare gli elenchi
 
 Ogni elenco ha due comandi in alto a destra.
 
@@ -676,7 +771,7 @@ le intestazioni giuste.
 
 ---
 
-## 12. Chi vede che cosa: i quattro ruoli
+## 13. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -694,7 +789,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 13. Impostazioni dell'agenzia
+## 14. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -709,7 +804,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 14. Invitare un collaboratore
+## 15. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -732,7 +827,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 15. I parametri che governano le scadenze
+## 16. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -751,7 +846,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 16. Le numerazioni
+## 17. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -770,7 +865,7 @@ non consumano numerazione, e una bozza scartata non lascia buchi.
 
 ---
 
-## 17. Aspetto e accessibilità
+## 18. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -790,7 +885,7 @@ un'etichetta scritta.
 
 ---
 
-## 18. Domande frequenti
+## 19. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.

@@ -53,6 +53,16 @@ fuso dell'agenzia. Motivo: una partenza del 14 marzo deve restare il 14 marzo
 anche per chi apre il gestionale da un altro fuso, e l'ora di un incasso deve
 restare confrontabile fra sedi.
 
+La stessa regola vale dentro SQL quando un **istante** va raggruppato per
+**giorno**: `report_quotes_by_owner` converte con
+`(created_at at time zone 'Europe/Rome')::date` prima di confrontare con il
+periodo. Senza la conversione il confronto userebbe il fuso della sessione —
+UTC sui server — e un preventivo scritto alle 00:30 del primo gennaio
+finirebbe nell'anno precedente, dove la segreteria non lo cercherebbe mai.
+Le colonne `date` (partenza, emissione, scadenza) non hanno questo problema:
+sono già giorni, e per questo si preferiscono ovunque la precisione dell'ora
+non serva.
+
 ---
 
 ## 4. Multi-tenant: RLS su ogni tabella, nessuna eccezione applicativa
@@ -817,7 +827,95 @@ di prova: nasconde i difetti veri e ne inventa di falsi.
 
 ---
 
-## 53. Scelte rinviate, con motivo
+## 53. I report hanno un asse solo: la data di partenza
+
+**Scelta.** Tutti i report — per operatore, per destinazione, per fornitore —
+selezionano le pratiche sulla **data di partenza**, lo stesso criterio della
+panoramica. I preventivi, che una data di partenza possono non averla ancora,
+si contano per data di creazione e stanno in una scheda separata, con scritto
+sopra come si contano.
+
+**Alternativa scartata.** Lasciar scegliere l'asse (creazione, conferma,
+partenza, incasso) con un menu.
+
+**Perché.** Con quattro assi possibili, due sezioni del gestionale possono
+mostrare due numeri diversi per la stessa domanda, e nessuno dei due è
+sbagliato: è il modo più rapido per perdere fiducia in un cruscotto. Con un
+asse solo il venduto della panoramica e quello del report coincidono sempre, e
+il confronto fra operatori è fra cose omogenee.
+
+**Conseguenza.** Un preventivo scritto a novembre per un viaggio di luglio pesa
+su novembre nella conversione e su luglio nel venduto. Sono due domande
+diverse, e il report non le mescola mai in una riga sola: la tabella dei
+preventivi è una tabella a parte, con scritto sopra come si conta.
+
+---
+
+## 54. Il termine di paragone: pari durata nei report, anno su anno in panoramica
+
+**Scelta.** Nel report il confronto è con il **periodo immediatamente
+precedente di pari durata** (febbraio si confronta con i 28 giorni prima, non
+con gennaio intero). In panoramica il confronto è con lo **stesso periodo di un
+anno fa**.
+
+**Perché.** Due comparazioni diverse perché le due finestre sono diverse. Il
+report guarda un intervallo chiuso, e allora "prima" vuol dire qualcosa di
+preciso; la panoramica comprende le partenze dei prossimi dodici mesi, e un
+intervallo che contiene il futuro non ha un "periodo prima" paragonabile —
+avrebbe il vuoto delle pratiche non ancora vendute. Anno su anno invece regge,
+perché confronta futuro con futuro, ed è anche il modo in cui un'agenzia legge
+la stagione.
+
+**Conseguenza.** Ogni variazione dice a parole con che cosa si confronta. Se il
+termine di paragone è zero non viene mostrata alcuna percentuale: passare da
+zero a cinquantamila euro non è "+100 %", è un confronto che non esiste, e la
+casella lo scrive («Nessun dato nel periodo precedente») invece di inventare un
+numero.
+
+---
+
+## 55. Le destinazioni si raggruppano sulla forma normalizzata
+
+**Scelta.** `report_by_destination` raggruppa su `lower(btrim(destination))` e
+mostra come etichetta la grafia usata più spesso (`mode()`).
+
+**Alternativa scartata.** Un'anagrafica di destinazioni con chiave esterna sulla
+pratica.
+
+**Perché.** La destinazione è testo libero perché il mondo non sta in un elenco
+a tendina, e chi scrive una pratica al telefono non deve fermarsi a censire una
+meta nuova. Ma "Santorini e Mykonos", "santorini e mykonos" e la stessa con uno
+spazio di troppo sono lo stesso viaggio: tre righe da 5 % invece di una da 15 %
+non sono un dettaglio estetico, sono un report che mente sulla classifica.
+
+**Conseguenza.** Il raggruppamento ignora maiuscole e spazi, non gli accenti né
+i sinonimi: "Roma" e "Rome" restano due righe. Il giorno in cui servisse una
+tassonomia vera — per paese, per area, per stagione — la si aggiunge come
+tabella di normalizzazione senza toccare le pratiche già scritte.
+
+---
+
+## 56. Il report dei fornitori segue il permesso sui margini
+
+**Scelta.** Chi non può vedere i margini non vede nemmeno la vista "Fornitori",
+e nelle altre due viste le colonne di costo e margine non compaiono, né a
+schermo né nel file esportato. Un indirizzo `?vista=fornitori` scritto a mano
+riporta agli operatori invece di rispondere con un errore.
+
+**Perché.** Il report dei fornitori è per intero una lettura di costi: mostrarlo
+a chi non può vedere il margine equivarrebbe a mostrarglielo, perché il ricarico
+si ottiene per differenza con il venduto che ha già sotto gli occhi. Un permesso
+che si aggira con una sottrazione non è un permesso.
+
+**Conseguenza.** Il filtro è nell'interfaccia e nella rotta di esportazione, non
+nelle funzioni SQL, che restituiscono sempre tutte le colonne: il confine vero
+resta la RLS, che decide *quali righe* si vedono, mentre il permesso sui margini
+decide *quali colonne* si mostrano. Il file esportato ha le colonne del ruolo di
+chi lo scarica, non quelle della pagina che ha generato il collegamento.
+
+---
+
+## 57. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
