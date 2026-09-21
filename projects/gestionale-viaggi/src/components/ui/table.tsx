@@ -5,10 +5,26 @@ import { cn } from '@/lib/utils'
  * Primitive di tabella dense e leggibili: intestazione fissa, riga in evidenza
  * al passaggio del mouse, numeri sempre tabulari.
  */
-export function TableWrapper({ className, ...props }: ComponentProps<'div'>) {
+/**
+ * Il contenitore di una tabella, che su schermo stretto scorre in orizzontale.
+ *
+ * `label` serve alle tabelle di sola lettura — quelle senza collegamenti né
+ * comandi nelle celle, come i report e il registro IVA. In quelle, l'unico
+ * modo di leggere le colonne di destra è far scorrere il riquadro, e senza
+ * nulla di focalizzabile dentro chi usa solo la tastiera non può farlo: il
+ * riquadro diventa allora una regione con un nome e una sosta nel giro di
+ * tabulazione. Dove le celle contengono collegamenti la sosta esiste già, e
+ * aggiungerne un'altra sarebbe soltanto rumore.
+ */
+export function TableWrapper({
+  className,
+  label,
+  ...props
+}: ComponentProps<'div'> & { label?: string }) {
   return (
     <div
       className={cn('overflow-x-auto rounded-lg border border-border bg-surface shadow-e1', className)}
+      {...(label ? { role: 'region', 'aria-label': label, tabIndex: 0 } : {})}
       {...props}
     />
   )

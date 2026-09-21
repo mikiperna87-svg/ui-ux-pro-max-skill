@@ -30,6 +30,7 @@ import { useToast } from '@/components/ui/toast'
 import { IDLE } from '@/lib/action-state'
 import { cn } from '@/lib/utils'
 import { deleteViewAction, saveViewAction } from '@/server/actions/pratiche'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export interface SavedView {
   readonly id: string
@@ -159,7 +160,7 @@ export function SavedViews({
         <Dialog open={open} onOpenChange={setOpen}>
           <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
             <BookmarkPlus aria-hidden="true" />
-            <span className="hidden sm:inline">Salva vista</span>
+            <EtichettaBottone>Salva vista</EtichettaBottone>
             <span className="sr-only sm:hidden">Salva questa vista</span>
           </Button>
           <DialogContent size="sm">

@@ -10,6 +10,7 @@ import { customerTags, listCustomers } from '@/server/queries/anagrafiche'
 import { requireSession } from '@/server/session'
 import { ClientiTabella } from './clienti-tabella'
 import { CUSTOMER_LIST_OPTIONS } from './config'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Clienti' }
 
@@ -38,7 +39,7 @@ export default async function ClientiPage({ searchParams }: { searchParams: Sear
                 aria-label="Esporta"
               >
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">Esporta</span>
+                <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
             {session.permissions.write ? (
@@ -46,7 +47,7 @@ export default async function ClientiPage({ searchParams }: { searchParams: Sear
                 <Button asChild variant="secondary" size="sm">
                   <Link href="/clienti/importa" aria-label="Importa">
                     <Upload aria-hidden="true" />
-                    <span className="hidden sm:inline">Importa</span>
+                    <EtichettaBottone>Importa</EtichettaBottone>
                   </Link>
                 </Button>
                 <Button asChild variant="primary" size="sm">

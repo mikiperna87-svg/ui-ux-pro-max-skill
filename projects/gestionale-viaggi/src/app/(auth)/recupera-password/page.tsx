@@ -15,7 +15,7 @@ export default function RecuperaPasswordPage() {
       </header>
       <RecuperaForm />
       <p className="text-center text-small text-text-muted">
-        <Link href="/accedi" className="text-accent underline-offset-4 hover:underline">
+        <Link href="/accedi" className="text-accent underline underline-offset-4 hover:no-underline">
           Torna all’accesso
         </Link>
       </p>

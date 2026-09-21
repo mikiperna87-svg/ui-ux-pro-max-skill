@@ -15,6 +15,7 @@ import { getInvoiceDetail } from '@/server/queries/fatture'
 import { requireSession } from '@/server/session'
 import { AzioniFattura } from './azioni-fattura'
 import { RigheFattura } from './righe-fattura'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export async function generateMetadata({
   params,
@@ -76,7 +77,7 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
               <Button asChild variant="secondary" size="sm">
                 <a href={`/fatture/${invoice.id}/pdf`} aria-label="Scarica il PDF">
                   <Download aria-hidden="true" />
-                  <span className="hidden sm:inline">PDF</span>
+                  <EtichettaBottone>PDF</EtichettaBottone>
                 </a>
               </Button>
             ) : null}
@@ -201,7 +202,7 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
           ) : null}
         </div>
 
-        <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
+        <aside aria-label="Riepilogo della fattura" className="space-y-4 xl:sticky xl:top-4 xl:self-start">
           <Card>
             <CardHeader>
               <div className="flex w-full items-center justify-between gap-2">

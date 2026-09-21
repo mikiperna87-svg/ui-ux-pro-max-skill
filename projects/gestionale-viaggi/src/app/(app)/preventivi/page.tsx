@@ -13,6 +13,7 @@ import { savedViewsFor } from '@/server/queries/viste'
 import { requireSession } from '@/server/session'
 import { QUOTE_LIST_OPTIONS } from './config'
 import { PreventiviTabella } from './preventivi-tabella'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Preventivi' }
 
@@ -41,7 +42,7 @@ export default async function PreventiviPage({ searchParams }: { searchParams: S
                 aria-label="Esporta"
               >
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">Esporta</span>
+                <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
             {session.permissions.write ? (

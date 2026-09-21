@@ -13,6 +13,7 @@ import { listInvoices, totaliFatture } from '@/server/queries/fatture'
 import { requireSession } from '@/server/session'
 import { INVOICE_LIST_OPTIONS } from './config'
 import { FattureTabella } from './fatture-tabella'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Fatture' }
 
@@ -38,7 +39,7 @@ export default async function FatturePage({ searchParams }: { searchParams: Sear
             <Button asChild variant="ghost" size="sm">
               <Link href="/registri">
                 <Table2 aria-hidden="true" />
-                <span className="hidden sm:inline">Registro IVA</span>
+                <EtichettaBottone>Registro IVA</EtichettaBottone>
               </Link>
             </Button>
             <Button asChild variant="secondary" size="sm">
@@ -47,7 +48,7 @@ export default async function FatturePage({ searchParams }: { searchParams: Sear
                 aria-label="Esporta"
               >
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">Esporta</span>
+                <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
             {session.permissions.accounting ? (

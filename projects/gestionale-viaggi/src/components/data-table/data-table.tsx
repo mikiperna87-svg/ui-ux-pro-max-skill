@@ -243,7 +243,17 @@ export function DataTable<T>({
                       </TableHeaderCell>
                     ) : null}
                     {headerGroup.headers.map((header) => {
-                      const sortable = header.column.columnDef.enableSorting !== false
+                      // Il nome della colonna in chiaro, quando è una stringa:
+                      // serve al bottone di ordinamento, che altrimenti si
+                      // annuncia con il solo testo dell'intestazione e non
+                      // dice che cosa fa — o, se l'intestazione è vuota, non
+                      // si annuncia affatto.
+                      const nomeColonna =
+                        typeof header.column.columnDef.header === 'string'
+                          ? header.column.columnDef.header
+                          : ''
+                      const sortable =
+                        header.column.columnDef.enableSorting !== false && nomeColonna !== ''
                       const active = sort === header.column.id
                       const meta = header.column.columnDef.meta as
                         | { numeric?: boolean; width?: string }
@@ -258,6 +268,7 @@ export function DataTable<T>({
                             <button
                               type="button"
                               onClick={() => toggleSort(header.column.id)}
+                              aria-label={`Ordina per ${nomeColonna}`}
                               className={cn(
                                 // Il reset di Tailwind toglie ai bottoni il
                                 // text-transform ereditato: senza "uppercase"

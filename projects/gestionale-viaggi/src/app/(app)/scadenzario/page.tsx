@@ -26,6 +26,7 @@ import {
 } from './config'
 import { PagamentiTabella } from './pagamenti-tabella'
 import { RateTabella } from './rate-tabella'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Scadenzario' }
 
@@ -53,7 +54,7 @@ export default async function ScadenzarioPage({ searchParams }: { searchParams: 
           <Button asChild variant="secondary" size="sm">
             <a href={`/scadenzario/esporta?${exportQuery}`} aria-label="Esporta">
               <Download aria-hidden="true" />
-              <span className="hidden sm:inline">Esporta</span>
+              <EtichettaBottone>Esporta</EtichettaBottone>
             </a>
           </Button>
         }

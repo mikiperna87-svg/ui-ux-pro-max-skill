@@ -60,7 +60,7 @@ export function VistaOperatori({
           <CardTitle>Pratiche per operatore</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <TableWrapper className="hidden rounded-none border-0 shadow-none md:block">
+          <TableWrapper label="Risultati per operatore" className="hidden rounded-none border-0 shadow-none md:block">
             <Table>
               <caption className="sr-only">
                 Venduto, margine e incassato per operatore nel periodo scelto
@@ -240,7 +240,7 @@ function VistaPreventivi({ rows }: { rows: readonly QuoteOwnerRow[] }) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <TableWrapper className="hidden rounded-none border-0 shadow-none md:block">
+        <TableWrapper label="Preventivi per operatore" className="hidden rounded-none border-0 shadow-none md:block">
           <Table>
             <caption className="sr-only">Preventivi per operatore, con esito e conversione</caption>
             <TableHead>

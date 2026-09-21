@@ -62,7 +62,7 @@ export function VistaDestinazioni({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <TableWrapper className="hidden rounded-none border-0 shadow-none md:block">
+        <TableWrapper label="Risultati per destinazione" className="hidden rounded-none border-0 shadow-none md:block">
           <Table>
             <caption className="sr-only">
               Venduto, quota e margine per destinazione nel periodo scelto

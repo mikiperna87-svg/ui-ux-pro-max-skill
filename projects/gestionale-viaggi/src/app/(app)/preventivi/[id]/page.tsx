@@ -15,6 +15,7 @@ import { getQuoteDetail } from '@/server/queries/preventivi'
 import { requireSession } from '@/server/session'
 import { AzioniPreventivo } from './azioni-preventivo'
 import { ProposteVarianti } from './proposte-preventivo'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export async function generateMetadata({
   params,
@@ -64,7 +65,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             <Button asChild variant="secondary" size="sm">
               <a href={`/preventivi/${quote.id}/pdf`} aria-label="Scarica il PDF">
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">PDF</span>
+                <EtichettaBottone>PDF</EtichettaBottone>
               </a>
             </Button>
             {canWrite ? (
@@ -146,7 +147,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
           ) : null}
         </div>
 
-        <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
+        <aside aria-label="Riepilogo del preventivo" className="space-y-4 xl:sticky xl:top-4 xl:self-start">
           <Card>
             <CardHeader>
               <div className="flex w-full items-center justify-between gap-2">

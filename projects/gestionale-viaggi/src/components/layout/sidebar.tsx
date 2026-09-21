@@ -27,7 +27,12 @@ export function Sidebar({
   }
 
   return (
+    // Il nome non è un vezzo: senza, questa regione e le colonne di riepilogo
+    // delle schede erano due "complementari" anonime, indistinguibili per chi
+    // naviga per landmark. Toglierla del tutto non si può: il nome
+    // dell'agenzia che sta qui dentro resterebbe fuori da ogni landmark.
     <aside
+      aria-label="Barra laterale"
       data-collapsed={collapsed}
       className={cn(
         'hidden shrink-0 flex-col border-r border-border bg-surface md:flex',

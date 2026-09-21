@@ -388,7 +388,7 @@ export default async function PraticaPage({
 
         {/* Il quadro economico resta sempre in vista: è la domanda che si fa
             chi apre una pratica, a qualunque scheda si trovi. */}
-        <aside className="xl:sticky xl:top-[calc(var(--container-topbar)+1.25rem)] xl:self-start">
+        <aside aria-label="Riepilogo economico della pratica" className="xl:sticky xl:top-[calc(var(--container-topbar)+1.25rem)] xl:self-start">
           <div className="space-y-3 rounded-lg border border-border bg-surface p-4 shadow-e1">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-small font-semibold text-text">Quadro economico</h2>

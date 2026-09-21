@@ -12,6 +12,7 @@ import { savedViewsFor } from '@/server/queries/viste'
 import { requireSession } from '@/server/session'
 import { BOOKING_LIST_OPTIONS } from './config'
 import { PraticheTabella } from './pratiche-tabella'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Pratiche' }
 
@@ -40,7 +41,7 @@ export default async function PratichePage({ searchParams }: { searchParams: Sea
                 aria-label="Esporta"
               >
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">Esporta</span>
+                <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
             {session.permissions.write ? (

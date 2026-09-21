@@ -23,6 +23,7 @@ import { INVOICE_KIND, VAT_REGIME, nomeMese, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
 import { vatRegister, type RegisterRow } from '@/server/queries/fatture'
 import { requireSession } from '@/server/session'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Registro IVA' }
 
@@ -55,7 +56,7 @@ export default async function RegistriPage({ searchParams }: { searchParams: Sea
             <Button asChild variant="secondary" size="sm">
               <a href={`/registri/esporta?anno=${anno}`} aria-label="Esporta il registro">
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">Esporta</span>
+                <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
           </>
@@ -150,7 +151,7 @@ async function Corpo({ anno }: { anno: number }) {
             <CardTitle>Anno {anno}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <TableWrapper className="hidden rounded-none border-0 shadow-none md:block">
+            <TableWrapper label="Registro IVA per mese e aliquota" className="hidden rounded-none border-0 shadow-none md:block">
               <Table>
                 <caption className="sr-only">
                   Registro IVA delle vendite dell’anno {anno}, per mese, regime e aliquota

@@ -137,7 +137,11 @@ export function RateTabella({
     },
     {
       id: 'azioni',
-      header: '',
+      // Una colonna di comandi: l'intestazione resta vuota alla vista, ma una
+      // cella di intestazione senza testo non ha nome per un lettore di
+      // schermo, e la tabella si legge con una colonna anonima in fondo.
+      header: () => <span className="sr-only">Azioni</span>,
+      enableSorting: false,
       cell: ({ row }) =>
         canManage && (row.original.residual_cents ?? 0) > 0 ? (
           <Button asChild variant="secondary" size="sm">

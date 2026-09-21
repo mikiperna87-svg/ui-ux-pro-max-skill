@@ -21,7 +21,13 @@
   --warm-200: oklch(0.928 0.005 74);
   --warm-300: oklch(0.872 0.006 72);
   --warm-400: oklch(0.714 0.008 70);
+  /* Due gradini intermedi, nati da una misura e non da un'intuizione: il 500
+     non raggiunge il 4,5:1 richiesto da AA su nessuno dei nostri sfondi (3,7
+     nel tema scuro, 3,96 nel chiaro). Il 450 serve al testo discreto sul
+     fondo scuro, il 550 a quello sul fondo chiaro. */
+  --warm-450: oklch(0.640 0.009 68);
   --warm-500: oklch(0.576 0.009 66);
+  --warm-550: oklch(0.520 0.010 64);
   --warm-600: oklch(0.470 0.010 62);
   --warm-700: oklch(0.385 0.011 60);
   --warm-800: oklch(0.284 0.011 58);
@@ -79,7 +85,7 @@
 
   --text: var(--warm-900);
   --text-muted: var(--warm-600);
-  --text-subtle: var(--warm-500);
+  --text-subtle: var(--warm-550);
   --text-inverse: var(--warm-50);
 
   --accent: var(--brand-700);
@@ -131,7 +137,7 @@
 
     --text: var(--warm-100);
     --text-muted: var(--warm-400);
-    --text-subtle: var(--warm-500);
+    --text-subtle: var(--warm-450);
     --text-inverse: var(--warm-950);
 
     --accent: var(--brand-400);
@@ -181,7 +187,7 @@
 
   --text: var(--warm-100);
   --text-muted: var(--warm-400);
-  --text-subtle: var(--warm-500);
+  --text-subtle: var(--warm-450);
   --text-inverse: var(--warm-950);
 
   --accent: var(--brand-400);

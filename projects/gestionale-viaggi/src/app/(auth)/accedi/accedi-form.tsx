@@ -92,7 +92,7 @@ export function AccediForm({ successivo }: { successivo: string }) {
       </Tabs>
 
       <div className="flex items-center justify-between text-small">
-        <Link href="/recupera-password" className="text-accent underline-offset-4 hover:underline">
+        <Link href="/recupera-password" className="text-accent underline underline-offset-4 hover:no-underline">
           Password dimenticata?
         </Link>
         <Link href="/registrati" className="text-text-muted underline-offset-4 hover:text-text hover:underline">

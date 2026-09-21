@@ -1,9 +1,32 @@
 import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+/**
+ * Le dimensioni di testo del design system, dichiarate a tailwind-merge.
+ *
+ * Senza questa riga `cn('text-accent-fg', 'text-caption')` restituisce il solo
+ * `text-caption`: tailwind-merge conosce le dimensioni predefinite di Tailwind
+ * (`text-sm`, `text-lg`…), non le nostre, e di fronte a due classi `text-*`
+ * che non riconosce le considera due colori in conflitto — così l'ultima
+ * cancella la prima. È costato caro: ogni bottone con una dimensione (cioè
+ * tutti, tranne quelli a sola icona) perdeva il colore del testo della propria
+ * variante e finiva per ereditare quello del corpo della pagina. Il bottone
+ * principale mostrava testo quasi nero su verde scuro — rapporto 2,7:1, sotto
+ * la soglia AA di 4,5:1 — e in tema scuro l'inverso.
+ */
+const DIMENSIONI_TESTO = ['display', 'title', 'heading', 'body', 'small', 'caption'] as const
+
+const merge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [{ text: [...DIMENSIONI_TESTO] }],
+    },
+  },
+})
 
 /** Unisce classi Tailwind risolvendo i conflitti (l’ultima vince). */
 export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs))
+  return merge(clsx(inputs))
 }
 
 /** Restituisce un valore non nullo o lancia: usato dove il tipo e' garantito dal DB. */

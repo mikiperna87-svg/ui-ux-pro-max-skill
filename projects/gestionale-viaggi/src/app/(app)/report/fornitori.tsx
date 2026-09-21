@@ -57,7 +57,7 @@ export function VistaFornitori({ rows }: { rows: readonly SupplierRow[] }) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <TableWrapper className="hidden rounded-none border-0 shadow-none md:block">
+        <TableWrapper label="Risultati per fornitore" className="hidden rounded-none border-0 shadow-none md:block">
           <Table>
             <caption className="sr-only">
               Acquistato, margine generato e pagamenti per fornitore nel periodo scelto

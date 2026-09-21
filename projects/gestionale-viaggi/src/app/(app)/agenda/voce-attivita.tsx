@@ -19,6 +19,7 @@ import {
 } from '@/server/actions/agenda'
 import type { TaskRow } from '@/server/queries/agenda'
 import { ModuloAttivita } from './modulo-attivita'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 /**
  * I comandi di un'attività: completare, riaprire, modificare, eliminare.
@@ -80,7 +81,7 @@ export function AzioniAttivita({
             onClick={() => esegui(completeTaskAction, 'Attività completata.')}
           >
             <Check aria-hidden="true" />
-            <span className="hidden sm:inline">Completa</span>
+            <EtichettaBottone>Completa</EtichettaBottone>
           </Button>
         )}
 

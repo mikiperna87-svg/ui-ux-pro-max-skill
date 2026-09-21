@@ -38,6 +38,7 @@ import { VistaDestinazioni } from './destinazioni'
 import { VistaFornitori } from './fornitori'
 import { VistaOperatori } from './operatori'
 import { SelettorePeriodo } from './selettore-periodo'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Report' }
 
@@ -59,7 +60,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Searc
           <Button asChild variant="secondary" size="sm">
             <a href={linkEsporta(vista, periodo)} aria-label="Esporta la vista corrente">
               <Download aria-hidden="true" />
-              <span className="hidden sm:inline">Esporta</span>
+              <EtichettaBottone>Esporta</EtichettaBottone>
             </a>
           </Button>
         }

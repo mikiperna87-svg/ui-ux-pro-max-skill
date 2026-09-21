@@ -40,7 +40,10 @@ const GRUPPO =
   '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-caption [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-text-subtle'
 
 const VOCE =
-  'flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-small text-text data-[selected=true]:bg-accent-subtle data-[selected=true]:text-accent-subtle-fg'
+  // `group` serve ai testi secondari e alle icone: quando la voce è scelta lo
+  // sfondo diventa accent-subtle, e un testo rimasto su text-subtle scende a
+  // 4,2:1 nel tema scuro. Seguendo la selezione risale a 10:1.
+  'group flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-small text-text data-[selected=true]:bg-accent-subtle data-[selected=true]:text-accent-subtle-fg'
 
 /**
  * Ricerca e comandi rapidi (Cmd/Ctrl + K).
@@ -184,10 +187,10 @@ export function CommandPalette({
                           onSelect={() => run(() => router.push(voce.href))}
                           className={VOCE}
                         >
-                          <gruppo.icona className="size-4 text-text-subtle" aria-hidden="true" />
+                          <gruppo.icona className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" />
                           <span className="flex-1 truncate">{voce.label}</span>
                           {voce.hint ? (
-                            <span className="hidden max-w-56 truncate text-caption text-text-subtle sm:inline">
+                            <span className="hidden max-w-56 truncate text-caption text-text-subtle group-data-[selected=true]:text-accent-subtle-fg sm:inline">
                               {voce.hint}
                             </span>
                           ) : null}
@@ -208,9 +211,9 @@ export function CommandPalette({
                       onSelect={() => run(() => router.push(item.href))}
                       className={VOCE}
                     >
-                      <item.icon className="size-4 text-text-subtle" aria-hidden="true" />
+                      <item.icon className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" />
                       <span className="flex-1">{item.label}</span>
-                      <span className="hidden text-caption text-text-subtle sm:inline">{item.description}</span>
+                      <span className="hidden text-caption text-text-subtle group-data-[selected=true]:text-accent-subtle-fg sm:inline">{item.description}</span>
                     </Command.Item>
                   ))}
                 </Command.Group>
@@ -224,21 +227,21 @@ export function CommandPalette({
                     onSelect={() => run(() => applyTheme('light' satisfies ThemePreference))}
                     className={VOCE}
                   >
-                    <Sun className="size-4 text-text-subtle" aria-hidden="true" /> Tema chiaro
+                    <Sun className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" /> Tema chiaro
                   </Command.Item>
                   <Command.Item
                     value="tema scuro"
                     onSelect={() => run(() => applyTheme('dark' satisfies ThemePreference))}
                     className={VOCE}
                   >
-                    <Moon className="size-4 text-text-subtle" aria-hidden="true" /> Tema scuro
+                    <Moon className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" /> Tema scuro
                   </Command.Item>
                   <Command.Item
                     value="tema di sistema"
                     onSelect={() => run(() => applyTheme('system' satisfies ThemePreference))}
                     className={VOCE}
                   >
-                    <Monitor className="size-4 text-text-subtle" aria-hidden="true" /> Tema come il sistema
+                    <Monitor className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" /> Tema come il sistema
                   </Command.Item>
                 </Command.Group>
 
@@ -251,14 +254,14 @@ export function CommandPalette({
                     onSelect={() => run(onOpenShortcuts)}
                     className={VOCE}
                   >
-                    <Keyboard className="size-4 text-text-subtle" aria-hidden="true" /> Scorciatoie da tastiera
+                    <Keyboard className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" /> Scorciatoie da tastiera
                   </Command.Item>
                   <Command.Item
                     value="esci disconnetti"
                     onSelect={() => run(() => void signOutAction())}
                     className={VOCE}
                   >
-                    <LogOut className="size-4 text-text-subtle" aria-hidden="true" /> Esci
+                    <LogOut className="size-4 text-text-subtle group-data-[selected=true]:text-accent-subtle-fg" aria-hidden="true" /> Esci
                   </Command.Item>
                 </Command.Group>
               </Command.List>

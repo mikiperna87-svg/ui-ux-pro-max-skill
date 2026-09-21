@@ -55,7 +55,7 @@ export function RegistratiForm() {
 
       <p className="text-center text-small text-text-muted">
         Hai già un account?{' '}
-        <Link href="/accedi" className="text-accent underline-offset-4 hover:underline">
+        <Link href="/accedi" className="text-accent underline underline-offset-4 hover:no-underline">
           Accedi
         </Link>
       </p>

@@ -10,6 +10,7 @@ import { listSuppliers } from '@/server/queries/anagrafiche'
 import { requireSession } from '@/server/session'
 import { SUPPLIER_LIST_OPTIONS } from './config'
 import { FornitoriTabella } from './fornitori-tabella'
+import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
 export const metadata: Metadata = { title: 'Fornitori' }
 
@@ -38,7 +39,7 @@ export default async function FornitoriPage({ searchParams }: { searchParams: Se
                 aria-label="Esporta"
               >
                 <Download aria-hidden="true" />
-                <span className="hidden sm:inline">Esporta</span>
+                <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
             {session.permissions.write ? (
@@ -46,7 +47,7 @@ export default async function FornitoriPage({ searchParams }: { searchParams: Se
                 <Button asChild variant="secondary" size="sm">
                   <Link href="/fornitori/importa" aria-label="Importa">
                     <Upload aria-hidden="true" />
-                    <span className="hidden sm:inline">Importa</span>
+                    <EtichettaBottone>Importa</EtichettaBottone>
                   </Link>
                 </Button>
                 <Button asChild variant="primary" size="sm">
