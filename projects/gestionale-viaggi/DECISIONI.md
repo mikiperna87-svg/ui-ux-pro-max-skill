@@ -1060,13 +1060,204 @@ che una transizione deve riconciliare una pagina con sé stessa.
 
 ---
 
-## 63. Scelte rinviate, con motivo
+## 63. Ogni misura di testo va dichiarata a chi unisce le classi
+
+**Scelta.** `cn()` non usa più `twMerge` così com'è, ma una versione estesa a
+cui sono dichiarate le dieci misure del design system — `hero`, `display`,
+`title`, `heading`, `body`, `small`, `caption`, `micro`, `metric`,
+`metric-sm`. Un test unitario percorre l'elenco e fallisce se una misura nuova
+viene aggiunta al CSS e dimenticata qui.
+
+**Perché.** `tailwind-merge` risolve i conflitti conoscendo i nomi di
+Tailwind: `text-sm` è una dimensione, `text-red-500` un colore. Le nostre
+misure non le conosce, e davanti a `text-accent-fg text-caption` vedeva due
+colori in conflitto: teneva l'ultimo e buttava via il primo. Ogni bottone con
+una dimensione — cioè tutti tranne quelli a sola icona — perdeva il colore
+della propria variante e ereditava quello del corpo della pagina. Il bottone
+principale mostrava testo quasi nero su verde scuro, 2,7:1 contro i 4,5
+richiesti da AA; nel tema scuro, bianco su verde chiaro a 2,1:1.
+
+**Conseguenza.** Il difetto era invisibile a occhio — il testo si legge, male,
+ma si legge — e nessuna revisione visiva l'avrebbe colto. L'ha trovato axe.
+Da qui la regola più generale della fase: le cose che si misurano vanno
+misurate, non guardate.
+
+---
+
+## 64. Il testo discreto ha due valori, uno per tema
+
+**Scelta.** `--text-subtle` non è più lo stesso grigio nei due temi: `warm-550`
+sul fondo chiaro, `warm-450` su quello scuro. I due gradini sono nati dalla
+misura, non dall'occhio: il peggiore dei rapporti su tutti i nostri fondi è
+5,01 nel chiaro e 4,80 nello scuro, sopra la soglia AA di 4,5.
+
+**Perché.** Un grigio a metà scala sembra la scelta ovvia per un testo
+"discreto" in entrambi i temi, e invece non basta a nessuno dei due: 3,96 sul
+fondo chiaro, 3,71 su quello scuro. Ed era il colore delle etichette degli
+indicatori, delle didascalie, dei metadati — il testo più piccolo del
+gestionale, quello che ha più bisogno di contrasto, non meno.
+
+**Conseguenza.** La scala neutra ha due gradini in più. Il testo discreto resta
+visibilmente più tenue di `--text-muted` (5,01 contro 6,55 nel chiaro): la
+gerarchia si vede ancora, ma sta tutta sopra la soglia.
+
+---
+
+## 65. Un'etichetta nascosta alla vista resta per chi ascolta
+
+**Scelta.** Le etichette dei comandi che sul telefono lasciano solo l'icona
+usano `EtichettaBottone`, cioè `sr-only sm:not-sr-only`, mai `hidden
+sm:inline`.
+
+**Perché.** `hidden` è `display: none`, e `display: none` toglie l'elemento
+anche dall'albero di accessibilità. Il bottone restava con la sola icona, che
+è decorativa per definizione: un lettore di schermo annunciava "pulsante", e
+basta. Su uno schermo stretto — cioè proprio dove VoiceOver e TalkBack si
+usano di più — l'intestazione di ogni elenco era una fila di pulsanti senza
+nome. Visivamente non cambia nulla, perché `sr-only` toglie comunque
+l'elemento dal flusso e non occupa neanche lo spazio del `gap`.
+
+**Conseguenza.** Restano quattro punti con `hidden sm:inline`, ciascuno con la
+sua ragione scritta accanto: dove esiste già una forma breve per il telefono,
+dove il nome accessibile è su un altro elemento, e dove a sparire è un comando
+intero e non la sua etichetta.
+
+---
+
+## 66. Sul telefono i filtri stanno chiusi, la ricerca no
+
+**Scelta.** Sotto la soglia `sm` i filtri di un elenco stanno dietro il
+comando "Filtri", che porta scritto quanti ne sono attivi. Il campo di ricerca
+resta sempre a schermo, fuori dal pannello.
+
+**Perché.** Sull'elenco delle pratiche, a 390 px, i filtri occupavano oltre
+mille pixel di altezza: più di uno schermo intero da scorrere prima di vedere
+la prima riga. Un elenco che non mostra righe non è un elenco. La ricerca è
+l'eccezione perché è il comando che si usa per primo e più spesso: metterlo
+dietro un pulsante vorrebbe dire due gesti al posto di uno, ogni volta.
+
+**Conseguenza.** Il numero sul pulsante non è un vezzo: un elenco filtrato che
+non dice di esserlo si legge come un elenco vuoto, e chi lo guarda conclude
+che i dati non ci sono. Da `sm` in su non cambia niente: i filtri sono dove
+sono sempre stati.
+
+---
+
+## 67. L'ordinamento predefinito di un elenco ha sempre un indice
+
+**Scelta.** Ogni elenco ha un indice sulla coppia `(agency_id, colonna
+dell'ordinamento predefinito)`, parziale sulle righe non cancellate.
+
+**Perché.** Quattro elenchi su otto non ce l'avevano: preventivi per data di
+creazione, clienti, passeggeri e fornitori per nome. Con i venti clienti dei
+dati di prova non si vede niente; con cinquantamila, il database ordina
+cinquantamila righe per mostrarne cinquanta, a ogni apertura della pagina. Il
+piano lo dice senza ambiguità: prima c'era un nodo `Sort` sopra una scansione
+completa, ora l'indice fornisce già l'ordine e il `Limit` si ferma dopo
+cinquanta righe.
+
+**Conseguenza.** Gli indici coprono l'ordinamento predefinito, non tutte le
+colonne ordinabili: è quello che il novantacinque per cento delle aperture
+usa senza toccare nulla, e un indice per colonna costerebbe in scrittura più
+di quanto renda in lettura. Il giorno in cui un ordinamento alternativo
+diventasse abituale, si aggiunge il suo.
+
+---
+
+## 68. Le migrazioni applicate si registrano
+
+**Scelta.** `npm run db:apply` scrive ogni migrazione applicata in
+`public.schema_migrations` e al giro successivo la salta. Un database creato
+prima del registro si allinea una volta sola con `--adotta`, che registra
+senza eseguire.
+
+**Perché.** Prima il comando rieseguiva tutto dall'inizio, e alla seconda
+messa in produzione si fermava sulla prima migrazione non idempotente. È il
+comando che il manuale di rilascio indica di eseguire a ogni versione: un
+aggiornamento che funziona solo la prima volta non è una procedura di
+rilascio.
+
+**Conseguenza.** `--adotta` esiste ma non si attiva da solo, e non indovina:
+su un database fermo a metà strada, registrare tutto sarebbe una bugia che si
+scopre al primo dato mancante. Chi lo usa deve sapere che il database è già
+allineato. Il registro vive in `public`, perché deve esistere prima che le
+migrazioni creino lo schema `app`, e ha la RLS accesa senza policy: attraverso
+l'API non lo legge nessuno, ci arriva solo chi possiede il database. Vale anche
+per una tabella di servizio la regola di tutte le altre.
+
+**Aggiunta, imparata sul campo.** Rieseguire le migrazioni su un database già
+migrato non è innocuo: la seconda applicazione di una vecchia migrazione
+*riporta indietro* ciò che una successiva aveva cambiato. È successo davvero in
+questa fase — una `create or replace function` della 0003 ha sovrascritto la
+versione della 0010, e da quel momento ogni nuova pratica nasceva senza numero.
+Nessun errore a schermo se non "non siamo riusciti a salvare": il registro non
+è una comodità, è ciò che impedisce a un comando di rilascio di corrompere il
+database che dovrebbe aggiornare.
+
+---
+
+## 69. La politica sui contenuti si regge su un numero usa e getta
+
+**Scelta.** Ogni risposta porta una `Content-Security-Policy` con un nonce
+diverso: gli script eseguibili sono quelli che il server ha firmato, più
+quelli che loro stessi caricano (`strict-dynamic`). Gli stili restano su
+`unsafe-inline`.
+
+**Perché.** È l'ultima rete, e l'unica che lavora dentro il browser
+dell'utente: sotto ci sono già la validazione Zod sul server e la RLS sul
+database. Uno script iniettato — da un campo, da un commento, da una
+dipendenza compromessa — non ha il nonce di quella richiesta e non parte.
+L'eccezione sugli stili è deliberata: Radix e il grafico dell'andamento
+scrivono attributi `style` calcolati al momento, e un foglio di stile
+iniettato può imbruttire una pagina, non portare via i dati di un cliente.
+
+**Conseguenza.** In sviluppo la politica aggiunge `unsafe-eval`, senza il
+quale il ricaricamento a caldo di Next non funziona: è una differenza
+dichiarata fra i due ambienti, non una dimenticanza. `frame-ancestors 'none'`
+affianca `X-Frame-Options`, che resta per i browser che la politica non la
+leggono. `Strict-Transport-Security` va solo in produzione: su localhost
+direbbe al browser di pretendere HTTPS anche lì, e da quel momento lo sviluppo
+si blocca finché non si svuota a mano la cache delle politiche.
+
+---
+
+## 70. Il costo di una pagina è misurato, e una parte non si tocca
+
+**Scelta.** Il livello dati è verificato: aprire un elenco costa una query per
+vista — `memberships`, `agencies`, `agency_settings`, la vista dell'elenco e le
+viste salvate — e nessuna query per riga. La verifica dell'utente è memorizzata
+per richiesta con `cache` di React, così i componenti che chiedono la sessione
+nello stesso render non la rifanno. Il resto del traffico resta com'è.
+
+**Perché.** Misurando il banco di prova, l'apertura dell'elenco pratiche
+produceva ventisette chiamate al server di autenticazione contro sei query di
+dati. Nessun N+1 sulle righe, come si poteva temere: le ventisette venivano da
+Next, che in produzione preleva in anticipo ogni collegamento a schermo —
+quattordici schede di pratica, più le impostazioni, il nuovo, un cliente. Ogni
+prelievo passa dal middleware, e il middleware verifica la sessione.
+
+**Conseguenza.** Saltare la verifica sui prelievi sarebbe sicuro — non è il
+middleware a proteggere le pagine, lo fa `requireSession()` dentro ciascuna, e
+sotto c'è la RLS — ma non è implementabile in modo onesto: l'intestazione che
+distingue un prelievo da una navigazione vera (`Next-Router-Prefetch`) non
+arriva al middleware in questa versione di Next, e le altre non bastano a
+distinguerli. Saltare la verifica su qualcosa che *potrebbe* essere una
+navigazione vera vorrebbe dire non reindirizzare chi non ha più la sessione.
+Meglio una chiamata di troppo su una richiesta speculativa — che è fuori dal
+percorso critico, non fa aspettare nessuno e costa solo al server di
+autenticazione — che una regola di accesso applicata a intermittenza. Il
+giorno in cui l'intestazione arrivasse, il punto dove intervenire è uno solo,
+l'inizio di `updateSession`.
+
+---
+
+## 71. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
 | Generazione PDF | — | Risolta in fase 5: `@react-pdf/renderer`, che compone il documento come l'interfaccia e non richiede un browser sul server |
 | Email transazionali (Resend) | — | Risolta in fase 8: coda sul database, adattatore reale, credenziali nell'ambiente del server |
 | TanStack Query | — | Lo scadenzario si è rivelato una griglia come le altre: stato nell'indirizzo, dati dal server. Una libreria di stato client non avrebbe nulla da gestire |
-| Realtime | Dopo la fase 9 | L'agenda si rilegge a ogni apertura e la posta ha il suo pannello: una connessione persistente aggiungerebbe complessità senza togliere un solo clic |
-| Esportazione XLSX | Fase 9 | Il CSV si apre in Excel italiano senza passaggi: una libreria in più va giustificata da un bisogno vero |
-| Fatturazione elettronica (XML SdI) | Dopo la fase 9 | Il tracciato FatturaPA e l'invio al Sistema di Interscambio sono un modulo a sé: servono l'accreditamento, la firma e un canale. Lo schema dei documenti è già quello giusto per generarlo |
+| Realtime | Non pianificata | L'agenda si rilegge a ogni apertura e la posta ha il suo pannello: una connessione persistente aggiungerebbe complessità senza togliere un solo clic |
+| Esportazione XLSX | Non pianificata | Il CSV si apre in Excel italiano senza passaggi, e nessuno ha chiesto formule o fogli multipli: una libreria in più va giustificata da un bisogno vero, non dal fatto che si potrebbe |
+| Fatturazione elettronica (XML SdI) | Modulo a sé | Il tracciato FatturaPA e l'invio al Sistema di Interscambio sono un modulo a sé: servono l'accreditamento, la firma e un canale. Lo schema dei documenti è già quello giusto per generarlo |

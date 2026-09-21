@@ -182,9 +182,11 @@ export function FornitoriTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField placeholder="Cerca per nome, referente, partita IVA" className="w-full sm:w-80" />
+      }
       toolbar={
         <>
-          <SearchField placeholder="Cerca per nome, referente, partita IVA" className="w-full sm:w-80" />
           <FilterSelect
             name="tipo"
             label="Tipo"

@@ -51,7 +51,7 @@ export function FattureTabella({
             {row.original.code ?? 'Bozza'}
           </Link>
           {row.original.kind === 'nota_credito' ? (
-            <p className="text-caption text-text-muted">Nota di credito</p>
+            <p className="text-caption text-text-muted">{INVOICE_KIND.nota_credito}</p>
           ) : null}
         </div>
       ),
@@ -179,12 +179,14 @@ export function FattureTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField
+          placeholder="Cerca per numero, cliente o note"
+          className="w-full sm:w-72"
+        />
+      }
       toolbar={
         <>
-          <SearchField
-            placeholder="Cerca per numero, cliente o note"
-            className="w-full sm:w-72"
-          />
           <FilterSelect
             name="tipo"
             label="Tipo"
@@ -235,7 +237,16 @@ export function FattureTabella({
           className="block rounded-lg border border-border bg-surface p-3 shadow-e1 transition-colors hover:border-border-strong"
         >
           <div className="flex items-start justify-between gap-2">
-            <p className="num min-w-0 truncate font-medium text-text">{row.code ?? 'Bozza'}</p>
+            <div className="min-w-0">
+              <p className="num truncate font-medium text-text">{row.code ?? 'Bozza'}</p>
+              {/* Sulla scheda del telefono il tipo va scritto: senza, una nota
+                  di credito si distingue da una fattura per il solo segno meno
+                  davanti all'importo — un carattere, in un elenco che si
+                  scorre col pollice. Nella tabella il tipo ha una colonna. */}
+              {row.kind === 'nota_credito' ? (
+                <p className="text-caption text-text-muted">{INVOICE_KIND.nota_credito}</p>
+              ) : null}
+            </div>
             <span className="num shrink-0 text-small font-medium">
               {row.kind === 'nota_credito' ? '− ' : ''}
               {formatEuro(row.total_cents ?? 0)}

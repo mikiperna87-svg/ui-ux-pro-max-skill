@@ -156,12 +156,14 @@ export function PasseggeriTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField
+          placeholder="Cerca per nome, documento, codice fiscale"
+          className="w-full sm:w-80"
+        />
+      }
       toolbar={
         <>
-          <SearchField
-            placeholder="Cerca per nome, documento, codice fiscale"
-            className="w-full sm:w-80"
-          />
           <FilterSelect
             name="documento"
             label="Stato documento"

@@ -160,8 +160,11 @@ export function SavedViews({
         <Dialog open={open} onOpenChange={setOpen}>
           <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
             <BookmarkPlus aria-hidden="true" />
+            {/* Una sola etichetta: `EtichettaBottone` sparisce alla vista sullo
+                schermo stretto ma resta a chi ascolta, e il vecchio doppione
+                per il telefono faceva annunciare "Salva vistaSalva questa
+                vista". */}
             <EtichettaBottone>Salva vista</EtichettaBottone>
-            <span className="sr-only sm:hidden">Salva questa vista</span>
           </Button>
           <DialogContent size="sm">
             <form action={submit}>

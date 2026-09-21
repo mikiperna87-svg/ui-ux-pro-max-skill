@@ -408,7 +408,7 @@ export default async function PraticaPage({
                   <p className="text-caption font-medium uppercase tracking-wide text-success-fg">
                     Margine
                   </p>
-                  <p className="num mt-1 text-[1.25rem] font-semibold leading-none text-success">
+                  <p className="num mt-1 text-metric-sm text-success">
                     {formatEuro(importi.margin)}
                   </p>
                   <p className="mt-1 text-caption text-success-fg">

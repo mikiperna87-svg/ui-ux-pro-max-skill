@@ -26,7 +26,7 @@ export function KpiCard({ label, value, hint, icon, tone = 'default', delta }: K
         <p className="text-caption font-medium uppercase tracking-wide text-text-subtle">{label}</p>
         {icon ? <span className="text-text-subtle [&_svg]:size-4">{icon}</span> : null}
       </div>
-      <p className={cn('mt-2 num text-[1.625rem] font-semibold leading-none tracking-tight', toneStyles[tone])}>
+      <p className={cn('mt-2 num text-metric', toneStyles[tone])}>
         {value}
       </p>
       {delta ? <p className="mt-2">{delta}</p> : null}

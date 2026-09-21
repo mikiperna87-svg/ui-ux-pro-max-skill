@@ -79,7 +79,7 @@ export default async function PreventivoPubblicoPage({
 
       <main id="contenuto" className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
         <section className="space-y-3">
-          <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight text-text sm:text-[2rem]">
+          <h1 className="text-display text-text sm:text-hero">
             {quote.title}
           </h1>
           <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-small text-text-muted">

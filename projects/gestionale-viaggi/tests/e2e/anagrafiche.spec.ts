@@ -100,7 +100,10 @@ test.describe('Elenco clienti', () => {
         await page.getByRole('button', { name: 'Ordina' }).click()
         await page.getByRole('menuitem', { name: /^Valore/ }).click()
       } else {
-        await page.getByRole('button', { name: /^Valore/ }).click()
+        // Il bottone nell'intestazione si chiama "Ordina per Valore": da solo,
+        // il nome della colonna non direbbe a un lettore di schermo che cosa
+        // fa premerlo.
+        await page.getByRole('button', { name: 'Ordina per Valore' }).click()
       }
     }
 

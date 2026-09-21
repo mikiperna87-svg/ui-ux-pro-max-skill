@@ -31,7 +31,8 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 18. [I parametri che governano le scadenze](#18-i-parametri-che-governano-le-scadenze)
 19. [Le numerazioni](#19-le-numerazioni)
 20. [Aspetto e accessibilità](#20-aspetto-e-accessibilità)
-21. [Domande frequenti](#21-domande-frequenti)
+21. [Aggiornare il gestionale](#21-aggiornare-il-gestionale)
+22. [Domande frequenti](#22-domande-frequenti)
 
 ---
 
@@ -1017,11 +1018,60 @@ ti trovi è sempre evidenziato con un contorno. Il primo Tab su ogni pagina offr
 gestionale le disattiva.
 
 **Colori.** Nessuna informazione è affidata al solo colore: ogni stato ha anche
-un'etichetta scritta.
+un'etichetta scritta. Il contrasto di ogni testo su ogni sfondo, nei due temi,
+rispetta il livello AA delle linee guida WCAG 2.1 — e non è una dichiarazione:
+è un test automatico che passa su tutte le pagine a ogni modifica.
+
+**Con un lettore di schermo.** Ogni comando ha un nome, anche quando sullo
+schermo stretto resta la sola icona. Le tabelle hanno intestazioni dichiarate e
+i bottoni di ordinamento dicono per quale colonna ordinano. Le colonne di
+riepilogo e la barra laterale sono regioni con un nome, così la navigazione per
+landmark porta dove ci si aspetta.
+
+**Dal telefono.** Nessuna pagina si legge scorrendo di lato: gli elenchi
+diventano schede, le tabelle larghe scorrono da sole dentro il loro riquadro, e
+i filtri stanno chiusi dietro il comando **Filtri** per lasciare lo schermo ai
+risultati.
 
 ---
 
-## 21. Domande frequenti
+## 21. Aggiornare il gestionale
+
+Questo capitolo riguarda chi amministra l'installazione, non chi la usa ogni
+giorno.
+
+### Che cosa succede a un aggiornamento
+
+Il gestionale è un'applicazione web: quando esce una versione nuova, chi
+amministra la pubblica e tutti la vedono al ricaricamento successivo. Non c'è
+niente da installare sui computer dell'agenzia.
+
+### La procedura
+
+1. Le verifiche automatiche devono passare per intero: controlli di stile,
+   tipi, test unitari, test sul database, percorsi completi nel browser,
+   accessibilità e impaginazione sul telefono.
+2. Le modifiche allo schema del database si applicano **prima** di pubblicare
+   la nuova versione. Sono numerate e si applicano solo quelle nuove: rilanciare
+   il comando su un database già aggiornato non fa danni.
+3. Si pubblica.
+
+### Che cosa non si perde mai
+
+Nessun aggiornamento cancella dati. Le modifiche allo schema aggiungono
+colonne, tabelle e indici; non ne tolgono. Lo storico — pratiche, incassi,
+fatture, registro delle attività — resta dov'è.
+
+### Se qualcosa va storto
+
+La pagina di errore mostra un **codice**: annotatelo e passatelo a chi
+amministra, perché è la chiave per ritrovare l'evento nei registri del server.
+Il dettaglio tecnico non compare mai a schermo — non sarebbe utile a voi e
+direbbe troppo a chi non deve sapere.
+
+---
+
+## 22. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.

@@ -191,9 +191,11 @@ export function ClientiTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField placeholder="Cerca per nome, email, telefono, codice fiscale" className="w-full sm:w-80" />
+      }
       toolbar={
         <>
-          <SearchField placeholder="Cerca per nome, email, telefono, codice fiscale" className="w-full sm:w-80" />
           <FilterSelect
             name="tipo"
             label="Tipo"

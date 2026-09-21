@@ -51,6 +51,7 @@ sicurezza: ogni tabella ha `agency_id`, e nessuna query può ignorarlo.
 - **Tailwind CSS v4** con design token in `src/app/globals.css` + primitive Radix personalizzate
 - **Zod** per la validazione condivisa, **date-fns** con locale italiano
 - **Vitest** + Testing Library per unità e componenti, **Playwright** per i percorsi end-to-end
+- **axe-core** dentro Playwright: l'accessibilità è un test che gira, non una buona intenzione
 
 ---
 
@@ -177,6 +178,12 @@ durata, utile quando un test si blocca).
 Dopo ogni migrazione va rigenerato il file dei tipi: così un campo rinominato
 rompe la compilazione invece della produzione.
 
+La suite end-to-end comprende `tests/e2e/accessibilita.spec.ts`, che passa
+axe-core su ogni pagina nei due temi e alle due larghezze, e
+`tests/e2e/telefono.spec.ts`, che verifica a 390 px che nessuna pagina si legga
+scorrendo di lato. Sono test permanenti: una regressione di accessibilità o di
+impaginazione non si vede finché qualcuno non la segnala, ed è troppo tardi.
+
 `npm run test:e2e` accende da sé il server con i limiti giusti. Se invece si
 punta la suite a un server già acceso (`E2E_BASE_URL=...`), quel server va
 avviato con `npm run start:e2e`: centoquaranta test che entrano con le stesse
@@ -230,19 +237,62 @@ tests/
    buona volontà di chi scrive la query.
 4. **Il colore non è mai l'unico portatore di significato**: ogni stato ha anche un testo.
 5. **Nessun valore esadecimale o pixel sparso nei componenti**: solo token del design system.
+   Le tre eccezioni sono dichiarate e inevitabili: i PDF (`@react-pdf` non legge le
+   variabili CSS), il colore della barra del browser (`metadata.themeColor` vuole un
+   valore letterale) e `global-error.tsx`, che sostituisce l'intero documento proprio
+   quando il foglio di stile potrebbe non essere arrivato.
+6. **Ogni misura di testo aggiunta al design system va dichiarata in `src/lib/utils.ts`**:
+   altrimenti `cn()` la scambia per un colore e cancella quello vero (DECISIONI 63).
+7. **Un'etichetta che sparisce sul telefono usa `EtichettaBottone`, mai `hidden`**:
+   `display: none` la toglie anche a chi usa un lettore di schermo (DECISIONI 65).
 
 ---
 
 ## Distribuzione su Vercel
 
+### La prima volta
+
 1. Collega il repository a Vercel e imposta come *Root Directory* la cartella
    `projects/gestionale-viaggi`.
 2. Inserisci le variabili d'ambiente di `.env.example` (senza `DATABASE_URL`, che
-   serve solo agli script).
+   serve solo agli script). Se vuoi la posta, aggiungi `RESEND_API_KEY` e
+   `EMAIL_MITTENTE`.
 3. Imposta `NEXT_PUBLIC_SITE_URL` sull'indirizzo definitivo e aggiungilo fra i
    *Redirect URLs* di Supabase.
-4. Le migrazioni si applicano al database di produzione prima del rilascio
-   (`npm run db:apply` con `DATABASE_URL` di produzione, oppure `supabase db push`).
+4. Applica le migrazioni al database di produzione:
+
+   ```bash
+   DATABASE_URL="postgresql://..." npm run db:apply
+   ```
+
+   Se il database è stato creato prima che esistesse il registro delle
+   migrazioni, allinealo una volta sola con `npm run db:apply -- --adotta`:
+   registra le migrazioni come applicate senza rieseguirle. Fallo solo se sei
+   certo che il database sia già aggiornato.
+
+### A ogni versione
+
+```bash
+npm run verifica                       # lint, typecheck, test, build
+DATABASE_URL="..." npm run db:apply    # solo le migrazioni nuove
+```
+
+Poi il rilascio vero e proprio. `db:apply` è ripetibile: le migrazioni già
+applicate vengono saltate.
+
+### Prima di dire che è finita
+
+| Controllo | Come |
+| --- | --- |
+| Migrazioni allineate | `npm run db:apply` non applica nulla di nuovo |
+| Tipi allineati | `npm run db:types` non produce differenze |
+| Suite completa verde | `npm run verifica` e `npm run test:e2e` |
+| Accessibilità | `npx playwright test tests/e2e/accessibilita.spec.ts` |
+| Telefono | `npx playwright test tests/e2e/telefono.spec.ts` |
+| Bucket privato | `documenti` non è pubblico su Supabase Storage |
+| Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
+| Posta verificata | il dominio del mittente è verificato presso il fornitore |
+| Intestazioni | la risposta porta `Content-Security-Policy` e, in HTTPS, `Strict-Transport-Security` |
 
 ---
 
@@ -258,7 +308,11 @@ tests/
 | 6 | Amministrazione: fatture, note di credito, 74-ter, registri, export | **completata** |
 | 7 | Dashboard e report per operatore, destinazione, fornitore | **completata** |
 | 8 | Agenda, attività, posta in uscita | **completata** |
-| 9 | Rifinitura: accessibilità, prestazioni, E2E, mobile, manuale, rilascio | da fare |
+| 9 | Rifinitura: accessibilità, prestazioni, E2E, mobile, manuale, rilascio | **completata** |
+
+La roadmap è chiusa. Ciò che resta fuori è scritto in fondo a `DECISIONI.md`,
+con il motivo di ciascun rinvio: la fatturazione elettronica verso il Sistema
+di Interscambio, l'esportazione in XLSX e l'aggiornamento in tempo reale.
 
 ## Licenza
 

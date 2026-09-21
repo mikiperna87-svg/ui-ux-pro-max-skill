@@ -480,7 +480,7 @@ function SintesiCard({
         <p className="text-caption font-medium uppercase tracking-wide text-text-subtle">{label}</p>
         <span className="text-text-subtle [&_svg]:size-4">{icon}</span>
       </div>
-      <p className={`mt-2 num text-[1.375rem] font-semibold leading-none ${toneClass}`}>{value}</p>
+      <p className={`mt-2 num text-metric-sm ${toneClass}`}>{value}</p>
       <p className="mt-1.5 text-caption text-text-muted">{hint}</p>
     </div>
   )

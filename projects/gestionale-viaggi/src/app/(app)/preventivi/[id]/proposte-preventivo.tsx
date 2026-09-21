@@ -130,7 +130,7 @@ export function ProposteVarianti({
                 <p className="text-small font-medium text-text">{QUOTE_VARIANT[variante].label}</p>
                 {scelta ? <Badge tone="success">Scelta dal cliente</Badge> : null}
               </div>
-              <p className="num mt-2 text-[1.375rem] font-semibold leading-none tracking-tight text-text">
+              <p className="num mt-2 text-metric-sm text-text">
                 {formatEuro(totale?.revenue_cents ?? 0)}
               </p>
               <p className="mt-1.5 text-caption text-text-muted">

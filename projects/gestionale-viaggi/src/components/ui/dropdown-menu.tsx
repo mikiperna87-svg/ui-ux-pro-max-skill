@@ -8,17 +8,31 @@ export const DropdownMenu = DropdownPrimitive.Root
 export const DropdownMenuTrigger = DropdownPrimitive.Trigger
 export const DropdownMenuGroup = DropdownPrimitive.Group
 
+/**
+ * Il corpo di un menu a tendina.
+ *
+ * L'altezza è limitata a quanto resta di schermo e il contenuto scorre: un
+ * menu che cresce con i dati — le viste salvate, per dire — arrivava a
+ * superare l'altezza della finestra, e le voci in fondo restavano fuori,
+ * impossibili da toccare e impossibili da raggiungere scorrendo, perché il
+ * menu non scorreva. L'altezza massima è quella che Radix calcola per la
+ * posizione scelta, e `collisionPadding` le lascia otto pixel di margine dal
+ * bordo della finestra.
+ */
 export function DropdownMenuContent({
   className,
   sideOffset = 6,
+  collisionPadding = 8,
   ...props
 }: ComponentProps<typeof DropdownPrimitive.Content>) {
   return (
     <DropdownPrimitive.Portal>
       <DropdownPrimitive.Content
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
         className={cn(
-          'z-50 min-w-48 overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-e3',
+          'z-50 min-w-48 rounded-lg border border-border bg-surface p-1 shadow-e3',
+          'max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto',
           'data-[state=open]:animate-[var(--animate-in-scale)]',
           className,
         )}

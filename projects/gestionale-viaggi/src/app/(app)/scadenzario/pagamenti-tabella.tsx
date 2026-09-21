@@ -162,12 +162,14 @@ export function PagamentiTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField
+          placeholder="Cerca per fornitore o pratica"
+          className="w-full sm:w-72"
+        />
+      }
       toolbar={
         <>
-          <SearchField
-            placeholder="Cerca per fornitore o pratica"
-            className="w-full sm:w-72"
-          />
           <FilterSelect
             name="stato"
             label="Stato"

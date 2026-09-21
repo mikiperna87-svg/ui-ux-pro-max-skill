@@ -183,12 +183,14 @@ export function PraticheTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField
+          placeholder="Cerca per codice, titolo, destinazione"
+          className="w-full sm:w-72"
+        />
+      }
       toolbar={
         <>
-          <SearchField
-            placeholder="Cerca per codice, titolo, destinazione"
-            className="w-full sm:w-72"
-          />
           <SavedViews
             entity="pratiche"
             views={views}

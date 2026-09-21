@@ -45,7 +45,7 @@ export function TrendChart({ points }: { points: readonly MonthlyPoint[] }) {
                   />
                 </div>
               </div>
-              <span className="w-full text-center text-[0.625rem] uppercase text-text-subtle">
+              <span className="w-full text-center text-micro uppercase text-text-subtle">
                 <span className="sm:hidden">{format(month, 'LLLLL', { locale: it })}</span>
                 <span className="hidden sm:inline">{format(month, 'LLL yy', { locale: it })}</span>
               </span>

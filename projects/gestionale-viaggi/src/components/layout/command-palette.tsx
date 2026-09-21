@@ -155,7 +155,7 @@ export function CommandPalette({
 
       <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-overlay backdrop-blur-[2px] data-[state=open]:animate-[var(--animate-in-fade)]" />
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-overlay backdrop-blur-(--blur-overlay) data-[state=open]:animate-[var(--animate-in-fade)]" />
           <DialogPrimitive.Content
             aria-describedby={undefined}
             className="fixed left-1/2 top-[12vh] z-50 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-e3 data-[state=open]:animate-[var(--animate-in-scale)]"

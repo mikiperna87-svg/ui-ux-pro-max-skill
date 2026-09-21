@@ -192,12 +192,14 @@ export function PreventiviTabella({
       sort={sort}
       direction={direction}
       getRowId={(row) => row.id ?? ''}
+      ricerca={
+        <SearchField
+          placeholder="Cerca per codice, destinazione o cliente"
+          className="w-full sm:w-72"
+        />
+      }
       toolbar={
         <>
-          <SearchField
-            placeholder="Cerca per codice, destinazione o cliente"
-            className="w-full sm:w-72"
-          />
           <SavedViews
             entity="preventivi"
             views={views}

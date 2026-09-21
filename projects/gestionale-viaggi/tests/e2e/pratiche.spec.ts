@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
+import { apriFiltri } from './elenco'
 
 /**
  * Percorsi delle pratiche: elenco, viste salvate, scheda, righe di servizio,
@@ -154,6 +155,7 @@ test.describe('Viste salvate', () => {
     const nome = unico('Vista')
 
     await page.goto('/pratiche?stato=confermata&pagamento=saldata')
+    await apriFiltri(page)
     await page.getByRole('button', { name: /Salva vista|Salva questa vista/ }).click()
     await page.locator('input[name="name"]').fill(nome)
     await page.getByRole('button', { name: 'Salva' }).click()
@@ -161,10 +163,22 @@ test.describe('Viste salvate', () => {
 
     // Tornando all'elenco senza filtri, la vista li rimette
     await page.goto('/pratiche')
+    await apriFiltri(page)
     await page.getByRole('button', { name: /Viste/ }).click()
     await page.getByRole('menuitem', { name: nome }).click()
     await expect(page).toHaveURL(/stato=confermata/)
     await expect(page).toHaveURL(/pagamento=saldata/)
+
+    // Infine la vista si elimina, e non solo per verificare che si possa: una
+    // prova che lascia una riga dietro di sé ne lascia una a ogni esecuzione,
+    // e dopo qualche decina il menu delle viste è più alto dello schermo.
+    // Si riparte dall'elenco nudo: con una vista applicata il comando prende
+    // il nome della vista, e non si chiama più "Viste".
+    await page.goto('/pratiche')
+    await apriFiltri(page)
+    await page.getByRole('button', { name: /Viste/ }).click()
+    await page.getByRole('button', { name: `Elimina la vista ${nome}` }).click()
+    await expect(page.getByRole('menuitem', { name: nome })).toHaveCount(0)
   })
 })
 

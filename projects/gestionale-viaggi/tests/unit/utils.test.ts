@@ -14,6 +14,17 @@ describe('unione delle classi', () => {
   it('fa ancora vincere l’ultimo fra due colori, e fra due dimensioni', () => {
     expect(cn('text-text-muted', 'text-danger')).toBe('text-danger')
     expect(cn('text-body', 'text-small')).toBe('text-small')
+    expect(cn('text-metric', 'text-metric-sm')).toBe('text-metric-sm')
+  })
+
+  it('conosce tutte le dimensioni della scala, non solo quelle originarie', () => {
+    // Ogni misura aggiunta al design system va dichiarata anche qui: una
+    // dimenticata torna a comportarsi da colore e cancella quello vero.
+    for (const dimensione of ['hero', 'display', 'title', 'heading', 'body', 'small', 'caption', 'micro', 'metric', 'metric-sm']) {
+      const classi = cn('text-accent-fg', `text-${dimensione}`)
+      expect(classi, dimensione).toContain('text-accent-fg')
+      expect(classi, dimensione).toContain(`text-${dimensione}`)
+    }
   })
 
   it('risolve i conflitti veri di Tailwind', () => {

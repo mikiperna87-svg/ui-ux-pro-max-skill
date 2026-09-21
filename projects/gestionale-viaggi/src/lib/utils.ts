@@ -14,7 +14,18 @@ import { extendTailwindMerge } from 'tailwind-merge'
  * principale mostrava testo quasi nero su verde scuro — rapporto 2,7:1, sotto
  * la soglia AA di 4,5:1 — e in tema scuro l'inverso.
  */
-const DIMENSIONI_TESTO = ['display', 'title', 'heading', 'body', 'small', 'caption'] as const
+const DIMENSIONI_TESTO = [
+  'hero',
+  'display',
+  'title',
+  'heading',
+  'body',
+  'small',
+  'caption',
+  'micro',
+  'metric',
+  'metric-sm',
+] as const
 
 const merge = extendTailwindMerge({
   extend: {

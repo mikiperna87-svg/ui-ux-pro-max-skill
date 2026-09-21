@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             Gestionale Viaggi
           </span>
           <div className="max-w-md space-y-3">
-            <p className="text-[2rem] font-semibold leading-tight tracking-tight text-white">
+            <p className="text-hero text-white">
               Ogni pratica, dal preventivo al saldo, in un unico posto.
             </p>
             <p className="text-body text-white/70">

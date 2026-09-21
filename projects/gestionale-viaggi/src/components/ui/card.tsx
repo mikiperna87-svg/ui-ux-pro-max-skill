@@ -1,11 +1,20 @@
 import type { ComponentProps } from 'react'
 import { cn } from '@/lib/utils'
 
+/**
+ * Il contenitore di base di ogni riquadro.
+ *
+ * `min-w-0` non è decorativo: dentro una griglia o un flex, un elemento vale
+ * per impostazione predefinita almeno quanto il suo contenuto (`min-width:
+ * auto`) e si rifiuta di stringersi. Una scheda con dentro un grafico a dodici
+ * barre allargava così l'intera pagina a 495 px su uno schermo da 390, e la
+ * panoramica era l'unica pagina del gestionale da leggere scorrendo di lato.
+ */
 export function Card({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
-      className={cn('rounded-lg border border-border bg-surface shadow-e1', className)}
+      className={cn('min-w-0 rounded-lg border border-border bg-surface shadow-e1', className)}
       {...props}
     />
   )

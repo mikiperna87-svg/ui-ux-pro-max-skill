@@ -8,9 +8,9 @@ import {
   type ColumnDef,
   type VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, Columns3 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, SlidersHorizontal } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useState, useTransition, type ReactNode } from 'react'
+import { useId, useMemo, useState, useTransition, type ReactNode } from 'react'
 import { Pagination } from '@/components/data-table/pagination'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -49,9 +49,24 @@ export interface DataTableProps<T> {
   readonly emptyState: ReactNode
   /** Azioni di massa sulle righe selezionate; assente = nessuna selezione. */
   readonly bulkActions?: (selectedIds: readonly string[], reset: () => void) => ReactNode
+  /** I filtri: su schermo stretto si aprono e si chiudono. */
   readonly toolbar?: ReactNode
+  /**
+   * Il campo di ricerca, che resta sempre a schermo.
+   *
+   * Sta fuori dai filtri perché è il comando che si usa per primo e più
+   * spesso: nasconderlo dietro un pulsante vorrebbe dire due gesti al posto
+   * di uno, ogni volta.
+   */
+  readonly ricerca?: ReactNode
   readonly caption: string
 }
+
+/**
+ * I parametri che descrivono *come* si guarda l'elenco, non *che cosa* si
+ * guarda: tutto il resto nell'indirizzo è un filtro, e va contato.
+ */
+const PARAMETRI_STRUTTURALI = new Set(['q', 'pagina', 'per', 'ordina', 'verso'])
 
 /**
  * Griglia dati del gestionale.
@@ -75,6 +90,7 @@ export function DataTable<T>({
   emptyState,
   bulkActions,
   toolbar,
+  ricerca,
   caption,
 }: DataTableProps<T>) {
   const router = useRouter()
@@ -83,6 +99,21 @@ export function DataTable<T>({
   const [pending, startTransition] = useTransition()
   const [selection, setSelection] = useState<Record<string, boolean>>({})
   const [hidden, setHidden] = useState<VisibilityState>({})
+
+  // Su un telefono da 390 px i filtri di questo elenco occupavano più di uno
+  // schermo intero: per vedere la prima riga bisognava scorrere oltre sei
+  // menu a tendina. Qui si aprono quando servono, e il numero sul pulsante
+  // dice quanti sono attivi anche da chiusi — un elenco filtrato senza che si
+  // veda perché è peggio di un filtro in più da aprire.
+  const [filtriAperti, setFiltriAperti] = useState(false)
+  const idFiltri = useId()
+  const filtriAttivi = useMemo(() => {
+    let quanti = 0
+    for (const [chiave, valore] of searchParams.entries()) {
+      if (!PARAMETRI_STRUTTURALI.has(chiave) && valore !== '') quanti += 1
+    }
+    return quanti
+  }, [searchParams])
 
   const table = useReactTable({
     data: rows as T[],
@@ -135,43 +166,90 @@ export function DataTable<T>({
     .getAllLeafColumns()
     .filter((column) => column.columnDef.enableSorting !== false && column.id !== 'select')
 
+  // Un solo menu di ordinamento, mostrato in due posti diversi: accanto ai
+  // filtri sul telefono, da solo sulle larghezze intermedie. Da `md` in su
+  // l'ordinamento torna dov'è naturale, nelle intestazioni della tabella.
+  const ordinamento = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="secondary" size="sm" className="w-full sm:w-auto">
+          <ArrowUpDown aria-hidden="true" />
+          Ordina
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Ordina per</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {sortableColumns.map((column) => {
+          const active = sort === column.id
+          return (
+            <DropdownMenuItem key={column.id} onSelect={() => toggleSort(column.id)}>
+              <span className="flex-1">{etichetta(column)}</span>
+              {active ? (
+                direction === 'asc' ? (
+                  <ArrowUp className="size-3.5" aria-hidden="true" />
+                ) : (
+                  <ArrowDown className="size-3.5" aria-hidden="true" />
+                )
+              ) : null}
+              {active ? (
+                <span className="sr-only">
+                  {direction === 'asc' ? 'ordine crescente' : 'ordine decrescente'}
+                </span>
+              ) : null}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-2">{toolbar}</div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          {ricerca}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="sm" className="md:hidden">
-              <ArrowUpDown aria-hidden="true" />
-              Ordina
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ordina per</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {sortableColumns.map((column) => {
-              const active = sort === column.id
-              return (
-                <DropdownMenuItem key={column.id} onSelect={() => toggleSort(column.id)}>
-                  <span className="flex-1">{etichetta(column)}</span>
-                  {active ? (
-                    direction === 'asc' ? (
-                      <ArrowUp className="size-3.5" aria-hidden="true" />
-                    ) : (
-                      <ArrowDown className="size-3.5" aria-hidden="true" />
-                    )
-                  ) : null}
-                  {active ? (
-                    <span className="sr-only">
-                      {direction === 'asc' ? 'ordine crescente' : 'ordine decrescente'}
-                    </span>
-                  ) : null}
-                </DropdownMenuItem>
-              )
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          {/* Filtri e ordinamento sono i due comandi dell'elenco sul telefono:
+              stanno sulla stessa riga, perché due righe di bottoni larghi
+              quanto lo schermo rubano spazio proprio a ciò che si è venuti a
+              leggere. */}
+          <div className="flex items-center gap-2 sm:contents">
+            {toolbar ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="sm:hidden"
+                onClick={() => setFiltriAperti((aperti) => !aperti)}
+                aria-expanded={filtriAperti}
+                aria-controls={idFiltri}
+              >
+                <SlidersHorizontal aria-hidden="true" />
+                Filtri
+                {filtriAttivi > 0 ? (
+                  <span className="rounded-full bg-accent px-1.5 text-micro font-semibold text-accent-fg">
+                    {filtriAttivi}
+                  </span>
+                ) : null}
+              </Button>
+            ) : null}
+            <div className="sm:hidden">{ordinamento}</div>
+          </div>
+
+          {toolbar ? (
+            <div
+              id={idFiltri}
+              className={cn(
+                'flex-wrap items-center gap-2 sm:flex sm:flex-1',
+                filtriAperti ? 'flex' : 'hidden',
+              )}
+            >
+              {toolbar}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="hidden sm:block md:hidden">{ordinamento}</div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

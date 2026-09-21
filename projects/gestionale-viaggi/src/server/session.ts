@@ -23,6 +23,24 @@ export interface AppSession {
 }
 
 /**
+ * L'utente autenticato, verificato dal server una volta per richiesta.
+ *
+ * `getUser()` non legge il cookie: chiede al server di autenticazione se quel
+ * token è ancora valido, ed è un viaggio di rete. Senza questa memoria
+ * `requireSession()` ne faceva uno per ogni componente che la chiamava — nel
+ * banco di prova, tredici per una sola apertura dell'elenco pratiche, contro
+ * sei query di dati. `cache` di React le riduce a una: vale per la durata di
+ * una richiesta, quindi non conserva nulla fra un utente e l'altro.
+ */
+const getUtente = cache(async (): Promise<User | null> => {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return user
+})
+
+/**
  * Sessione applicativa completa (utente + agenzia + ruolo + parametri).
  * `cache` la risolve una sola volta per richiesta, anche se dieci componenti
  * la chiedono: e' il modo in cui evitiamo dieci query identiche per pagina.
@@ -30,9 +48,7 @@ export interface AppSession {
 export const getSession = cache(async (): Promise<AppSession | null> => {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getUtente()
   if (!user) return null
 
   const { data: membership } = await supabase
@@ -71,13 +87,9 @@ export const getSession = cache(async (): Promise<AppSession | null> => {
   }
 })
 
-/** Sessionè obbligatoria: senza, si torna al login o alla creazione agenzia. */
+/** Sessione obbligatoria: senza, si torna al login o alla creazione agenzia. */
 export async function requireSession(): Promise<AppSession> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const user = await getUtente()
   if (!user) redirect('/accedi')
 
   const session = await getSession()
