@@ -19,17 +19,19 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 6. [Incassi, scadenze e pagamenti](#6-incassi-scadenze-e-pagamenti)
 7. [Fatture e registro IVA](#7-fatture-e-registro-iva)
 8. [I report](#8-i-report)
-9. [I clienti](#9-i-clienti)
-10. [I passeggeri](#10-i-passeggeri)
-11. [I fornitori](#11-i-fornitori)
-12. [Importare ed esportare gli elenchi](#12-importare-ed-esportare-gli-elenchi)
-13. [Chi vede che cosa: i quattro ruoli](#13-chi-vede-che-cosa-i-quattro-ruoli)
-14. [Impostazioni dell'agenzia](#14-impostazioni-dellagenzia)
-15. [Invitare un collaboratore](#15-invitare-un-collaboratore)
-16. [I parametri che governano le scadenze](#16-i-parametri-che-governano-le-scadenze)
-17. [Le numerazioni](#17-le-numerazioni)
-18. [Aspetto e accessibilità](#18-aspetto-e-accessibilità)
-19. [Domande frequenti](#19-domande-frequenti)
+9. [L'agenda e le cose da fare](#9-lagenda-e-le-cose-da-fare)
+10. [Scrivere al cliente](#10-scrivere-al-cliente)
+11. [I clienti](#11-i-clienti)
+12. [I passeggeri](#12-i-passeggeri)
+13. [I fornitori](#13-i-fornitori)
+14. [Importare ed esportare gli elenchi](#14-importare-ed-esportare-gli-elenchi)
+15. [Chi vede che cosa: i quattro ruoli](#15-chi-vede-che-cosa-i-quattro-ruoli)
+16. [Impostazioni dell'agenzia](#16-impostazioni-dellagenzia)
+17. [Invitare un collaboratore](#17-invitare-un-collaboratore)
+18. [I parametri che governano le scadenze](#18-i-parametri-che-governano-le-scadenze)
+19. [Le numerazioni](#19-le-numerazioni)
+20. [Aspetto e accessibilità](#20-aspetto-e-accessibilità)
+21. [Domande frequenti](#21-domande-frequenti)
 
 ---
 
@@ -137,6 +139,7 @@ righe. Da lì puoi anche cambiare tema o uscire, senza toccare il mouse.
 | **G** poi **R** | Vai alle pratiche |
 | **G** poi **V** | Vai ai preventivi |
 | **G** poi **D** | Vai allo scadenzario |
+| **G** poi **E** | Vai all’agenda |
 | **G** poi **A** | Vai alle fatture |
 | **G** poi **O** | Vai ai report |
 | **G** poi **C** | Vai ai clienti |
@@ -636,7 +639,140 @@ blocco, in coda, separato da una riga vuota.
 
 ---
 
-## 9. I clienti
+## 9. L'agenda e le cose da fare
+
+**Agenda** risponde a una domanda sola: che cosa c'è da fare. Raccoglie in un
+elenco unico cinque cose che, prese separatamente, starebbero in cinque schermi
+diversi:
+
+| Compare | Da dove arriva |
+| --- | --- |
+| **Attività** | Le cose da fare che scrivi tu, o che il gestionale crea alla conferma di una pratica |
+| **Incassi** | Le rate in attesa, parziali o scadute dello scadenzario |
+| **Pagamenti** | Le scadenze verso i fornitori ancora da pagare o programmate |
+| **Partenze** | Le pratiche in opzione o confermate che partono nel periodo |
+| **Documenti** | I documenti dei passeggeri che stanno per scadere |
+
+### Il periodo
+
+I tre bottoni in alto — **Oggi**, **7 giorni**, **30 giorni** — decidono quanto
+guardare *avanti*. All'indietro l'agenda guarda sempre agli ultimi due mesi, e
+tutto ciò che è già scaduto finisce nel riquadro rosso **In ritardo**, in cima
+alla pagina. Non sparisce cambiando periodo: è il contrario di un calendario da
+muro, dove ieri non c'è più.
+
+Sotto, le voci sono raggruppate per giorno, ciascuna con la data e a quanti
+giorni è da oggi.
+
+### Restringere l'elenco
+
+Le pastiglie della seconda riga filtrano per tipo: **Tutto**, Attività,
+Incassi, Pagamenti, Partenze, Documenti. Il bottone **Solo le mie** lascia le
+voci di cui sei responsabile: le tue attività, e le rate e i pagamenti delle
+pratiche che segui. I documenti in scadenza non hanno un responsabile, quindi
+con quel filtro non compaiono.
+
+Ogni filtro finisce nell'indirizzo: puoi salvare fra i preferiti l'agenda che
+guardi ogni mattina.
+
+### Aggiungere una cosa da fare
+
+**Nuova attività** apre un modulo breve:
+
+- **Che cosa c'è da fare** — la sola cosa obbligatoria. Scrivila come la diresti
+  a un collega: "Richiamare la signora Bianchi per il saldo".
+- **Tipo** — da fare, richiamare il cliente, verificare i documenti, sollecitare
+  l'acconto o il saldo, pagare il fornitore.
+- **Priorità** — bassa, media, alta, urgente. Sopra la media compare una
+  pastiglia colorata accanto al titolo.
+- **Scadenza** — data **e ora**, nell'orologio dell'agenzia. "Entro le 18" è
+  un'informazione diversa da "entro oggi". Lasciala vuota se non c'è un termine:
+  l'attività resta nell'elenco della pratica, ma non occupa un giorno in agenda.
+- **Assegnata a** — un collega o nessuno.
+- **Note** — il contesto che a distanza di una settimana non ricorderesti.
+
+### Chiudere, riaprire, modificare
+
+Accanto a ogni attività c'è **Completa**: un clic, e sparisce dall'agenda,
+perché l'agenda è ciò che resta da fare. Dai tre puntini si **modifica** o si
+**elimina**; nella scheda della pratica le attività chiuse restano visibili,
+barrate, con **Riapri** accanto.
+
+I tre indicatori in cima contano le attività aperte, quelle in ritardo e le
+voci del periodo scelto.
+
+### Le attività dentro una pratica
+
+Nella scheda di una pratica, il riquadro **Cose da fare su questa pratica**
+mostra le stesse attività viste dal lato del viaggio. Quelle create da lì
+nascono già collegate alla pratica e al cliente, così in agenda portano con sé
+il codice: sai a quale viaggio appartengono senza aprire nulla.
+
+Alla conferma di una pratica il gestionale crea da sé le verifiche di rito —
+acconto, saldo, documenti dei passeggeri — che compaiono qui e in agenda.
+
+---
+
+## 10. Scrivere al cliente
+
+Il gestionale scrive le email al posto tuo, con l'intestazione dell'agenzia, e
+tiene il registro di ciò che è uscito. Tre cose si mandano da dentro:
+
+| Da dove | Che cosa parte |
+| --- | --- |
+| Scheda del **preventivo** → *Invia al cliente* | Il preventivo con il collegamento per accettarlo online |
+| Scheda della **fattura** → *Invia al cliente* | La fattura, con il PDF in allegato se lasci la spunta |
+| **Scadenze** della pratica → *Sollecita* | Il promemoria di una rata, con importo e data |
+
+Ogni invio chiede conferma e mostra l'indirizzo, già compilato con quello del
+cliente. Puoi cambiarlo e aggiungere due righe tue, che finiscono in cima al
+messaggio.
+
+### Che cosa cambia dopo l'invio
+
+Un preventivo inviato passa allo stato **Inviato**: da quel momento il suo
+collegamento pubblico è vivo, e il cliente può accettare o rifiutare. Una
+fattura passa a **Inviata** soltanto se il messaggio è partito davvero. Un
+sollecito non cambia niente: la rata resta quella che è finché non arrivano i
+soldi.
+
+### Il registro della posta
+
+**Impostazioni → Posta** raccoglie gli ultimi messaggi, ciascuno con il suo
+esito:
+
+- **Inviata** — il fornitore di posta l'ha presa in carico, con data e ora.
+- **In coda** — scritta e pronta, non ancora partita.
+- **In errore** — il motivo è scritto accanto. **Rimanda** riprova; per una
+  fattura il PDF viene ricostruito al momento, quindi l'allegato è sempre il
+  documento com'è adesso.
+- **Annullata** — l'hai fermata tu.
+
+Niente si perde e niente viene dichiarato inviato senza esserlo: se qualcosa
+non è partito, lo vedi qui.
+
+### Come si presenta l'agenzia
+
+Nella stessa scheda il titolare imposta il **nome del mittente** che il cliente
+legge, l'**indirizzo di risposta** a cui arrivano le risposte, e la **firma**
+in fondo ai messaggi. L'interruttore **Invio delle email attivo** ferma tutto
+senza toccare nient'altro.
+
+**Prova di invio** manda a te stesso un messaggio con l'intestazione
+dell'agenzia: è il modo più rapido per vedere che cosa riceve il cliente.
+
+### Se la posta non è collegata
+
+Il riquadro **Stato della posta** in cima dice se c'è un fornitore collegato.
+Se non c'è, tutto continua a funzionare — i messaggi vengono composti,
+registrati e mostrati — ma restano **in coda**, e la pagina te lo dice con
+queste parole. Collegare il fornitore è un'operazione di chi amministra il
+server, non tua: la chiave non si inserisce da qui, perché una credenziale
+salvata in un'applicazione è una credenziale che prima o poi esce.
+
+---
+
+## 11. I clienti
 
 **Clienti** è l'anagrafica di chi compra: privati e aziende.
 
@@ -693,7 +829,7 @@ obbligo di conservazione contabile.
 
 ---
 
-## 10. I passeggeri
+## 12. I passeggeri
 
 I passeggeri sono chi viaggia, e non coincidono sempre con chi paga: un'azienda
 manda i suoi dipendenti, un nonno paga per i nipoti. Per questo hanno una loro
@@ -718,7 +854,7 @@ al momento della prenotazione, non dopo.
 
 ---
 
-## 11. I fornitori
+## 13. I fornitori
 
 I fornitori sono chi fattura all'agenzia: tour operator, compagnie aeree e
 ferroviarie, hotel, corrispondenti locali, assicurazioni, autonoleggi.
@@ -740,7 +876,7 @@ dalle scelte delle nuove pratiche e resta nello storico. Si riattiva quando serv
 
 ---
 
-## 12. Importare ed esportare gli elenchi
+## 14. Importare ed esportare gli elenchi
 
 Ogni elenco ha due comandi in alto a destra.
 
@@ -771,7 +907,7 @@ le intestazioni giuste.
 
 ---
 
-## 13. Chi vede che cosa: i quattro ruoli
+## 15. Chi vede che cosa: i quattro ruoli
 
 | Ruolo | Che cosa può fare |
 | --- | --- |
@@ -789,7 +925,7 @@ imposta dal database, non dall'interfaccia.
 
 ---
 
-## 14. Impostazioni dell'agenzia
+## 16. Impostazioni dell'agenzia
 
 Riservate al titolare: **Impostazioni → Agenzia**.
 
@@ -804,7 +940,7 @@ che hai scritto. Premi **Salva i dati** in fondo.
 
 ---
 
-## 15. Invitare un collaboratore
+## 17. Invitare un collaboratore
 
 **Impostazioni → Utenti e ruoli → Invita collaboratore.**
 
@@ -827,7 +963,7 @@ che ha seguito restano collegate a lei e la cronologia resta leggibile.
 
 ---
 
-## 16. I parametri che governano le scadenze
+## 18. I parametri che governano le scadenze
 
 **Impostazioni → Parametri.** Sono i valori che il gestionale usa quando
 confermi una pratica, per creare da solo le scadenze.
@@ -846,7 +982,7 @@ mantengono le scadenze con cui sono nate.
 
 ---
 
-## 17. Le numerazioni
+## 19. Le numerazioni
 
 Pratiche, preventivi, fatture e note di credito hanno una numerazione
 **progressiva per anno e senza salti**. Il numero è assegnato dal gestionale nel
@@ -865,7 +1001,7 @@ non consumano numerazione, e una bozza scartata non lascia buchi.
 
 ---
 
-## 18. Aspetto e accessibilità
+## 20. Aspetto e accessibilità
 
 **Tema.** L'icona accanto al profilo cambia l'aspetto: **Chiaro**, **Scuro**,
 **Come il sistema**. La scelta resta anche dopo aver chiuso il browser.
@@ -885,7 +1021,7 @@ un'etichetta scritta.
 
 ---
 
-## 19. Domande frequenti
+## 21. Domande frequenti
 
 **Il gestionale mi ha disconnesso.**
 Le sessioni scadono. Rientra normalmente; nulla di ciò che hai salvato va perso.

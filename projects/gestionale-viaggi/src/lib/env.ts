@@ -53,6 +53,40 @@ export function serverEnv(): ServerEnv {
   return serverCache
 }
 
+/**
+ * Configurazione del fornitore di posta.
+ *
+ * È facoltativa di proposito: un'agenzia può usare il gestionale senza aver
+ * ancora collegato un dominio per le email. In quel caso i messaggi vengono
+ * comunque scritti nella coda e restano in attesa — nulla si perde e nulla
+ * viene raccontato come spedito. Quando la chiave arriva, si rimandano da
+ * Impostazioni → Email.
+ */
+const emailSchema = z.object({
+  RESEND_API_KEY: z.string().min(10),
+  EMAIL_MITTENTE: z
+    .string()
+    .min(5)
+    .refine((value) => /[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+/.test(value), {
+      message: 'EMAIL_MITTENTE deve contenere un indirizzo valido',
+    }),
+})
+
+export interface EmailConfig {
+  readonly apiKey: string
+  /** Mittente completo: "Orizzonti Viaggi <no-reply@dominio.it>" oppure il solo indirizzo. */
+  readonly from: string
+}
+
+export function emailConfig(): EmailConfig | null {
+  const parsed = emailSchema.safeParse({
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_MITTENTE: process.env.EMAIL_MITTENTE,
+  })
+  if (!parsed.success) return null
+  return { apiKey: parsed.data.RESEND_API_KEY, from: parsed.data.EMAIL_MITTENTE }
+}
+
 /** URL pubblico dell’applicazione, usato nei link delle email transazionali. */
 export function siteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL

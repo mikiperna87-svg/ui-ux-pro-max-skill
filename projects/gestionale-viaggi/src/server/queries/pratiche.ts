@@ -144,7 +144,7 @@ export interface BookingDetail {
   readonly paymentsIn: readonly Views<'payment_in_list'>[]
   readonly paymentsOut: readonly Views<'payout_list'>[]
   readonly documents: readonly Tables<'documents'>[]
-  readonly tasks: readonly Tables<'tasks'>[]
+  readonly tasks: readonly Views<'task_list'>[]
   readonly invoices: readonly Tables<'invoices'>[]
   readonly activity: readonly Tables<'activity_log'>[]
 }
@@ -203,10 +203,9 @@ export async function getBookingDetail(id: string): Promise<BookingDetail | null
       .is('deleted_at', null)
       .order('created_at', { ascending: false }),
     supabase
-      .from('tasks')
+      .from('task_list')
       .select('*')
       .eq('booking_id', id)
-      .is('deleted_at', null)
       .order('due_at', { nullsFirst: false }),
     supabase
       .from('invoices')

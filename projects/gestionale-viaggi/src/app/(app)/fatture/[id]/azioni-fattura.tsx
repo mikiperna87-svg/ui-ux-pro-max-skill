@@ -1,6 +1,6 @@
 'use client'
 
-import { FileMinus, Send, Stamp, Trash2 } from 'lucide-react'
+import { FileMinus, Mail, Send, Stamp, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useActionState, useEffect, useState, useTransition } from 'react'
 import { FormMessage } from '@/components/forms/form-message'
@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
 import { Input, Textarea } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
 import { IDLE } from '@/lib/action-state'
 import type { Enums } from '@/lib/database.types'
 import { toDateInput } from '@/lib/date'
+import { inviaFatturaEmailAction } from '@/server/actions/email'
 import {
   creditNoteAction,
   deleteDraftInvoiceAction,
@@ -39,6 +41,8 @@ export function AzioniFattura({
   issueDate,
   hasItems,
   canWrite,
+  customerEmail,
+  customerName,
 }: {
   invoiceId: string
   kind: Enums['invoice_kind']
@@ -47,12 +51,15 @@ export function AzioniFattura({
   issueDate: string | null
   hasItems: boolean
   canWrite: boolean
+  customerEmail: string | null
+  customerName: string | null
 }) {
   const router = useRouter()
   const toast = useToast()
   const [, startTransition] = useTransition()
   const [emissione, setEmissione] = useState(false)
   const [storno, setStorno] = useState(false)
+  const [invio, setInvio] = useState(false)
 
   function invia() {
     startTransition(async () => {
@@ -111,6 +118,13 @@ export function AzioniFattura({
           </>
         ) : null}
 
+        {!bozza && status !== 'annullata' ? (
+          <Button variant="primary" size="sm" onClick={() => setInvio(true)}>
+            <Mail aria-hidden="true" />
+            Invia al cliente
+          </Button>
+        ) : null}
+
         {status === 'emessa' ? (
           <Button variant="secondary" size="sm" onClick={invia}>
             <Send aria-hidden="true" />
@@ -144,7 +158,121 @@ export function AzioniFattura({
         open={storno}
         onOpenChange={setStorno}
       />
+
+      {invio ? (
+        <DialogoInvio
+          invoiceId={invoiceId}
+          kind={kind}
+          code={code}
+          open={invio}
+          onOpenChange={setInvio}
+          customerEmail={customerEmail}
+          customerName={customerName}
+        />
+      ) : null}
     </>
+  )
+}
+
+/**
+ * L'invio del documento al cliente, con il PDF in allegato.
+ *
+ * "Inviata" viene scritto sul documento solo se il messaggio parte davvero:
+ * se il fornitore di posta manca o rifiuta, il documento resta "emessa" e il
+ * messaggio aspetta in coda. Uno stato che dice "il cliente ce l'ha" quando
+ * non è vero è peggio di nessuno stato.
+ */
+function DialogoInvio({
+  invoiceId,
+  kind,
+  code,
+  open,
+  onOpenChange,
+  customerEmail,
+  customerName,
+}: {
+  invoiceId: string
+  kind: Enums['invoice_kind']
+  code: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  customerEmail: string | null
+  customerName: string | null
+}) {
+  const router = useRouter()
+  const toast = useToast()
+  const [state, submit] = useActionState(inviaFatturaEmailAction, IDLE)
+  const [allega, setAllega] = useState(true)
+
+  useEffect(() => {
+    if (state.status === 'success') {
+      onOpenChange(false)
+      toast.success(state.message ?? 'Documento inviato.')
+      router.refresh()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
+
+  const nome = kind === 'nota_credito' ? 'la nota di credito' : 'la fattura'
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <form action={submit} noValidate>
+          <DialogHeader>
+            <DialogTitle>
+              Inviare {nome} {code}
+              {customerName ? ` a ${customerName}` : ''}?
+            </DialogTitle>
+            <DialogDescription>
+              Il messaggio riporta numero, data, totale e scadenza. Il documento in PDF viaggia in
+              allegato.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogBody className="space-y-4">
+            <input type="hidden" name="invoice_id" value={invoiceId} />
+
+            <Field label="Indirizzo del cliente" required error={state.fieldErrors?.to}>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="to"
+                  type="email"
+                  defaultValue={state.values?.to ?? customerEmail ?? ''}
+                  placeholder="cliente@example.it"
+                />
+              )}
+            </Field>
+
+            <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-surface-2 p-3">
+              <div className="min-w-0">
+                <p className="text-small font-medium text-text">Allega il PDF</p>
+                <p className="mt-0.5 text-caption text-text-muted">
+                  Senza allegato il messaggio resta valido, ma il cliente dovrà chiedere il
+                  documento.
+                </p>
+              </div>
+              <Switch
+                name="allega_pdf"
+                checked={allega}
+                onCheckedChange={setAllega}
+                aria-label="Allega il PDF"
+              />
+            </div>
+
+            <FormMessage status={state.status} message={state.message} />
+          </DialogBody>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              Annulla
+            </Button>
+            <SubmitButton pendingLabel="Invio...">Invia</SubmitButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 

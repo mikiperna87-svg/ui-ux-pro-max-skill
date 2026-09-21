@@ -106,6 +106,40 @@ export function toDateInput(value: string | null | undefined): string {
   return match?.[1] ?? ''
 }
 
+/**
+ * Il valore per un `<input type="datetime-local">`: data e ora nel fuso
+ * dell'agenzia, senza fuso scritto, che è l'unica forma che il campo accetta.
+ */
+export function toDateTimeInput(value: DateInput | null | undefined): string {
+  if (value === null || value === undefined || value === '') return ''
+  const date = toRome(value)
+  return isValid(date) ? format(date, "yyyy-MM-dd'T'HH:mm") : ''
+}
+
+/**
+ * La strada inversa: "2026-09-21T09:30" scritto da chi guarda l'orologio a
+ * Roma diventa l'istante corrispondente in UTC, che è ciò che il database
+ * conserva. Senza questa conversione un promemoria delle 9:30 arriverebbe
+ * alle 11:30 d'estate.
+ *
+ * I pezzi vanno passati separati: il costruttore che riceve la stringa la
+ * legge come se fosse già UTC e si limita a mostrarla a Roma, cioè sposta
+ * l'istante invece di interpretarlo. Il ritorno passa da un Date normale
+ * perché toISOString() di TZDate scrive lo scostamento ("+02:00") mentre al
+ * database serve la forma con la Z.
+ */
+export function fromDateTimeInput(value: string): string | null {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/)
+  if (!match) return null
+  const [anno = 0, mese = 0, giorno = 0, ore = 0, minuti = 0] = match.slice(1).map(Number)
+  const date = TZDate.tz(APP_TIME_ZONE, anno, mese - 1, giorno, ore, minuti, 0, 0)
+  if (!isValid(date)) return null
+  // Un 31 febbraio scritto a mano scivolerebbe in marzo senza che nessuno se
+  // ne accorga: qui il valore torna null e il modulo lo segnala.
+  if (date.getMonth() !== mese - 1 || date.getDate() !== giorno) return null
+  return new Date(date.getTime()).toISOString()
+}
+
 export function toIsoDateOnly(value: DateInput): string {
   return format(toRome(value), 'yyyy-MM-dd')
 }

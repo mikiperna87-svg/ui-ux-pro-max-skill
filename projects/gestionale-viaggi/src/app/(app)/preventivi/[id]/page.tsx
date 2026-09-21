@@ -263,6 +263,8 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             convertedBookingId={quote.converted_booking_id}
             variantiDisponibili={variantiDisponibili}
             canWrite={canWrite}
+            customerEmail={summary?.customer_email ?? null}
+            customerName={summary?.customer_name ?? null}
           />
 
           {summary?.is_expired ? (

@@ -320,6 +320,8 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
               issueDate={invoice.issue_date}
               hasItems={items.length > 0}
               canWrite={canWrite}
+              customerEmail={summary?.customer_email ?? null}
+              customerName={summary?.customer_name ?? null}
             />
           </div>
         </aside>

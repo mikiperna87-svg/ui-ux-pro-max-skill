@@ -7,7 +7,9 @@ import {
   formatDateTime,
   formatRelativeDays,
   parseItalianDate,
+  fromDateTimeInput,
   toDateInput,
+  toDateTimeInput,
   toIsoDateOnly,
 } from '@/lib/date'
 
@@ -82,5 +84,38 @@ describe('valore per un campo data', () => {
     expect(toDateInput(undefined)).toBe('')
     expect(toDateInput('')).toBe('')
     expect(toDateInput('20/09/2026')).toBe('')
+  })
+})
+
+describe('valore per un campo data e ora', () => {
+  it('mostra l\'istante salvato con l\'orologio di Roma', () => {
+    // D'estate Roma è avanti di due ore: le 07:30 in UTC sono le 09:30 qui.
+    expect(toDateTimeInput('2026-09-21T07:30:00.000Z')).toBe('2026-09-21T09:30')
+    // D'inverno l'ora è una sola.
+    expect(toDateTimeInput('2026-01-21T08:30:00.000Z')).toBe('2026-01-21T09:30')
+  })
+
+  it('riporta a UTC l\'ora letta sull\'orologio di Roma', () => {
+    expect(fromDateTimeInput('2026-09-21T09:30')).toBe('2026-09-21T07:30:00.000Z')
+    expect(fromDateTimeInput('2026-01-21T09:30')).toBe('2026-01-21T08:30:00.000Z')
+  })
+
+  it('chiude il giro senza spostare l\'istante', () => {
+    const istante = '2026-06-30T22:15:00.000Z'
+    expect(fromDateTimeInput(toDateTimeInput(istante))).toBe(istante)
+  })
+
+  it('rifiuta una forma che il campo non produce e una data inesistente', () => {
+    expect(fromDateTimeInput('')).toBeNull()
+    expect(fromDateTimeInput('2026-09-21')).toBeNull()
+    expect(fromDateTimeInput('21/09/2026 09:30')).toBeNull()
+    expect(fromDateTimeInput('2026-09-21T09:30:00.000Z')).toBeNull()
+    expect(fromDateTimeInput('2026-02-31T09:30')).toBeNull()
+  })
+
+  it('su un valore assente restituisce la stringa vuota', () => {
+    expect(toDateTimeInput(null)).toBe('')
+    expect(toDateTimeInput(undefined)).toBe('')
+    expect(toDateTimeInput('')).toBe('')
   })
 })

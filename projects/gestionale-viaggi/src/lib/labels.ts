@@ -233,6 +233,20 @@ export const SUPPLIER_KIND: Record<Enums['supplier_kind'], string> = {
   altro: 'Altro',
 }
 
+export const EMAIL_STATUS: Record<Enums['email_status'], { label: string; tone: Tone }> = {
+  in_coda: { label: 'In coda', tone: 'warning' },
+  inviata: { label: 'Inviata', tone: 'success' },
+  errore: { label: 'Errore', tone: 'danger' },
+  annullata: { label: 'Annullata', tone: 'neutral' },
+}
+
+export const EMAIL_KIND: Record<Enums['email_kind'], string> = {
+  preventivo: 'Preventivo',
+  fattura: 'Documento',
+  promemoria_incasso: 'Promemoria',
+  prova: 'Prova',
+}
+
 export const ACTIVITY_ACTION: Record<Enums['activity_action'], string> = {
   creazione: 'Creazione',
   modifica: 'Modifica',

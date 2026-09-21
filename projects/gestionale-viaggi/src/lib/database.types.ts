@@ -9,6 +9,8 @@ export interface Enums {
   counter_kind: 'pratica' | 'preventivo' | 'fattura' | 'nota_credito'
   customer_kind: 'privato' | 'azienda'
   document_kind: 'voucher' | 'contratto' | 'documento_identita' | 'assicurazione' | 'fattura_fornitore' | 'preventivo' | 'fattura' | 'altro'
+  email_kind: 'preventivo' | 'fattura' | 'promemoria_incasso' | 'prova'
+  email_status: 'in_coda' | 'inviata' | 'errore' | 'annullata'
   id_document_type: 'carta_identita' | 'passaporto' | 'patente' | 'permesso_soggiorno'
   installment_kind: 'acconto' | 'saldo' | 'rata'
   invoice_kind: 'fattura' | 'nota_credito'
@@ -184,6 +186,10 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          email_enabled: boolean
+          email_from_name: string | null
+          email_reply_to: string | null
+          email_signature: string | null
         }
         Insert: {
           id?: string
@@ -205,6 +211,10 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          email_enabled?: boolean
+          email_from_name?: string | null
+          email_reply_to?: string | null
+          email_signature?: string | null
         }
         Update: {
           id?: string
@@ -226,6 +236,10 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          email_enabled?: boolean
+          email_from_name?: string | null
+          email_reply_to?: string | null
+          email_signature?: string | null
         }
         Relationships: []
       }
@@ -627,6 +641,90 @@ export interface Database {
           mime_type?: string
           size_bytes?: number
           notes?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      email_messages: {
+        Row: {
+          id: string
+          agency_id: string
+          kind: Enums['email_kind']
+          status: Enums['email_status']
+          to_email: string
+          to_name: string | null
+          reply_to: string | null
+          subject: string
+          body_text: string
+          body_html: string
+          attachment_name: string | null
+          quote_id: string | null
+          invoice_id: string | null
+          booking_id: string | null
+          customer_id: string | null
+          provider: string | null
+          provider_message_id: string | null
+          error_message: string | null
+          attempts: number
+          last_attempt_at: string | null
+          sent_at: string | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          agency_id: string
+          kind: Enums['email_kind']
+          status?: Enums['email_status']
+          to_email: string
+          to_name?: string | null
+          reply_to?: string | null
+          subject: string
+          body_text: string
+          body_html: string
+          attachment_name?: string | null
+          quote_id?: string | null
+          invoice_id?: string | null
+          booking_id?: string | null
+          customer_id?: string | null
+          provider?: string | null
+          provider_message_id?: string | null
+          error_message?: string | null
+          attempts?: number
+          last_attempt_at?: string | null
+          sent_at?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          agency_id?: string
+          kind?: Enums['email_kind']
+          status?: Enums['email_status']
+          to_email?: string
+          to_name?: string | null
+          reply_to?: string | null
+          subject?: string
+          body_text?: string
+          body_html?: string
+          attachment_name?: string | null
+          quote_id?: string | null
+          invoice_id?: string | null
+          booking_id?: string | null
+          customer_id?: string | null
+          provider?: string | null
+          provider_message_id?: string | null
+          error_message?: string | null
+          attempts?: number
+          last_attempt_at?: string | null
+          sent_at?: string | null
           created_at?: string
           updated_at?: string
           created_by?: string | null
@@ -2033,6 +2131,39 @@ export interface Database {
         }
         Relationships: []
       }
+      task_list: {
+        Row: {
+          id: string | null
+          agency_id: string | null
+          title: string | null
+          description: string | null
+          kind: Enums['task_kind'] | null
+          status: Enums['task_status'] | null
+          priority: Enums['task_priority'] | null
+          due_at: string | null
+          assignee_id: string | null
+          assignee_name: string | null
+          booking_id: string | null
+          booking_code: string | null
+          booking_title: string | null
+          destination: string | null
+          departure_date: string | null
+          booking_owner_id: string | null
+          customer_id: string | null
+          customer_name: string | null
+          quote_id: string | null
+          quote_code: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completed_by_name: string | null
+          created_at: string | null
+          created_by: string | null
+          is_overdue: boolean | null
+          due_date: string | null
+          search_text: string | null
+        }
+        Relationships: []
+      }
       vat_register: {
         Row: {
           agency_id: string | null
@@ -2055,6 +2186,10 @@ export interface Database {
         Args: { p_token: string | null; p_variant: Enums['quote_variant'] | null; p_name: string | null; p_ip?: string | null }
         Returns: unknown
       }
+      agenda: {
+        Args: { p_from: string | null; p_to: string | null; p_assignee_id?: string | null }
+        Returns: { item_kind: string | null; item_id: string | null; due_date: string | null; title: string | null; detail: string | null; amount_cents: number | null; booking_id: string | null; booking_code: string | null; entity_id: string | null; task_status: Enums['task_status'] | null; task_priority: Enums['task_priority'] | null; assignee_id: string | null; assignee_name: string | null; is_overdue: boolean | null }[]
+      }
       anonymize_customer: {
         Args: { p_customer_id: string | null }
         Returns: undefined
@@ -2066,6 +2201,10 @@ export interface Database {
       check_rate_limit: {
         Args: { p_bucket: string | null; p_limit?: number | null; p_window_seconds?: number | null }
         Returns: boolean
+      }
+      complete_task: {
+        Args: { p_task_id: string | null }
+        Returns: unknown
       }
       confirm_booking: {
         Args: { p_booking_id: string | null }
@@ -2125,6 +2264,10 @@ export interface Database {
       }
       reject_quote: {
         Args: { p_token: string | null; p_reason: string | null; p_ip?: string | null }
+        Returns: unknown
+      }
+      reopen_task: {
+        Args: { p_task_id: string | null }
         Returns: unknown
       }
       report_by_destination: {

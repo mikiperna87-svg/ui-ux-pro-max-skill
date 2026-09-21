@@ -1,11 +1,10 @@
 import {
-  Building2,
+  CalendarCheck,
   CalendarClock,
   ChartColumn,
   FileText,
   Luggage,
   Receipt,
-  Table2,
   LayoutDashboard,
   Settings,
   Truck,
@@ -31,10 +30,10 @@ export interface NavItem {
 }
 
 /**
- * Voci di navigazione. Contiene solo le sezioni realmente implementate:
- * una voce che porta a una pagina inesistente è peggio di una voce assente.
- * Le sezioni successive (agenda) si aggiungono qui quando il modulo viene
- * consegnato.
+ * Voci di navigazione. Contiene solo le sezioni realmente implementate: una
+ * voce che porta a una pagina inesistente è peggio di una voce assente — ed è
+ * il motivo per cui l'elenco secondario, che nessuna barra rendeva e che
+ * puntava a una pagina mai scritta, è stato tolto invece che completato.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   {
@@ -64,6 +63,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: 'd',
     icon: CalendarClock,
     description: 'Incassi da ricevere e pagamenti ai fornitori',
+  },
+  {
+    href: '/agenda',
+    label: 'Agenda',
+    shortcut: 'e',
+    icon: CalendarCheck,
+    description: 'Attività da fare, scadenze e partenze del giorno',
   },
   {
     href: '/fatture',
@@ -107,23 +113,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: 'i',
     icon: Settings,
     description: 'Dati agenzia, utenti e parametri operativi',
-    roles: ['titolare'],
-  },
-]
-
-export const SECONDARY_NAV: readonly NavItem[] = [
-  {
-    href: '/registri',
-    label: 'Registro IVA',
-    icon: Table2,
-    description: 'Imponibile, imposta e margine per mese',
-    roles: ['titolare', 'amministrativo', 'sola_lettura'],
-  },
-  {
-    href: '/impostazioni/agenzia',
-    label: 'Dati agenzia',
-    icon: Building2,
-    description: 'Ragione sociale, partita IVA, contatti',
     roles: ['titolare'],
   },
 ]

@@ -18,21 +18,22 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { BookingStatusBadge, PaymentStateBadge } from '@/components/domain/status-badge'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatDateLong, formatDateShort, formatDateTime, formatRelativeDays } from '@/lib/date'
-import { SALE_TYPE, TASK_STATUS, plurale } from '@/lib/labels'
+import { SALE_TYPE, plurale } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
 import {
   bookingAmounts,
   getBookingDetail,
+  operatorOptions,
   passengerOptions,
   supplierOptions,
 } from '@/server/queries/pratiche'
 import { requireSession } from '@/server/session'
+import { AttivitaPratica } from './attivita-pratica'
 import { AzioniPratica } from './azioni-pratica'
 import { DocumentiPratica } from './documenti-pratica'
 import { FatturePratica } from './fatture-pratica'
@@ -96,9 +97,10 @@ export default async function PraticaPage({
     activity,
   } = detail
 
-  const [suppliers, candidates] = await Promise.all([
+  const [suppliers, candidates, operatori] = await Promise.all([
     session.permissions.write ? supplierOptions() : Promise.resolve([]),
     session.permissions.write ? passengerOptions() : Promise.resolve([]),
+    session.permissions.write ? operatorOptions() : Promise.resolve([]),
   ])
 
   const importi = bookingAmounts(summary)
@@ -265,33 +267,13 @@ export default async function PraticaPage({
                   </CardContent>
                 </Card>
 
-                {tasks.length > 0 ? (
-                  <Card className="md:col-span-2">
-                    <CardHeader>
-                      <CardTitle>Cose da fare su questa pratica</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="divide-y divide-border">
-                        {tasks.map((task) => (
-                          <li key={task.id} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-small text-text">{task.title}</p>
-                              {task.due_at ? (
-                                <p className="text-caption text-text-muted">
-                                  Entro il {formatDateShort(task.due_at)} ·{' '}
-                                  {formatRelativeDays(task.due_at)}
-                                </p>
-                              ) : null}
-                            </div>
-                            <Badge tone={TASK_STATUS[task.status].tone}>
-                              {TASK_STATUS[task.status].label}
-                            </Badge>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ) : null}
+                <AttivitaPratica
+                  bookingId={booking.id}
+                  customerId={booking.customer_id}
+                  tasks={tasks}
+                  operatori={operatori}
+                  canWrite={canWrite}
+                />
               </div>
             </TabsContent>
 
@@ -330,6 +312,8 @@ export default async function PraticaPage({
                   depositHint={depositHint}
                   canManage={session.permissions.accounting}
                   rataDaIncassare={rataDaIncassare}
+                  customerEmail={customer?.email ?? null}
+                  customerName={customer?.display_name ?? null}
                 />
 
                 <FatturePratica

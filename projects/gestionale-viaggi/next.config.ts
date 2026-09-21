@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/preventivi/[id]/pdf': ['./src/server/pdf/fonts/*.ttf'],
     '/fatture/[id]/pdf': ['./src/server/pdf/fonts/*.ttf'],
+    // La scheda della fattura contiene la Server Action che allega il PDF
+    // all'email: il carattere deve viaggiare anche con quella rotta, o
+    // l'allegato uscirebbe senza il simbolo dell'euro.
+    '/fatture/[id]': ['./src/server/pdf/fonts/*.ttf'],
+    '/impostazioni': ['./src/server/pdf/fonts/*.ttf'],
   },
   async headers() {
     return [

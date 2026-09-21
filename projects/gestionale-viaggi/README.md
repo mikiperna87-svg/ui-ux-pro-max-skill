@@ -34,13 +34,15 @@ documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 | **Fatture** | Fatture e note di credito con numerazione annuale **assegnata all'emissione**, così una bozza scartata non lascia buchi · regime **art. 74-ter** con l'IVA scorporata dal margine e il calcolo sempre in chiaro, riga per riga · un documento emesso non si modifica e non si elimina: si corregge con una nota di credito · PDF A4 con intestazione, dati del cliente e riepilogo per aliquota · fattura aperta dalla pratica in un clic, servizi o provvigione secondo il tipo di vendita |
 | **Registro IVA** | Imponibile, imposta e margine per mese, regime e aliquota, con le note di credito già in negativo · esportazione per il commercialista |
 | **Report** | Periodo a scelta (mese, trimestre, anno, ultimi 12 mesi, anno scorso o due date qualsiasi) con il confronto sul periodo precedente di pari durata · **per operatore**: pratiche, passeggeri, venduto, ticket medio, margine, incassato, residuo, annullate, più preventivi creati, inviati, accettati e tasso di conversione · **per destinazione**: quota sul venduto, passeggeri, clienti, ticket medio e margine, con le grafie diverse della stessa meta riunite · **per fornitore**: acquistato, venduto attribuito, commissioni, margine generato e residuo da pagare · esportazione CSV della vista e del periodo |
+| **Agenda** | Un elenco solo per cinque cose che fanno suonare il telefono: attività, rate da incassare, pagamenti ai fornitori, partenze e documenti dei passeggeri in scadenza · finestra a scelta (oggi, 7 giorni, 30 giorni) con gli arretrati degli ultimi 60 giorni sempre in cima · filtro per tipo e per "solo le mie" · attività create, assegnate, modificate e chiuse dall'agenda o dalla pratica |
+| **Posta** | Coda vera sul database: ogni messaggio è una riga con destinatario, oggetto, corpo in HTML e in testo, tentativi ed esito · invio del preventivo e della fattura al cliente (con il PDF in allegato) e sollecito di una rata · nome del mittente, indirizzo di risposta e firma dell'agenzia · prova di invio, rinvio di ciò che è in errore, annullamento di ciò che è in coda |
 | **Clienti** | Elenco con ricerca insensibile ad accenti e maiuscole, filtri, ordinamento, colonne configurabili, selezione multipla, esportazione CSV e importazione guidata · scheda con valore generato, margine, viaggi, passeggeri, consensi e cronologia · esportazione e anonimizzazione GDPR |
 | **Passeggeri** | Anagrafica separata dai clienti, con documento di viaggio, scadenze e filtro su chi non è in regola |
 | **Fornitori** | Tipo, condizioni di pagamento, commissione predefinita, regime IVA, IBAN · acquistato, margine generato, da pagare e prossima scadenza · disattivazione senza perdita dello storico |
 
-Il database contiene già l'intero modello dati (incassi, piani rateali, fatture,
-documenti, task, audit) con le relative policy di sicurezza: le fasi successive
-aggiungono le interfacce, non lo schema.
+Il database contiene l'intero modello dati (incassi, piani rateali, fatture,
+documenti, attività, posta in uscita, audit) con le relative policy di
+sicurezza: ogni tabella ha `agency_id`, e nessuna query può ignorarlo.
 
 ## Stack
 
@@ -88,6 +90,23 @@ cp .env.example .env.local
    è il ritorno dei link inviati per email.
 6. In **Storage** il bucket privato `documenti` viene creato dalla migrazione
    `0006`; non renderlo pubblico, i file si servono con URL firmati a scadenza.
+
+### 2-bis. Posta in uscita (facoltativa)
+
+L'applicazione funziona per intero senza fornitore di posta: i messaggi vengono
+composti, registrati e mostrati, e restano in coda finché non c'è un canale per
+spedirli. Per attivare l'invio vero servono due variabili d'ambiente **sul
+server**:
+
+```bash
+RESEND_API_KEY="re_..."                        # chiave da resend.com
+EMAIL_MITTENTE="Orizzonti Viaggi <info@tuodominio.it>"
+```
+
+Il dominio del mittente va verificato presso il fornitore, altrimenti i
+messaggi partono e finiscono nello spam. La chiave non si inserisce
+dall'interfaccia e non finisce sul database (DECISIONI 58): il pannello
+**Impostazioni → Posta** dice soltanto se c'è, e con quale mittente.
 
 ### 3. Avvio
 
@@ -185,6 +204,8 @@ src/
 │   └── dashboard/           indicatori, variazioni e grafico di panoramica e report
 ├── lib/                     denaro, date, ruoli, etichette, validazione, tipi del database
 ├── server/                  sessione, query, Server Action, limitazione richieste
+│   ├── email/               modelli dei messaggi, coda, adattatore del fornitore
+│   └── pdf/                 documenti A4 (preventivo, fattura) e caratteri
 └── middleware.ts            rinnovo sessione e protezione delle rotte
 
 supabase/
@@ -236,7 +257,7 @@ tests/
 | 5 | Preventivi: varianti, PDF, invio, accettazione online, conversione | **completata** |
 | 6 | Amministrazione: fatture, note di credito, 74-ter, registri, export | **completata** |
 | 7 | Dashboard e report per operatore, destinazione, fornitore | **completata** |
-| 8 | Agenda, task, notifiche email | da fare |
+| 8 | Agenda, attività, posta in uscita | **completata** |
 | 9 | Rifinitura: accessibilità, prestazioni, E2E, mobile, manuale, rilascio | da fare |
 
 ## Licenza

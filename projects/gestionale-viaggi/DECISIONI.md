@@ -915,13 +915,158 @@ chi lo scarica, non quelle della pagina che ha generato il collegamento.
 
 ---
 
-## 57. Scelte rinviate, con motivo
+## 57. La posta ha una coda, e nulla si dichiara inviato senza esserlo
+
+**Scelta.** Ogni messaggio è una riga di `email_messages` scritta *prima* del
+tentativo di consegna, con destinatario, oggetto, corpo in HTML e in testo,
+tentativi ed esito. Senza credenziali del fornitore la riga resta `in_coda` e
+l'interfaccia lo dice con queste parole; con le credenziali diventa `inviata`
+solo dopo che il fornitore ha risposto, e `errore` con il motivo scritto
+accanto. Due vincoli sul database rendono impossibile il resto:
+`email_messages_sent_has_date` (niente stato "inviata" senza data di invio) e
+`email_messages_error_has_reason` (niente errore senza spiegazione).
+
+**Perché.** La tentazione, in un ambiente senza fornitore di posta collegato, è
+mostrare "inviato" e non spedire niente. È la bugia più costosa che un
+gestionale possa dire: l'operatore chiude la pratica convinto che il cliente
+abbia il preventivo, e lo scopre quando il cliente chiama arrabbiato. Un
+messaggio che resta in coda è un lavoro rimandato; un messaggio dichiarato
+inviato e mai partito è un lavoro perso.
+
+**Conseguenza.** Nessun invio sparisce: un messaggio in errore si rimanda dal
+pannello Posta, e per la fattura il PDF viene ricostruito al momento del
+rinvio invece di essere conservato, così l'allegato riflette il documento com'è
+adesso. Il numero di tentativi resta sulla riga: un messaggio in coda con
+tentativi maggiori di zero ha già incontrato un problema, e si vede.
+
+---
+
+## 58. La chiave del fornitore di posta sta nell'ambiente, non nelle impostazioni
+
+**Scelta.** `RESEND_API_KEY` e `EMAIL_MITTENTE` sono variabili d'ambiente del
+server. Il pannello Posta dice soltanto se ci sono e con quale mittente; non
+offre un campo per inserirle. Quello che il titolare configura da lì è ciò che
+il cliente legge: nome del mittente, indirizzo di risposta, firma, e
+l'interruttore generale dell'invio.
+
+**Perché.** Una chiave API è una credenziale con cui si può scrivere a nome
+dell'agenzia. Metterla in una tabella significa che compare in un backup, in un
+export, nei log di una query andata storta, e che chiunque prenda il controllo
+di un account titolare la porta via. L'ambiente del server non lo attraversa
+nessuna di queste strade.
+
+**Conseguenza.** Attivare la posta è un'operazione di chi amministra il server,
+non di chi usa il gestionale — ed è giusto così, perché passa dalla verifica
+del dominio presso il fornitore. Fino ad allora l'applicazione funziona per
+intero: compone i messaggi, li registra, li mostra. Manca solo l'ultimo metro.
+
+---
+
+## 59. Che cosa cambia stato quando si invia
+
+**Scelta.** Inviare un preventivo lo porta a `inviato` comunque, anche se il
+messaggio resta in coda. Inviare una fattura la porta a `inviata` soltanto se
+il messaggio è partito davvero.
+
+**Perché.** Non è un'incoerenza, è la differenza fra le due cose. Lo stato
+`inviato` di un preventivo dice che il suo collegamento pubblico è vivo e che
+il cliente può accettarlo: quel collegamento esiste dal momento in cui si preme
+il pulsante, indipendentemente dalla posta, e si può passare al cliente anche
+a voce o per messaggio. Lo stato `inviata` di una fattura è invece
+un'affermazione sulla consegna del documento, e su quella non si può
+scommettere.
+
+**Conseguenza.** Il sollecito di una rata non cambia nessuno stato: è un
+promemoria, e l'incasso resta quello che è finché non arrivano i soldi.
+
+---
+
+## 60. L'agenda guarda indietro di sessanta giorni
+
+**Scelta.** Le tre finestre dell'agenda — oggi, sette giorni, trenta giorni —
+riguardano solo il futuro: all'indietro l'agenda parte sempre da sessanta
+giorni fa, e ciò che è scaduto compare in cima, sotto "In ritardo".
+
+**Perché.** Un'agenda che mostra soltanto da oggi in avanti fa sparire i
+problemi nel momento esatto in cui diventano problemi: la rata non incassata
+di ieri esce dallo schermo proprio il giorno in cui qualcuno dovrebbe
+occuparsene. Il calendario di una scrivania non funziona come quello del muro.
+
+**Conseguenza.** La finestra scelta cambia quanto avanti si guarda, mai quanto
+indietro: passando da "oggi" a "trenta giorni" gli arretrati restano gli
+stessi, e l'elenco si allunga solo in fondo. Sessanta giorni sono un limite
+arbitrario e dichiarato: oltre, un arretrato non è più una cosa da fare in
+settimana ma una questione da riprendere dal suo registro — lo scadenzario, i
+pagamenti, le pratiche.
+
+---
+
+## 61. L'ora di una scadenza è ora di Roma, e si converte ai due estremi
+
+**Scelta.** Un campo `datetime-local` scrive e legge l'orologio dell'agenzia.
+`fromDateTimeInput` costruisce l'istante passando i pezzi separati a
+`TZDate.tz`, e `toDateTimeInput` lo riporta indietro; sul database la scadenza
+resta un `timestamptz`, e la vista `task_list` ricava il giorno con
+`(due_at at time zone 'Europe/Rome')::date`.
+
+**Perché.** Il costruttore che riceve la stringa intera la legge come se fosse
+già UTC e si limita a mostrarla a Roma: sposta l'istante invece di
+interpretarlo. Un promemoria scritto per le 9:30 finiva salvato per le 7:30, e
+d'estate sarebbe suonato con due ore di anticipo — un errore che nessuno
+segnala come tale, perché l'ora mostrata torna a essere quella giusta appena si
+riapre il modulo. Lo stesso vale in fondo alla catena: un'attività scaduta alle
+23:30 del 30 giugno appartiene al primo luglio a Roma, e senza conversione
+comparirebbe nell'agenda del giorno prima.
+
+**Conseguenza.** È l'estensione ai singoli istanti della regola già presa per i
+periodi (decisione 3): le date si confrontano nel fuso dell'agenzia, non in
+quello del processo. La coppia di funzioni ha un test che chiude il giro — un
+istante convertito e riconvertito deve tornare identico — su una data d'estate
+e una d'inverno, perché è il cambio d'ora a far emergere l'errore.
+
+---
+
+## 62. Un modulo dentro una pagina sospesa non usa `useActionState`
+
+**Scelta.** Il modulo delle attività invia con `startTransition`, chiamando la
+Server Action come una funzione e tenendo l'esito in uno `useState`. È l'unico
+modulo del gestionale scritto così; tutti gli altri restano su
+`<form action={submit}>` con `useActionState`.
+
+**Perché.** Nella build di produzione di Next 15, un modulo inviato con
+`useActionState` da una pagina il cui corpo sta dentro un confine `Suspense`
+non riceve mai l'esito se l'azione chiama `revalidatePath`: la scrittura
+riesce, il registro la annota, ma la transizione non si chiude. Il bottone
+resta su "Salvataggio...", la finestra non si chiude, e l'operatore riprova —
+creando due attività identiche. In sviluppo lo stesso codice funziona, il che
+rende il difetto particolarmente sgradevole: si manifesta solo là dove costa.
+
+L'agenda è la prima pagina in cui le due cose si incontrano — un corpo sospeso
+e un modulo che scrive sulla pagina stessa — perché altrove i moduli stanno su
+pagine dedicate (`/clienti/nuovo`, `/pratiche/nuova`) e i comandi delle righe
+non sono moduli. Le prove hanno isolato la combinazione: la stessa azione dalla
+scheda di una pratica, che non ha confini `Suspense`, chiude in 400 ms; lo
+stesso comando "Completa" dall'agenda, che passa da `startTransition`, chiude
+in 240 ms; il modulo sull'agenda restava appeso per sempre.
+
+**Conseguenza.** Si perde il funzionamento senza JavaScript, che questo
+modulo — dentro una finestra di dialogo — non aveva comunque. `SubmitButton`
+accetta ora un `pending` esplicito, perché fuori da `<form action>` non c'è uno
+stato del form da cui leggerlo. La regola per il futuro: se una pagina ha un
+confine `Suspense` attorno al corpo e vi si apre un modulo che scrive, il
+modulo invia con `startTransition`. Vale come estensione delle decisioni 35 e
+41: il router di Next 15 e i confini sospesi vanno tenuti d'occhio ogni volta
+che una transizione deve riconciliare una pagina con sé stessa.
+
+---
+
+## 63. Scelte rinviate, con motivo
 
 | Argomento | Rinviata a | Perché |
 | --- | --- | --- |
 | Generazione PDF | — | Risolta in fase 5: `@react-pdf/renderer`, che compone il documento come l'interfaccia e non richiede un browser sul server |
-| Email transazionali (Resend) | Fase 8 | Servono i modelli, che dipendono dai moduli precedenti |
+| Email transazionali (Resend) | — | Risolta in fase 8: coda sul database, adattatore reale, credenziali nell'ambiente del server |
 | TanStack Query | — | Lo scadenzario si è rivelato una griglia come le altre: stato nell'indirizzo, dati dal server. Una libreria di stato client non avrebbe nulla da gestire |
-| Realtime | Fase 8 | Ha senso con le notifiche, non da solo |
+| Realtime | Dopo la fase 9 | L'agenda si rilegge a ogni apertura e la posta ha il suo pannello: una connessione persistente aggiungerebbe complessità senza togliere un solo clic |
 | Esportazione XLSX | Fase 9 | Il CSV si apre in Excel italiano senza passaggi: una libreria in più va giustificata da un bisogno vero |
 | Fatturazione elettronica (XML SdI) | Dopo la fase 9 | Il tracciato FatturaPA e l'invio al Sistema di Interscambio sono un modulo a sé: servono l'accreditamento, la firma e un canale. Lo schema dei documenti è già quello giusto per generarlo |

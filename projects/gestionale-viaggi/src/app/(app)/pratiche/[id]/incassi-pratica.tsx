@@ -3,6 +3,7 @@
 import {
   BanknoteArrowUp,
   CalendarClock,
+  Mail,
   Pencil,
   Plus,
   RefreshCw,
@@ -57,6 +58,7 @@ import {
   plurale,
 } from '@/lib/labels'
 import { centsToInputValue, formatEuro } from '@/lib/money'
+import { inviaPromemoriaAction } from '@/server/actions/email'
 import {
   deleteInstallmentAction,
   recordPaymentInAction,
@@ -106,6 +108,8 @@ export function IncassiPratica({
   depositHint,
   canManage,
   rataDaIncassare,
+  customerEmail,
+  customerName,
 }: {
   bookingId: string
   bookingCode: string
@@ -117,6 +121,8 @@ export function IncassiPratica({
   canManage: boolean
   /** Scadenza arrivata dallo scadenzario: il modulo si apre già su quella. */
   rataDaIncassare?: string
+  customerEmail: string | null
+  customerName: string | null
 }) {
   const router = useRouter()
   const toast = useToast()
@@ -131,6 +137,7 @@ export function IncassiPratica({
   // essa sparirebbe l'effetto che chiude il modulo e mostra l'esito.
   const [daStornare, setDaStornare] = useState<PaymentInRow | null>(null)
   const [pagamentoAperto, setPagamentoAperto] = useState<PayoutRow | null>(null)
+  const [daSollecitare, setDaSollecitare] = useState<InstallmentRow | null>(null)
 
   function allinea() {
     startTransition(async () => {
@@ -236,6 +243,16 @@ export function IncassiPratica({
                         {canManage ? (
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
+                              {(rata.residual_cents ?? 0) > 0 ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={`Sollecita la scadenza del ${formatDateShort(rata.due_date)}`}
+                                  onClick={() => setDaSollecitare(rata)}
+                                >
+                                  <Mail className="size-3.5" aria-hidden="true" />
+                                </Button>
+                              ) : null}
                               <Button
                                 variant="ghost"
                                 size="icon-sm"
@@ -598,6 +615,15 @@ export function IncassiPratica({
             pagamento={pagamentoAperto}
             onOpenChange={(valore) => {
               if (!valore) setPagamentoAperto(null)
+            }}
+          />
+          <DialogoPromemoria
+            bookingId={bookingId}
+            rata={daSollecitare}
+            customerEmail={customerEmail}
+            customerName={customerName}
+            onOpenChange={(valore) => {
+              if (!valore) setDaSollecitare(null)
             }}
           />
         </>
@@ -1172,6 +1198,105 @@ function DialogoPagamento({
               Annulla
             </Button>
             <SubmitButton pendingLabel="Salvataggio...">Salva</SubmitButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// --- Promemoria di pagamento ---------------------------------------------------
+/**
+ * Il sollecito di una scadenza.
+ *
+ * Vive qui, accanto agli altri moduli della scheda, e non dentro la riga della
+ * rata: quando l'elenco si aggiorna la riga sparisce, e con lei sparirebbe il
+ * dialogo aperto (DECISIONI 40). Il messaggio dice importo, scadenza e viaggio,
+ * e si chiude con la frase che evita l'incidente più comune — il cliente che
+ * ha già pagato e riceve un sollecito.
+ */
+function DialogoPromemoria({
+  bookingId,
+  rata,
+  customerEmail,
+  customerName,
+  onOpenChange,
+}: {
+  bookingId: string
+  rata: InstallmentRow | null
+  customerEmail: string | null
+  customerName: string | null
+  onOpenChange: (open: boolean) => void
+}) {
+  const router = useRouter()
+  const toast = useToast()
+  const [state, submit] = useActionState(inviaPromemoriaAction, IDLE)
+
+  useEffect(() => {
+    if (state.status === 'success') {
+      onOpenChange(false)
+      toast.success(state.message ?? 'Promemoria inviato.')
+      router.refresh()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
+
+  if (!rata) return null
+
+  return (
+    <Dialog open={rata !== null} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <form action={submit} noValidate>
+          <DialogHeader>
+            <DialogTitle>Sollecitare la scadenza del {formatDateShort(rata.due_date)}?</DialogTitle>
+            <DialogDescription>
+              {customerName ? `${customerName} riceve` : 'Il cliente riceve'} un promemoria con
+              l’importo ancora dovuto di {formatEuro(rata.residual_cents ?? 0)} e la data di
+              scadenza.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogBody className="space-y-4">
+            <input type="hidden" name="booking_id" value={bookingId} />
+            <input type="hidden" name="installment_id" value={rata.id ?? ''} />
+
+            <Field label="Indirizzo del cliente" required error={state.fieldErrors?.to}>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="to"
+                  type="email"
+                  defaultValue={state.values?.to ?? customerEmail ?? ''}
+                  placeholder="cliente@example.it"
+                />
+              )}
+            </Field>
+
+            <Field
+              label="Due righe per il cliente"
+              hint="Facoltative: compaiono prima del riepilogo della scadenza."
+              error={state.fieldErrors?.message}
+            >
+              {(props) => (
+                <Textarea
+                  {...props}
+                  name="message"
+                  rows={3}
+                  maxLength={1500}
+                  placeholder="Le ricordiamo che la partenza si avvicina."
+                  defaultValue={state.values?.message ?? ''}
+                />
+              )}
+            </Field>
+
+            <FormMessage status={state.status} message={state.message} />
+          </DialogBody>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              Annulla
+            </Button>
+            <SubmitButton pendingLabel="Invio...">Invia il promemoria</SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

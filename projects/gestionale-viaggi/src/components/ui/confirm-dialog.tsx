@@ -15,8 +15,17 @@ import {
 import { Input } from '@/components/ui/input'
 
 export interface ConfirmDialogProps {
-  /** Elemento che apre la finestra: viene reso interattivo dal componente. */
-  readonly trigger: ReactNode
+  /**
+   * Elemento che apre la finestra: viene reso interattivo dal componente.
+   *
+   * Si può omettere governando `open` dall'esterno: serve quando il comando
+   * che apre la conferma sta dentro un menu a tendina, che si chiude — e si
+   * porterebbe via il proprio contenuto — nel momento stesso in cui lo si usa.
+   */
+  readonly trigger?: ReactNode
+  /** Apertura governata dall'esterno; se assente la gestisce il componente. */
+  readonly open?: boolean
+  readonly onOpenChange?: (open: boolean) => void
   readonly title: string
   readonly description: string
   readonly confirmLabel?: string
@@ -32,6 +41,8 @@ export interface ConfirmDialogProps {
 /** Conferma esplicita per le azioni distruttive: niente "sei sicuro?" a vuoto. */
 export function ConfirmDialog({
   trigger,
+  open: openControllato,
+  onOpenChange,
   title,
   description,
   confirmLabel = 'Conferma',
@@ -39,10 +50,17 @@ export function ConfirmDialog({
   requireTyping,
   busyLabel = 'Attendere...',
 }: ConfirmDialogProps) {
-  const [open, setOpen] = useState(false)
+  const [openInterno, setOpenInterno] = useState(false)
   const [typed, setTyped] = useState('')
   const [busy, setBusy] = useState(false)
   const inputId = useId()
+
+  const open = openControllato ?? openInterno
+
+  function setOpen(next: boolean) {
+    setOpenInterno(next)
+    onOpenChange?.(next)
+  }
 
   const canConfirm = !requireTyping || typed.trim() === requireTyping
 
@@ -65,7 +83,7 @@ export function ConfirmDialog({
         if (!next) setTyped('')
       }}
     >
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
