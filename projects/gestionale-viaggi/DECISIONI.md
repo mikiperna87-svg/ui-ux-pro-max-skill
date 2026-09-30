@@ -1584,3 +1584,56 @@ resta falsa comunque per chi ha il ruolo di sola lettura, quindi la
 sospensione non allenta niente. Il motivo obbligatorio non è burocrazia: chi
 si trova il gestionale in sola lettura deve poter leggere perché, invece di
 telefonare per scoprirlo.
+
+---
+
+## 85. I limiti del piano stanno nel database
+
+**Scelta.** Il limite di utenti e quello di pratiche all'anno sono due trigger
+`before insert`. La scadenza dell'abbonamento passa da `can_write`, insieme
+alla sospensione.
+
+**Perché.** Nell'applicazione sarebbero stati più facili da scrivere e più
+facili da dimenticare: basta una query nuova, un'importazione, uno script di
+manutenzione, e il limite non c'è più. Nel database vale per chiunque scriva,
+comunque scriva — ed è così che i test lo provano, scrivendo direttamente in
+SQL senza passare da nessuna pagina.
+
+**Conseguenza.** Un'agenzia senza riga di abbonamento scrive senza limiti: il
+gestionale installato per una sola agenzia non ha abbonamenti, e non deve
+smettere di funzionare perché una tabella è vuota. La scadenza conta anche
+quando lo stato dice ancora «attivo»: uno stato che nessuno ha aggiornato non
+deve tenere aperta la porta.
+
+Il prezzo dei piani nasce nullo. È una decisione commerciale, non tecnica, e un
+prezzo inventato nel codice è peggio di nessun prezzo perché sembra una scelta.
+
+---
+
+## 86. Il webhook non parla con nessun fornitore in particolare
+
+**Scelta.** `POST /api/abbonamenti/webhook` accetta un corpo documentato e una
+firma HMAC-SHA256 nello schema `t=<epoca>,v1=<hmac>`, quello che usano quasi
+tutti i fornitori di pagamenti. L'adattatore che traduce gli eventi di *quel*
+fornitore in questo corpo si scrive quando il fornitore è scelto.
+
+**Perché.** Lo stesso confine della fattura elettronica: senza credenziali non
+si prova niente, e codice non provato che sembra funzionare è la cosa peggiore
+da consegnare. Quello che c'è — firma, tolleranza sull'orario, validazione del
+corpo, scrittura — è provato per intero, a mano e da otto test unitari più tre
+end-to-end.
+
+**Conseguenza.** Senza `WEBHOOK_ABBONAMENTI_SECRET` l'endpoint rifiuta tutto.
+È il verso giusto: un endpoint che regala mesi di servizio non deve restare
+aperto per distrazione. Il controllo sull'orario non è un di più — senza, una
+richiesta firmata intercettata una volta varrebbe per sempre.
+
+Due cose sono venute fuori solo provandolo sopra HTTP, e nessun test unitario
+avrebbe potuto vederle. La prima: il middleware rimandava il webhook alla
+pagina di accesso, e il fornitore avrebbe ricevuto un cortese 200 con dentro
+dell'HTML mentre niente veniva aggiornato. La seconda: l'`upsert` di PostgREST
+non funziona sul banco di prova locale, e sarebbe stato codice verificabile
+solo in produzione. Ora la scrittura passa da una funzione — la stessa che usa
+il pannello di piattaforma — revocata a tutti i ruoli tranne quello di
+servizio, `authenticated` compreso, che altrimenti avrebbe trovato lì un modo
+per regalarsi un piano.

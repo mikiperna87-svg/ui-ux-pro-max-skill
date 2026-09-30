@@ -337,10 +337,50 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Formule IVA allineate | `npx vitest run tests/db/sdi-formule.test.ts` — lo scorporo in TypeScript e quello in SQL devono dare lo stesso numero |
 | Copia di sicurezza ripristinabile | `npm run db:verifica-backup -- --sono-sicuro` sul banco locale: copia, azzera, rimette, confronta |
 | Isolamento dal pannello di piattaforma | `npx vitest run tests/db/piattaforma.test.ts` — l'amministratore deve contare zero clienti, zero pratiche, zero fatture |
+| Limiti e scadenza degli abbonamenti | `npx vitest run tests/db/abbonamenti.test.ts` |
+| Webhook degli abbonamenti | `npx playwright test tests/e2e/abbonamenti.spec.ts` — quattro firme non valide devono ricevere 401 |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
 | Intestazioni | la risposta porta `Content-Security-Policy` e, in HTTPS, `Strict-Transport-Security` |
+
+---
+
+## Abbonamenti
+
+Tre piani sono già a schema — **Prova**, **Base** (3 utenti, 500 pratiche
+all'anno), **Completo** (senza limiti) — con il prezzo da impostare: è una
+decisione commerciale, e un prezzo inventato nel codice sembra una scelta
+(DECISIONI 85).
+
+L'abbonamento si assegna dal pannello **Piattaforma**. L'agenzia lo vede in
+**Impostazioni → Abbonamento**, in sola lettura.
+
+Uno stato **scaduto** o **annullato**, o una data già passata, mettono
+l'agenzia in sola lettura: continua a consultare ed esportare, non a
+registrare. I limiti di piano sono due trigger sul database, quindi valgono
+per chiunque scriva, comunque scriva — anche da uno script.
+
+### Il webhook del fornitore di pagamenti
+
+```
+POST /api/abbonamenti/webhook
+x-firma: t=<epoca unix>,v1=<hmac-sha256 esadecimale>
+content-type: application/json
+
+{ "agency_id": "<uuid>", "plan_code": "completo",
+  "status": "attivo", "valid_until": "2027-12-31" }
+```
+
+L'HMAC si calcola su `<epoca>.<corpo grezzo>` con
+`WEBHOOK_ABBONAMENTI_SECRET`. Richieste più vecchie di cinque minuti vengono
+rifiutate, perché senza quel controllo una richiesta firmata intercettata una
+volta varrebbe per sempre. **Senza la variabile l'endpoint rifiuta tutto**: un
+endpoint che regala mesi di servizio non deve restare aperto per distrazione.
+
+L'endpoint non parla con nessun fornitore in particolare: l'adattatore che
+traduce gli eventi di quello scelto in questo corpo si scrive quando il
+fornitore è scelto (DECISIONI 86).
 
 ---
 

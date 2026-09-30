@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "start:e2e": "LIMITE_ACCESSO=500 LIMITE_MAGIC_LINK=500 LIMITE_RECUPERO=500 LIMITE_REGISTRAZIONE=500 next start",
+    "start:e2e": "WEBHOOK_ABBONAMENTI_SECRET=segreto-e2e LIMITE_ACCESSO=500 LIMITE_MAGIC_LINK=500 LIMITE_RECUPERO=500 LIMITE_REGISTRAZIONE=500 next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

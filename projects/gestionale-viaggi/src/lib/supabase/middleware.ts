@@ -12,6 +12,11 @@ const PUBLIC_PATHS = [
   '/auth/callback',
   '/auth/errore',
   '/preventivo',
+  // Il webhook degli abbonamenti non ha una sessione e non deve averne una:
+  // lo chiama una macchina, e si autentica con la firma HMAC del corpo. Senza
+  // questa riga il middleware lo rimanderebbe alla pagina di accesso, e il
+  // fornitore di pagamenti riceverebbe un cortese 200 con dentro dell'HTML.
+  '/api/abbonamenti',
 ]
 
 function isPublic(pathname: string): boolean {

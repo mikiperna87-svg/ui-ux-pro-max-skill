@@ -15,16 +15,36 @@ import {
   TableWrapper,
 } from '@/components/ui/table'
 import { formatDateShort } from '@/lib/date'
-import { agenziePiattaforma, membriPiattaforma } from '@/server/queries/piattaforma'
+import { agenziePiattaforma, membriPiattaforma, pianiAttivi } from '@/server/queries/piattaforma'
 import { requirePlatformAdmin } from '@/server/session'
 import { AzioniAgenzia } from './azioni-agenzia'
 
 export const metadata: Metadata = { title: 'Piattaforma' }
 
+/** Colore *e* parola: su uno stato commerciale la sfumatura non basta. */
+const TONO_ABBONAMENTO: Record<string, 'neutral' | 'info' | 'success' | 'warning' | 'danger'> = {
+  prova: 'info',
+  attivo: 'success',
+  scaduto: 'warning',
+  annullato: 'danger',
+}
+
+const ETICHETTA_ABBONAMENTO: Record<string, string> = {
+  prova: 'In prova',
+  attivo: 'Attivo',
+  scaduto: 'Scaduto',
+  annullato: 'Annullato',
+}
+
 export default async function PiattaformaPage() {
   await requirePlatformAdmin()
 
-  const [agenzie, membri] = await Promise.all([agenziePiattaforma(), membriPiattaforma()])
+  const [agenzie, membri, piani] = await Promise.all([
+    agenziePiattaforma(),
+    membriPiattaforma(),
+    pianiAttivi(),
+  ])
+  const nomePiano = new Map(piani.map((p) => [p.code, p.name]))
   const attive = agenzie.filter((a) => a.suspended_at === null).length
 
   return (
@@ -57,6 +77,7 @@ export default async function PiattaformaPage() {
                     <TableHeaderCell>Agenzia</TableHeaderCell>
                     <TableHeaderCell>Titolare</TableHeaderCell>
                     <TableHeaderCell>Stato</TableHeaderCell>
+                    <TableHeaderCell>Abbonamento</TableHeaderCell>
                     <TableHeaderCell className="text-right">Utenti</TableHeaderCell>
                     <TableHeaderCell className="text-right">Clienti</TableHeaderCell>
                     <TableHeaderCell className="text-right">Pratiche</TableHeaderCell>
@@ -98,6 +119,23 @@ export default async function PiattaformaPage() {
                             </span>
                           ) : null}
                         </TableCell>
+                        <TableCell>
+                          {agenzia.plan_code ? (
+                            <>
+                              <Badge tone={TONO_ABBONAMENTO[agenzia.subscription_status ?? 'prova']} dot>
+                                {ETICHETTA_ABBONAMENTO[agenzia.subscription_status ?? 'prova']}
+                              </Badge>
+                              <span className="mt-1 block text-small text-text-subtle">
+                                {nomePiano.get(agenzia.plan_code) ?? agenzia.plan_code}
+                                {agenzia.valid_until
+                                  ? ` · fino al ${formatDateShort(agenzia.valid_until)}`
+                                  : ' · senza scadenza'}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-small text-text-subtle">Nessuno</span>
+                          )}
+                        </TableCell>
                         <TableCellNumeric>{agenzia.members ?? 0}</TableCellNumeric>
                         <TableCellNumeric>{agenzia.customers ?? 0}</TableCellNumeric>
                         <TableCellNumeric>{agenzia.bookings ?? 0}</TableCellNumeric>
@@ -114,6 +152,10 @@ export default async function PiattaformaPage() {
                               agencyId={agenzia.id}
                               nome={agenzia.name ?? 'questa agenzia'}
                               sospesa={sospesa}
+                              piani={piani.map((p) => ({ code: p.code, name: p.name }))}
+                              pianoAttuale={agenzia.plan_code}
+                              statoAttuale={agenzia.subscription_status}
+                              scadenzaAttuale={agenzia.valid_until}
                             />
                           ) : null}
                         </TableCell>

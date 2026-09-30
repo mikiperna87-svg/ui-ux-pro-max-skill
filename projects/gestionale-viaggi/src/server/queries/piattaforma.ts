@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Views } from '@/lib/database.types'
+import type { Tables, Views } from '@/lib/database.types'
 
 export type AgenziaPiattaforma = Views<'platform_agencies'>
 export type MembroPiattaforma = Views<'platform_members'>
@@ -40,4 +40,17 @@ export async function membriPiattaforma(): Promise<ReadonlyMap<string, readonly 
     per.set(membro.agency_id, elenco)
   }
   return per
+}
+
+export type Piano = Tables<'plans'>
+
+/** I piani attivi, per il menù di chi assegna un abbonamento. */
+export async function pianiAttivi(): Promise<readonly Piano[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('plans')
+    .select('*')
+    .eq('active', true)
+    .order('sort_order')
+  return data ?? []
 }

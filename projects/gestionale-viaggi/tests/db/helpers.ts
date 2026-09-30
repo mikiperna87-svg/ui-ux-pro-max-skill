@@ -73,6 +73,27 @@ export async function seedTenants(): Promise<void> {
   const client = await adminClient()
   try {
     await client.query('select pg_advisory_lock(918273645)')
+
+    // Uno stato noto, non «quello che ha lasciato l'ultimo che è passato di
+    // qui». Una sospensione o un abbonamento scaduto rimasti da una prova
+    // precedente farebbero fallire i test di isolamento con un messaggio che
+    // parla d'altro — ed è successo.
+    await client.query(
+      `update public.agencies
+          set suspended_at = null, suspension_reason = null
+        where id in ($1, $2) and suspended_at is not null`,
+      [AGENCY_A, AGENCY_B],
+    )
+    await client.query('delete from public.subscriptions where agency_id in ($1, $2)', [
+      AGENCY_A,
+      AGENCY_B,
+    ])
+    // Nessuno degli utenti di prova amministra la piattaforma: chi lo verifica
+    // se lo assegna da sé, nel proprio `beforeAll`.
+    await client.query('delete from public.platform_admins where user_id = any($1::uuid[])', [
+      [USER_A_OWNER, USER_A_ADMIN, USER_A_OPERATOR, USER_A_READONLY, USER_B_OWNER],
+    ])
+
     await client.query(`
       insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
                               raw_app_meta_data, raw_user_meta_data)

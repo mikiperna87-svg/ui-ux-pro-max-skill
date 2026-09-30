@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/server'
 import { listEmailMessages, statoPosta } from '@/server/queries/email'
 import { requireSession } from '@/server/session'
+import { AbbonamentoPanel } from './abbonamento-panel'
 import { AgenziaForm } from './agenzia-form'
 import { ParametriForm } from './parametri-form'
 import { PostaPanel } from './posta-panel'
@@ -20,6 +21,12 @@ export default async function ImpostazioniPage() {
   if (!session.permissions.settings) notFound()
 
   const supabase = await createClient()
+  const [{ data: abbonamento }, { data: piani }] = await Promise.all([
+    supabase.from('subscriptions').select('*').eq('agency_id', session.agency.id).maybeSingle(),
+    supabase.from('plans').select('*'),
+  ])
+  const piano = abbonamento ? (piani ?? []).find((p) => p.code === abbonamento.plan_code) ?? null : null
+
   const [{ data: members }, stato, messaggi] = await Promise.all([
     supabase
       .from('memberships')
@@ -44,7 +51,12 @@ export default async function ImpostazioniPage() {
           <TabsTrigger value="utenti">Utenti e ruoli</TabsTrigger>
           <TabsTrigger value="parametri">Parametri</TabsTrigger>
           <TabsTrigger value="posta">Posta</TabsTrigger>
+          <TabsTrigger value="abbonamento">Abbonamento</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="abbonamento">
+          <AbbonamentoPanel abbonamento={abbonamento} piano={piano} />
+        </TabsContent>
 
         <TabsContent value="agenzia">
           <AgenziaForm agency={session.agency} />

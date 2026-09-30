@@ -25,6 +25,7 @@ export interface Enums {
   sale_type: 'intermediazione' | 'organizzazione'
   sdi_status: 'non_inviata' | 'generata' | 'inviata' | 'consegnata' | 'mancata_consegna' | 'scartata'
   service_type: 'volo' | 'hotel' | 'transfer' | 'assicurazione' | 'escursione' | 'biglietteria' | 'noleggio' | 'visto' | 'pacchetto' | 'altro'
+  subscription_status: 'prova' | 'attivo' | 'scaduto' | 'annullato'
   supplier_kind: 'tour_operator' | 'compagnia_aerea' | 'compagnia_ferroviaria' | 'compagnia_marittima' | 'hotel' | 'dmc' | 'assicurazione' | 'noleggio' | 'altro'
   task_kind: 'verifica_documenti' | 'scadenza_acconto' | 'scadenza_saldo' | 'pagamento_fornitore' | 'richiamo_cliente' | 'generico'
   task_priority: 'bassa' | 'media' | 'alta' | 'urgente'
@@ -1265,6 +1266,48 @@ export interface Database {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          code: string
+          name: string
+          description: string | null
+          price_cents: number | null
+          max_users: number | null
+          max_bookings: number | null
+          trial_days: number
+          sort_order: number
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          name: string
+          description?: string | null
+          price_cents?: number | null
+          max_users?: number | null
+          max_bookings?: number | null
+          trial_days?: number
+          sort_order?: number
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          name?: string
+          description?: string | null
+          price_cents?: number | null
+          max_users?: number | null
+          max_bookings?: number | null
+          trial_days?: number
+          sort_order?: number
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_admins: {
         Row: {
           user_id: string
@@ -1563,6 +1606,39 @@ export interface Database {
           agency_id?: string
           last_value?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          agency_id: string
+          plan_code: string
+          status: Enums['subscription_status']
+          valid_until: string | null
+          note: string | null
+          created_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          agency_id: string
+          plan_code: string
+          status?: Enums['subscription_status']
+          valid_until?: string | null
+          note?: string | null
+          created_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          agency_id?: string
+          plan_code?: string
+          status?: Enums['subscription_status']
+          valid_until?: string | null
+          note?: string | null
+          created_at?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2115,6 +2191,9 @@ export interface Database {
           bookings: number | null
           invoices: number | null
           last_activity: string | null
+          plan_code: string | null
+          subscription_status: Enums['subscription_status'] | null
+          valid_until: string | null
         }
         Relationships: []
       }
@@ -2440,6 +2519,14 @@ export interface Database {
       set_payout_status: {
         Args: { p_payout_id: string | null; p_status: Enums['payout_status'] | null; p_paid_at?: string | null; p_method?: Enums['payment_method'] | null; p_reference?: string | null; p_supplier_invoice_number?: string | null }
         Returns: unknown
+      }
+      set_subscription: {
+        Args: { p_agency_id: string | null; p_plan_code: string | null; p_status: Enums['subscription_status'] | null; p_valid_until: string | null; p_note?: string | null }
+        Returns: undefined
+      }
+      set_subscription_as_service: {
+        Args: { p_agency_id: string | null; p_plan_code: string | null; p_status: Enums['subscription_status'] | null; p_valid_until: string | null; p_note?: string | null }
+        Returns: undefined
       }
       suspend_agency: {
         Args: { p_agency_id: string | null; p_reason: string | null }

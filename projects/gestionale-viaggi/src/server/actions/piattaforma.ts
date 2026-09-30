@@ -80,3 +80,60 @@ export async function riattivaAgenziaAction(agencyId: unknown): Promise<ActionSt
   aggiorna()
   return { status: 'success', message: 'Agenzia riattivata.' }
 }
+
+const abbonamentoSchema = z.object({
+  id: z.string().regex(UUID, 'Agenzia non valida'),
+  piano: z.string().trim().min(1, 'Scegli un piano'),
+  stato: z.enum(['prova', 'attivo', 'scaduto', 'annullato']),
+  // Vuoto vuol dire «senza scadenza»: serve a chi il gestionale se l'è
+  // comprato e non lo affitta.
+  scadenza: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : (v ?? null)))
+    .refine((v) => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v), {
+      message: 'La data non è valida',
+    }),
+  note: z.string().trim().max(300).optional(),
+})
+
+export async function impostaAbbonamentoAction(
+  _previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  if (!(await isPlatformAdmin())) {
+    return { status: 'error', message: 'Non hai i permessi per questa operazione.' }
+  }
+
+  const parsed = abbonamentoSchema.safeParse({
+    id: formData.get('id'),
+    piano: formData.get('piano'),
+    stato: formData.get('stato'),
+    scadenza: formData.get('scadenza') ?? '',
+    note: formData.get('note') ?? undefined,
+  })
+  if (!parsed.success) {
+    return {
+      status: 'error',
+      message: parsed.error.issues[0]?.message ?? 'Controlla i dati inseriti.',
+    }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('set_subscription', {
+    p_agency_id: parsed.data.id,
+    p_plan_code: parsed.data.piano,
+    p_status: parsed.data.stato,
+    p_valid_until: parsed.data.scadenza,
+    p_note: parsed.data.note ?? null,
+  })
+
+  if (error) {
+    return { status: 'error', message: 'Non siamo riusciti a salvare l’abbonamento.' }
+  }
+
+  aggiorna()
+  return { status: 'success', message: 'Abbonamento aggiornato.' }
+}
