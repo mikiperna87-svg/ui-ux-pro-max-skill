@@ -332,6 +332,7 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Suite completa verde | `npm run verifica` e `npm run test:e2e` |
 | Accessibilità | `npx playwright test tests/e2e/accessibilita.spec.ts` |
 | Telefono | `npx playwright test tests/e2e/telefono.spec.ts` |
+| Account senza agenzia | `npx playwright test tests/e2e/senza-agenzia.spec.ts` — chi è invitato o resta senza agenzia deve trovare il modulo, non una pagina bianca |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
