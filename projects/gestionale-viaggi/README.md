@@ -250,35 +250,74 @@ tests/
 
 ## Distribuzione su Vercel
 
+Il gestionale è in linea su **https://gestionale-viaggi-nu.vercel.app**, con il
+database sul progetto Supabase `wwaaswzcalwfsuceiydn` (regione `eu-west-1`).
+
+La pubblicazione **non** passa dall'integrazione GitHub: i file vengono caricati
+direttamente, perché quell'account non ha l'applicazione GitHub installata e
+installarla avrebbe dato a un servizio terzo la lettura dell'intero repository
+(DECISIONI 72). Conseguenza pratica: `git push` non pubblica niente. Il rilascio
+è sempre un comando.
+
 ### La prima volta
 
-1. Collega il repository a Vercel e imposta come *Root Directory* la cartella
-   `projects/gestionale-viaggi`.
-2. Inserisci le variabili d'ambiente di `.env.example` (senza `DATABASE_URL`, che
-   serve solo agli script). Se vuoi la posta, aggiungi `RESEND_API_KEY` e
-   `EMAIL_MITTENTE`.
-3. Imposta `NEXT_PUBLIC_SITE_URL` sull'indirizzo definitivo e aggiungilo fra i
-   *Redirect URLs* di Supabase.
-4. Applica le migrazioni al database di produzione:
+1. Crea il progetto Supabase e applica le migrazioni. Se la porta 5432 non è
+   raggiungibile — capita spesso — si passa dalla Management API:
 
    ```bash
-   DATABASE_URL="postgresql://..." npm run db:apply
+   SUPABASE_ACCESS_TOKEN=sbp_... npm run db:apply:api -- --ref <project-ref>
    ```
 
-   Se il database è stato creato prima che esistesse il registro delle
-   migrazioni, allinealo una volta sola con `npm run db:apply -- --adotta`:
-   registra le migrazioni come applicate senza rieseguirle. Fallo solo se sei
-   certo che il database sia già aggiornato.
+   Con il database raggiungibile in TCP vale ancora `DATABASE_URL="postgresql://..." npm run db:apply`.
+   I due comandi condividono il registro `public.schema_migrations`, quindi si
+   alternano senza riapplicare nulla.
+
+2. Crea il progetto Vercel e inserisci le variabili di `.env.example`, senza
+   `DATABASE_URL` che serve solo agli script:
+
+   | Variabile | Tipo su Vercel |
+   | --- | --- |
+   | `NEXT_PUBLIC_SUPABASE_URL` | normale |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | normale — finisce comunque nel browser |
+   | `SUPABASE_SERVICE_ROLE_KEY` | **sensibile**: scavalca la RLS, non deve essere rileggibile |
+   | `NEXT_PUBLIC_SITE_URL` | normale, l'indirizzo definitivo |
+
+   `RESEND_API_KEY` ed `EMAIL_MITTENTE` solo quando la posta è configurata, e la
+   prima è sensibile.
+
+3. Su Supabase, Authentication → URL Configuration: *Site URL* sull'indirizzo
+   definitivo, e fra i *Redirect URLs* almeno `https://<indirizzo>/auth/callback`.
+
+4. Sempre su Supabase, Authentication → Providers: la lunghezza minima della
+   password va portata a **10** con minuscole, maiuscole e cifre obbligatorie,
+   o il database accetterebbe password che il modulo rifiuta.
+
+5. Pubblica:
+
+   ```bash
+   VERCEL_TOKEN=... VERCEL_TEAM_ID=team_... npm run deploy
+   ```
 
 ### A ogni versione
 
 ```bash
-npm run verifica                       # lint, typecheck, test, build
-DATABASE_URL="..." npm run db:apply    # solo le migrazioni nuove
+npm run verifica                                    # lint, typecheck, test, build
+SUPABASE_ACCESS_TOKEN=... npm run db:apply:api -- --ref <ref>   # solo le migrazioni nuove
+VERCEL_TOKEN=... npm run deploy
 ```
 
-Poi il rilascio vero e proprio. `db:apply` è ripetibile: le migrazioni già
-applicate vengono saltate.
+Lo stato della pubblicazione si legge con
+`node scripts/deploy-vercel.mjs --stato <id>`: passa da `BUILDING` a `READY`, e
+l'indirizzo di produzione cambia solo al primo rilascio.
+
+### Da sistemare prima di aprire al pubblico
+
+| Cosa | Dove | Perché |
+| --- | --- | --- |
+| Conferma dell'email spenta | Supabase → Authentication → Providers, `mailer_autoconfirm` | Senza un fornitore di posta la conferma bloccherebbe la registrazione a metà (DECISIONI 74) |
+| Registrazione aperta a chiunque | Supabase → Authentication, `disable_signup` | Da chiudere quando le agenzie sono entrate |
+| Posta in coda | `RESEND_API_KEY`, `EMAIL_MITTENTE` | Senza chiave i messaggi si compongono e restano in attesa: nulla si perde, nulla parte |
+| Due agenzie di prova | database | Nate dalla verifica di rilascio, isolate dalla RLS (DECISIONI 75) |
 
 ### Prima di dire che è finita
 

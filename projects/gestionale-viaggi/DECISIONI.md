@@ -1261,3 +1261,87 @@ l'inizio di `updateSession`.
 | Realtime | Non pianificata | L'agenda si rilegge a ogni apertura e la posta ha il suo pannello: una connessione persistente aggiungerebbe complessità senza togliere un solo clic |
 | Esportazione XLSX | Non pianificata | Il CSV si apre in Excel italiano senza passaggi, e nessuno ha chiesto formule o fogli multipli: una libreria in più va giustificata da un bisogno vero, non dal fatto che si potrebbe |
 | Fatturazione elettronica (XML SdI) | Modulo a sé | Il tracciato FatturaPA e l'invio al Sistema di Interscambio sono un modulo a sé: servono l'accreditamento, la firma e un canale. Lo schema dei documenti è già quello giusto per generarlo |
+
+---
+
+## 72. La pubblicazione carica i file, non collega GitHub
+
+**Scelta.** Il progetto Vercel non è collegato al repository. `scripts/deploy-vercel.mjs`
+elenca i file con `git ls-files`, li carica uno per uno e crea la pubblicazione.
+
+**Perché.** L'account Vercel dell'agenzia non ha l'applicazione GitHub installata:
+`GET /v1/integrations/git-namespaces` risponde con una lista vuota. Collegarla
+avrebbe richiesto un passaggio a mano nell'interfaccia di GitHub, e soprattutto
+avrebbe dato a un servizio terzo l'accesso in lettura a un repository che
+contiene molto più del gestionale.
+
+**Conseguenza.** Non c'è pubblicazione automatica a ogni `git push`: ogni
+rilascio è un comando esplicito. È un passaggio in più e una sorpresa in meno —
+nessuna versione arriva in produzione perché qualcuno ha spinto un ramo.
+`git ls-files` come sorgente dell'elenco significa che `node_modules`, `.next`,
+`.env.local` e i risultati dei test restano fuori senza una seconda lista da
+tenere allineata: quello che non è nel repository non è in produzione.
+
+---
+
+## 73. Le migrazioni viaggiano in HTTPS, non sulla porta Postgres
+
+**Scelta.** `scripts/db-apply-api.mjs` applica le migrazioni al progetto ospitato
+passando dalla Management API di Supabase. `scripts/db-apply.mjs` resta per il
+Postgres locale. Il registro `public.schema_migrations` è lo stesso, quindi i due
+comandi si alternano senza contarsi addosso.
+
+**Perché.** La porta 5432 di un progetto Supabase è raggiungibile in IPv6 diretto
+o attraverso il pooler, e in molte reti nessuna delle due strade è aperta;
+`api.supabase.com` risponde sempre. Tenere il rilascio legato a un requisito di
+rete che non controlliamo voleva dire un rilascio che funziona sulla macchina di
+chi l'ha scritto.
+
+**Conseguenza.** Entrambi gli script parlano con `curl` invece che con `fetch()`:
+`fetch()` di Node ignora le variabili di proxy, e dietro il proxy di una rete
+aziendale il comando resterebbe appeso senza dire perché. Le sedici migrazioni
+sono state applicate così, in ordine, al primo tentativo.
+
+---
+
+## 74. La conferma dell'indirizzo email è spenta, e si riaccende con la posta
+
+**Scelta.** Su Supabase `mailer_autoconfirm` è acceso: chi si registra entra
+subito, senza passare da un messaggio di conferma. Le regole della password sul
+server (dieci caratteri, una minuscola, una maiuscola, una cifra) sono state
+allineate a quelle già applicate da Zod, che prima erano più severe del
+database.
+
+**Perché.** Il progetto non ha ancora un fornitore di posta: Supabase userebbe
+il proprio servizio condiviso, limitato a due messaggi l'ora e con recapito
+garantito soltanto agli indirizzi dell'organizzazione. Con la conferma accesa e
+senza SMTP, la registrazione si fermerebbe a metà — utente creato, agenzia no,
+e nessun messaggio in arrivo. Meglio una porta che si apre che una porta che
+finge di aprirsi.
+
+**Conseguenza.** Finché resta così, chiunque conosca l'indirizzo del gestionale
+può creare un'agenzia. Non è un rischio per i dati — la RLS isola ogni agenzia
+dalle altre, e un'agenzia nuova nasce vuota — ma è un invito che non serve a
+nessuno. Quando la chiave Resend sarà configurata, i due interruttori da girare
+sono `mailer_autoconfirm` a spento e `disable_signup` a acceso, da
+Authentication → Providers. Entrambi in un pannello, nessuna riga di codice.
+
+---
+
+## 75. Due agenzie di prova restano nel database, e non le ho cancellate
+
+**Scelta.** La verifica di produzione ha creato due agenzie, «Agenzia di
+Verifica», per dimostrare che la registrazione funziona davvero. Sono ancora lì.
+
+**Perché.** Cancellarle richiedeva di sospendere il trigger che rende immutabile
+`activity_log`: l'eliminazione a cascata tocca il registro attività, e il
+registro rifiuta qualunque DELETE. È esattamente il comportamento chiesto dalla
+specifica, ed è arrivato addosso a chi l'aveva scritto — che è il momento in cui
+si scopre se una regola è vera o decorativa.
+
+**Conseguenza.** Le due agenzie sono inerti: la RLS fa sì che nessun'altra
+agenzia le veda, e nessuna di esse veda le altre. Restano finché qualcuno non
+decide, consapevolmente, o di riportare il database allo stato appena creato —
+`drop schema public cascade` e le sedici migrazioni da capo, che porta via il
+registro insieme a tutto il resto — o di tenerle. La scelta che non si può fare
+è la terza: togliere due righe dal registro e lasciare il resto in piedi.

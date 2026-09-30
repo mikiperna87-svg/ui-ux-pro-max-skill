@@ -51,7 +51,7 @@ export const signUpSchema = z
       .string()
       .trim()
       .min(2, 'Inserisci nome e cognome')
-      .max(120, 'Nomè troppo lungo'),
+      .max(120, 'Nome e cognome troppo lunghi'),
     vatNumber: z
       .string()
       .trim()

@@ -2,10 +2,11 @@
 
 Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 
-> Questa versione copre l'accesso, la panoramica, le pratiche di viaggio, le
-> anagrafiche (clienti, passeggeri, fornitori) e le impostazioni. Le sezioni
-> preventivi, incassi e amministrazione arrivano con i rilasci successivi; il
-> manuale cresce con loro.
+> Il gestionale si apre all'indirizzo
+> **https://gestionale-viaggi-nu.vercel.app** — funziona da computer, tablet e
+> telefono, senza installare niente. Questo manuale copre tutto quello che c'è:
+> accesso, panoramica, pratiche, preventivi, incassi e scadenze, fatture e
+> registro IVA, report, agenda, anagrafiche e impostazioni.
 
 ---
 
@@ -38,7 +39,13 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 
 ## 1. Entrare nel gestionale
 
-Apri l'indirizzo del gestionale. Hai due modi per entrare.
+Apri **https://gestionale-viaggi-nu.vercel.app**. Hai due modi per entrare.
+
+Se l'agenzia non è ancora stata creata, dal riquadro di accesso scegli **Crea
+un'agenzia**: servono il nome dell'agenzia, il tuo nome e cognome, l'email e una
+password di almeno 10 caratteri con maiuscole, minuscole e numeri. La partita IVA
+si può aggiungere dopo, da Impostazioni. Chi crea l'agenzia ne diventa il
+titolare.
 
 **Con la password.** Inserisci email e password e premi **Accedi**.
 
@@ -68,6 +75,13 @@ In alto a destra c'è il tuo profilo (le tue iniziali). Da lì:
 > **Troppi tentativi di accesso.** Dopo alcuni tentativi ravvicinati il sistema
 > blocca l'accesso per qualche minuto. È una protezione contro chi prova a
 > indovinare le password: aspetta e riprova.
+
+> **Finché la posta non è collegata, usa la password.** Il link via email e il
+> recupero della password passano dal servizio di posta, che su questa
+> installazione non è ancora configurato: i messaggi non arrivano. Entrambi si
+> accendono da soli quando l'agenzia collega il proprio fornitore di posta
+> (vedi il capitolo 21). Fino ad allora, l'accesso con email e password funziona
+> normalmente.
 
 ---
 
