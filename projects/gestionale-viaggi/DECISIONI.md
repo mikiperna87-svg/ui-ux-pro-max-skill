@@ -1484,3 +1484,53 @@ ricalcolare darebbe numeri più tondi e un documento che contraddice il suo
 originale di un centesimo. Il prezzo unitario, nel file, si ricava dividendo
 il totale di riga per la quantità e si porta fino a otto decimali — il totale
 è il numero che deve tornare, quindi è quello a restare intero.
+
+---
+
+## 81. La copia di sicurezza contiene i dati, non lo schema
+
+**Scelta.** `npm run db:backup` scarica un file `.sql` di soli dati, per la
+via HTTPS della Management API o per connessione diretta. Lo schema non c'è
+dentro: vive nelle migrazioni, che stanno in git. Ripristinare vuol dire
+database vuoto, `db:apply`, poi il file.
+
+**Perché.** Un dump completo duplicherebbe lo schema in un secondo posto, non
+versionato, che il giorno del ripristino potrebbe essere più vecchio del
+codice. Le migrazioni sono già la descrizione autorevole della forma del
+database, e il registro `schema_migrations` dice a quale versione la copia si
+riferisce — è scritto nell'intestazione del file.
+
+I valori non vengono riscritti come letterali SQL. Un apostrofo in una
+ragione sociale, una data con il fuso, un array di tag, un JSON: ognuno di
+questi è un modo di rompere un dump fatto a mano. Viaggiano come JSON e li
+riconverte `json_populate_recordset`, che i tipi delle colonne li conosce.
+Le colonne generate restano fuori, perché Postgres le ricalcola da sé.
+
+**Conseguenza.** Il file contiene `auth.users`, cioè le impronte delle
+password: senza, il ripristino ridà i dati e nessuno riesce più a entrare. Va
+trattato come una credenziale, e `backup/` è in `.gitignore`. Chi preferisce
+può escluderlo con `--senza-utenti`, sapendo che cosa rinuncia.
+
+---
+
+## 82. Una copia mai ripristinata non è una copia
+
+**Scelta.** `npm run db:verifica-backup -- --sono-sicuro` prende una copia,
+svuota il database, lo ricostruisce e confronta tabella per tabella. Rifiuta
+di girare su qualunque indirizzo che non sia locale.
+
+**Perché.** Il primo ripristino di prova è fallito, ed è il motivo per cui
+questo comando esiste. `bookings` cita il preventivo da cui nasce e `quotes`
+cita la pratica in cui si è convertito: un ciclo, e un ciclo non ha un ordine
+di inserimento valido. Nessun riordino delle tabelle poteva risolverlo — la
+copia sembrava perfetta e non si sarebbe ripristinata il giorno in cui
+serviva.
+
+**Conseguenza.** La 0019 rende differibili tutte le chiavi esterne dello
+schema, e il file di copia apre con `set constraints all deferred`:
+i controlli si fanno alla fine della transazione, quando tutte le righe ci
+sono. `deferrable initially immediate` non cambia nulla nell'uso normale — i
+controlli restano immediati riga per riga — e vale per tutte le chiavi, non
+solo per le due del ciclo: scegliere quali vorrebbe dire rifare la scelta a
+ogni tabella nuova, e sbagliarla una volta. Beneficia anche l'importazione di
+dati da un altro gestionale, che ha lo stesso problema.

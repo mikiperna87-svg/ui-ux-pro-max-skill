@@ -335,10 +335,41 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Account senza agenzia | `npx playwright test tests/e2e/senza-agenzia.spec.ts` — chi è invitato o resta senza agenzia deve trovare il modulo, non una pagina bianca |
 | Fattura elettronica | `npx playwright test tests/e2e/fattura-elettronica.spec.ts` — il totale del file XML deve coincidere al centesimo con quello della fattura |
 | Formule IVA allineate | `npx vitest run tests/db/sdi-formule.test.ts` — lo scorporo in TypeScript e quello in SQL devono dare lo stesso numero |
+| Copia di sicurezza ripristinabile | `npm run db:verifica-backup -- --sono-sicuro` sul banco locale: copia, azzera, rimette, confronta |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
 | Intestazioni | la risposta porta `Content-Security-Policy` e, in HTTPS, `Strict-Transport-Security` |
+
+---
+
+## Copie di sicurezza
+
+```bash
+# Dal progetto ospitato, in HTTPS
+SUPABASE_ACCESS_TOKEN=sbp_... npm run db:backup -- --ref <project-ref>
+
+# Oppure per connessione diretta
+npm run db:backup -- --url postgresql://...
+```
+
+Il file contiene **solo i dati**: lo schema vive nelle migrazioni, che stanno
+in git (DECISIONI 81). Ripristinare vuol dire database vuoto, `npm run
+db:apply`, poi il file.
+
+Il file contiene anche `auth.users`, cioè le impronte delle password — senza,
+dopo un ripristino nessuno riesce più ad accedere. **Trattalo come una
+credenziale**: la cartella `backup/` è in `.gitignore` apposta. Con
+`--senza-utenti` si esclude, sapendo a che cosa si rinuncia.
+
+Una copia mai ripristinata non è una copia. La prova si fa sul banco locale:
+
+```bash
+npm run db:verifica-backup -- --sono-sicuro
+```
+
+Prende una copia, svuota il database, lo ricostruisce e confronta tabella per
+tabella. Rifiuta di girare su un indirizzo non locale.
 
 ---
 
