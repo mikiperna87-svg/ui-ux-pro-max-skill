@@ -572,6 +572,49 @@ con la riga di totale in fondo.
 
 ---
 
+### La fattura elettronica
+
+Ogni fattura emessa ha, nella sua scheda, il riquadro **Fattura elettronica**.
+È il file che va al Sistema di Interscambio: quello che per il fisco vale, più
+del PDF.
+
+Il riquadro dice subito a che punto sei, con una parola oltre al colore:
+
+| Cosa leggi | Che cosa vuol dire |
+| --- | --- |
+| **Da preparare** | Il file non è ancora stato prodotto |
+| **File pronto** | Puoi scaricarlo e consegnarlo a chi lo trasmette |
+| **Inviata** | Consegnata a chi la trasmette, in attesa di risposta |
+| **Consegnata** | Il Sistema di Interscambio l’ha recapitata al cliente |
+| **Non consegnata** | Accettata ma non recapitata: è valida lo stesso, il cliente la trova nel suo cassetto fiscale |
+| **Scartata** | Rifiutata: va corretta e rifatta |
+
+**Se qualcosa manca te lo dice prima.** Sotto «Da sistemare prima di
+trasmettere» trovi l’elenco di quello che il Sistema di Interscambio
+rifiuterebbe, e accanto a ciascuna voce dove si corregge. Finché quell’elenco
+non è vuoto il pulsante resta spento: è voluto, perché uno scarto lo scopri
+giorni dopo e nel frattempo la fattura risulta non emessa.
+
+Sotto «Da sapere» ci sono invece gli avvisi: cose che non bloccano niente ma
+conviene sapere. Il più frequente è il cliente senza codice destinatario né
+PEC — per un privato è normale, per un’azienda quasi mai.
+
+**Come si procede.** Premi **Prepara il file**: il gestionale gli assegna un
+numero di invio e un nome, che da quel momento non cambiano più. Poi **Scarica
+XML** e consegni il file a chi lo trasmette per te. Quando ti arriva la
+risposta, torni qui e la registri con **Registra l’esito**, aggiungendo se
+vuoi il codice dell’errore: così la storia della fattura resta tutta in un
+posto.
+
+> **Prima della prima fattura.** Vai in Impostazioni → Agenzia e controlla
+> partita IVA, regime fiscale, indirizzo con CAP e provincia. Se indichi il
+> REA devi metterci sia l’ufficio (la sigla della provincia) sia il numero:
+> metà iscrizione fa scartare il documento. Se non sai che cosa mettere nel
+> regime fiscale, chiedi al commercialista: quasi tutte le agenzie di viaggio
+> stanno in **RF01 Ordinario** anche quando lavorano in 74-ter.
+
+---
+
 ## 8. I report
 
 I report rispondono a domande che la panoramica non può porre: **chi** ha

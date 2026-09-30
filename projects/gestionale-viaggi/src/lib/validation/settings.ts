@@ -1,5 +1,7 @@
 import { z } from 'zod'
+import { isValidVatNumber } from '@/lib/fiscal'
 import { ROLES } from '@/lib/roles'
+import { REGIMI_FISCALI } from '@/lib/sdi/codici'
 
 const optionalText = (max: number) =>
   z
@@ -12,13 +14,18 @@ const optionalText = (max: number) =>
 export const agencySchema = z.object({
   name: z.string().trim().min(2, 'Il nome è obbligatorio').max(120),
   legal_name: optionalText(160),
+  // La cifra di controllo, non solo le undici cifre: e' questa la partita IVA
+  // che finisce nel file della fattura elettronica, ed e' l'unica che non
+  // veniva verificata davvero.
   vat_number: z
     .string()
     .trim()
-    .regex(/^(IT)?\d{11}$/, 'Partita IVA non valida (11 cifre)')
     .optional()
     .or(z.literal(''))
-    .transform((value) => (value === '' ? null : (value ?? null))),
+    .transform((value) => (value === '' ? null : (value ?? null)))
+    .refine((value) => value === null || isValidVatNumber(value), {
+      message: 'Partita IVA non valida: undici cifre con la cifra di controllo giusta',
+    }),
   tax_code: optionalText(16),
   rea_number: optionalText(32),
   address_line: optionalText(160),
@@ -50,6 +57,43 @@ export const agencySchema = z.object({
     .transform((value) => (value === '' ? null : value?.toUpperCase() ?? null)),
   license_number: optionalText(64),
   insurance_policy: optionalText(120),
+
+  // --- Fattura elettronica ---------------------------------------------------
+  sdi_regime: z
+    .enum(REGIMI_FISCALI.map((r) => r.codice) as [string, ...string[]], {
+      error: 'Regime fiscale non riconosciuto',
+    })
+    .default('RF01'),
+  rea_office: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((value) => (value === '' ? null : (value?.toUpperCase() ?? null)))
+    .refine((value) => value === null || /^[A-Z]{2}$/.test(value), {
+      message: 'L’ufficio REA è la sigla della provincia, due lettere',
+    }),
+  share_capital: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((value) => {
+      if (!value) return null
+      const numero = Number(value.replace(/\./g, '').replace(',', '.'))
+      return Number.isFinite(numero) ? Math.round(numero * 100) : Number.NaN
+    })
+    .refine((value) => value === null || (Number.isInteger(value) && value >= 0), {
+      message: 'Il capitale sociale non è un importo valido',
+    }),
+  sole_shareholder: z
+    .union([z.literal('on'), z.literal('true'), z.literal('')])
+    .optional()
+    .transform((value) => value === 'on' || value === 'true'),
+  in_liquidation: z
+    .union([z.literal('on'), z.literal('true'), z.literal('')])
+    .optional()
+    .transform((value) => value === 'on' || value === 'true'),
 })
 
 /**

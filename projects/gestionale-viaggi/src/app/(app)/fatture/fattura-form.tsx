@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { FormMessage } from '@/components/forms/form-message'
+import { SelectCodice } from '@/components/forms/select-codice'
 import { SubmitButton } from '@/components/forms/submit-button'
 import { UnsavedChangesGuard } from '@/components/forms/unsaved-changes'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ import type { Enums, Tables } from '@/lib/database.types'
 import { VAT_REGIME } from '@/lib/labels'
 import { saveInvoiceAction } from '@/server/actions/fatture'
 import { toDateInput } from '@/lib/date'
+import { CONDIZIONI_PAGAMENTO, MODALITA_PAGAMENTO } from '@/lib/sdi/codici'
 
 const REGIMI: readonly Enums['vat_regime'][] = [
   'art_74_ter',
@@ -213,6 +215,54 @@ export function FatturaForm({
                 defaultValue={initial(
                   'payment_terms',
                   invoice?.payment_terms ?? (invoice ? '' : CONDIZIONI_PREDEFINITE),
+                )}
+              />
+            )}
+          </Field>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Modalità di pagamento"
+              hint="Finisce nella fattura elettronica come codice."
+              error={state.fieldErrors?.payment_method}
+            >
+              {(props) => (
+                <SelectCodice
+                  id={props.id}
+                  name="payment_method"
+                  voci={MODALITA_PAGAMENTO}
+                  defaultValue={initial('payment_method', invoice?.payment_method ?? 'MP05')}
+                />
+              )}
+            </Field>
+            <Field
+              label="Tipo di pagamento"
+              error={state.fieldErrors?.payment_condition}
+            >
+              {(props) => (
+                <SelectCodice
+                  id={props.id}
+                  name="payment_condition"
+                  voci={CONDIZIONI_PAGAMENTO}
+                  defaultValue={initial('payment_condition', invoice?.payment_condition ?? 'TP02')}
+                />
+              )}
+            </Field>
+          </div>
+
+          <Field
+            label="Imposta di bollo"
+            hint="Due euro sui documenti senza IVA oltre 77,47 €. Lascia zero se non si applica."
+            error={state.fieldErrors?.stamp_duty}
+          >
+            {(props) => (
+              <Input
+                {...props}
+                name="stamp_duty"
+                inputMode="decimal"
+                defaultValue={initial(
+                  'stamp_duty',
+                  invoice ? ((invoice.stamp_duty_cents ?? 0) / 100).toFixed(2).replace('.', ',') : '0,00',
                 )}
               />
             )}

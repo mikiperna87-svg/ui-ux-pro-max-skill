@@ -53,16 +53,18 @@ begin
 
   -- --- Agenzia ---------------------------------------------------------------
   insert into public.agencies (
-    id, name, legal_name, vat_number, tax_code, rea_number, address_line, postal_code,
+    id, name, legal_name, vat_number, tax_code, rea_number, rea_office, address_line, postal_code,
     city, province, country, email, pec, phone, website, iban, fiscal_regime,
-    license_number, insurance_policy, created_by, created_at
+    sdi_regime, share_capital_cents, license_number, insurance_policy, created_by, created_at
   )
   values (
     v_agency_id, 'Orizzonti Viaggi', 'Orizzonti Viaggi S.r.l.', 'IT03918470125', '03918470125',
-    'VA-318742', 'Corso Giacomo Matteotti 48', '21100', 'Varese', 'VA', 'IT',
+    -- Il numero REA senza la sigla della provincia: quella sta nel campo accanto,
+    -- come vuole il tracciato della fattura elettronica.
+    '318742', 'VA', 'Corso Giacomo Matteotti 48', '21100', 'Varese', 'VA', 'IT',
     'info@orizzontiviaggi.it', 'orizzontiviaggi@pec.it', '+39 0332 245 118',
     'https://www.orizzontiviaggi.it', 'IT60X0542811101000000123456', 'ordinario',
-    'AUT-VA-2016-0421', 'Polizza RC professionale n. 4417-88231',
+    'RF01', 2000000, 'AUT-VA-2016-0421', 'Polizza RC professionale n. 4417-88231',
     v_owner_id, now() - interval '400 days'
   );
 

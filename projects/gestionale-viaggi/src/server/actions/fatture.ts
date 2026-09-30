@@ -66,10 +66,15 @@ export async function saveInvoiceAction(
 
   const supabase = await createClient()
 
+  // Il bollo si scrive in euro e si conserva in centesimi, come ogni importo:
+  // la colonna ha un nome diverso dal campo del modulo.
+  const { stamp_duty, ...campi } = parsed.data
+  const testata = { ...campi, stamp_duty_cents: stamp_duty ?? 0 }
+
   if (isUuid(id)) {
     const { error } = await supabase
       .from('invoices')
-      .update(parsed.data)
+      .update(testata)
       .eq('id', id)
       .eq('status', 'bozza')
 
@@ -87,7 +92,7 @@ export async function saveInvoiceAction(
   const { data, error } = await supabase
     .from('invoices')
     .insert({
-      ...parsed.data,
+      ...testata,
       agency_id: session.agency.id,
       kind: 'fattura',
       status: 'bozza',

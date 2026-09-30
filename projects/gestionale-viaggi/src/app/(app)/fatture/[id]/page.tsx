@@ -12,8 +12,10 @@ import { ACTIVITY_ACTION, INVOICE_KIND, INVOICE_STATUS, VAT_REGIME } from '@/lib
 import { formatEuro } from '@/lib/money'
 import { toCents } from '@/lib/money'
 import { getInvoiceDetail } from '@/server/queries/fatture'
+import { verificaSdi } from '@/server/sdi/fattura'
 import { requireSession } from '@/server/session'
 import { AzioniFattura } from './azioni-fattura'
+import { PannelloSdi } from './pannello-sdi'
 import { RigheFattura } from './righe-fattura'
 import { EtichettaBottone } from '@/components/ui/etichetta-bottone'
 
@@ -56,6 +58,12 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
   const titolo = invoice.code
     ? `${INVOICE_KIND[invoice.kind]} ${invoice.code}`
     : `${INVOICE_KIND[invoice.kind]} in bozza`
+
+  // La verifica per il Sistema di Interscambio ha senso solo su un documento
+  // emesso: una bozza non ha numero, e senza numero non c'è niente da
+  // trasmettere.
+  const sdi = bozza ? null : await verificaSdi(invoice.id)
+  const rilievi = sdi?.esito === 'ok' ? sdi.verifica.rilievi : []
 
   return (
     <div className="mx-auto max-w-[100rem] space-y-5">
@@ -104,6 +112,20 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
             defaultVatRegime={invoice.vat_regime}
             defaultVatBps={session.settings.default_vat_bps}
           />
+
+          {sdi?.esito === 'ok' ? (
+            <PannelloSdi
+              invoiceId={invoice.id}
+              stato={invoice.sdi_status}
+              progressivo={invoice.sdi_progressivo}
+              filename={invoice.sdi_filename}
+              inviataIl={invoice.sdi_sent_at}
+              messaggio={invoice.sdi_message}
+              bloccanti={rilievi.filter((r) => r.gravita === 'blocco')}
+              avvisi={rilievi.filter((r) => r.gravita === 'avviso')}
+              canWrite={canWrite}
+            />
+          ) : null}
 
           {invoice.notes || invoice.legal_notes || invoice.payment_terms ? (
             <Card>

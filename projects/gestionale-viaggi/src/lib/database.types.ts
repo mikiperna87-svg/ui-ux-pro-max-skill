@@ -23,6 +23,7 @@ export interface Enums {
   quote_status: 'bozza' | 'inviato' | 'accettato' | 'rifiutato' | 'scaduto' | 'convertito'
   quote_variant: 'base' | 'consigliata' | 'premium'
   sale_type: 'intermediazione' | 'organizzazione'
+  sdi_status: 'non_inviata' | 'generata' | 'inviata' | 'consegnata' | 'mancata_consegna' | 'scartata'
   service_type: 'volo' | 'hotel' | 'transfer' | 'assicurazione' | 'escursione' | 'biglietteria' | 'noleggio' | 'visto' | 'pacchetto' | 'altro'
   supplier_kind: 'tour_operator' | 'compagnia_aerea' | 'compagnia_ferroviaria' | 'compagnia_marittima' | 'hotel' | 'dmc' | 'assicurazione' | 'noleggio' | 'altro'
   task_kind: 'verifica_documenti' | 'scadenza_acconto' | 'scadenza_saldo' | 'pagamento_fornitore' | 'richiamo_cliente' | 'generico'
@@ -110,6 +111,11 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          sdi_regime: string
+          rea_office: string | null
+          share_capital_cents: number | null
+          sole_shareholder: boolean
+          in_liquidation: boolean
         }
         Insert: {
           id?: string
@@ -136,6 +142,11 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          sdi_regime?: string
+          rea_office?: string | null
+          share_capital_cents?: number | null
+          sole_shareholder?: boolean
+          in_liquidation?: boolean
         }
         Update: {
           id?: string
@@ -162,6 +173,11 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          sdi_regime?: string
+          rea_office?: string | null
+          share_capital_cents?: number | null
+          sole_shareholder?: boolean
+          in_liquidation?: boolean
         }
         Relationships: []
       }
@@ -833,6 +849,7 @@ export interface Database {
           updated_at: string
           created_by: string | null
           deleted_at: string | null
+          vat_nature: string | null
         }
         Insert: {
           id?: string
@@ -849,6 +866,7 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          vat_nature?: string | null
         }
         Update: {
           id?: string
@@ -865,6 +883,7 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          vat_nature?: string | null
         }
         Relationships: []
       }
@@ -896,6 +915,14 @@ export interface Database {
           created_by: string | null
           deleted_at: string | null
           search_text: string | null
+          payment_method: string
+          payment_condition: string
+          stamp_duty_cents: number
+          sdi_status: Enums['sdi_status']
+          sdi_progressivo: string | null
+          sdi_filename: string | null
+          sdi_sent_at: string | null
+          sdi_message: string | null
         }
         Insert: {
           id?: string
@@ -923,6 +950,14 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          payment_method?: string
+          payment_condition?: string
+          stamp_duty_cents?: number
+          sdi_status?: Enums['sdi_status']
+          sdi_progressivo?: string | null
+          sdi_filename?: string | null
+          sdi_sent_at?: string | null
+          sdi_message?: string | null
         }
         Update: {
           id?: string
@@ -950,6 +985,14 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          payment_method?: string
+          payment_condition?: string
+          stamp_duty_cents?: number
+          sdi_status?: Enums['sdi_status']
+          sdi_progressivo?: string | null
+          sdi_filename?: string | null
+          sdi_sent_at?: string | null
+          sdi_message?: string | null
         }
         Relationships: []
       }
@@ -1463,6 +1506,39 @@ export interface Database {
         }
         Relationships: []
       }
+      schema_migrations: {
+        Row: {
+          version: string
+          applied_at: string
+        }
+        Insert: {
+          version: string
+          applied_at?: string
+        }
+        Update: {
+          version?: string
+          applied_at?: string
+        }
+        Relationships: []
+      }
+      sdi_counters: {
+        Row: {
+          agency_id: string
+          last_value: number
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          last_value?: number
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          last_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           id: string
@@ -1848,6 +1924,7 @@ export interface Database {
           taxable_cents: number | null
           vat_cents: number | null
           margin_cents: number | null
+          vat_nature: string | null
         }
         Relationships: []
       }
@@ -2245,6 +2322,10 @@ export interface Database {
       monthly_trend: {
         Args: { p_months?: number | null; p_owner_id?: string | null }
         Returns: { month_start: string | null; revenue_cents: number | null; margin_cents: number | null; bookings_count: number | null }[]
+      }
+      next_sdi_progressivo: {
+        Args: { p_agency_id: string | null }
+        Returns: string
       }
       purge_rate_limits: {
         Args: { p_older_than_hours?: number | null }

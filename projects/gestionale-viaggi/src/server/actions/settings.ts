@@ -30,7 +30,15 @@ export async function updateAgencyAction(_previous: ActionState, formData: FormD
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.from('agencies').update(parsed.data).eq('id', session.agency.id)
+
+  // Il capitale sociale si scrive in euro e si conserva in centesimi, come
+  // ogni altro importo: la colonna ha un nome diverso dal campo del modulo, e
+  // la traduzione sta qui e non nello schema, che non deve sapere di database.
+  const { share_capital, ...campi } = parsed.data
+  const { error } = await supabase
+    .from('agencies')
+    .update({ ...campi, share_capital_cents: share_capital })
+    .eq('id', session.agency.id)
 
   if (error) {
     return { status: 'error', message: 'Non siamo riusciti a salvare i dati dell’agenzia.' }

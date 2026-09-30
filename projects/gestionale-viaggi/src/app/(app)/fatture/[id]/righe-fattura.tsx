@@ -44,6 +44,8 @@ import { VAT_REGIME } from '@/lib/labels'
 import { formatEuro, formatPercent } from '@/lib/money'
 import { deleteInvoiceItemAction, saveInvoiceItemAction } from '@/server/actions/fatture'
 import type { InvoiceItemRow } from '@/server/queries/fatture'
+import { SelectCodice } from '@/components/forms/select-codice'
+import { NATURE_IVA, naturaDaRegime } from '@/lib/sdi/codici'
 
 const REGIMI: readonly Enums['vat_regime'][] = [
   'art_74_ter',
@@ -447,6 +449,28 @@ function DialogoRiga({
                   </Select>
                 )}
               </Field>
+
+              {regime === 'ordinaria' ? null : (
+                <Field
+                  label="Natura IVA"
+                  hint={
+                    naturaDaRegime(regime)
+                      ? `Se lasci vuoto viene scritta ${naturaDaRegime(regime)}, quella che discende dal regime.`
+                      : 'Obbligatoria quando l’IVA non è esposta.'
+                  }
+                  error={state.fieldErrors?.vat_nature}
+                >
+                  {(props) => (
+                    <SelectCodice
+                      id={props.id}
+                      name="vat_nature"
+                      voci={NATURE_IVA}
+                      vuoto={`Quella del regime (${naturaDaRegime(regime) ?? '—'})`}
+                      defaultValue={riga?.vat_nature ?? ''}
+                    />
+                  )}
+                </Field>
+              )}
 
               <Field label="Aliquota IVA (%)" error={state.fieldErrors?.vat_percent}>
                 {(props) => (

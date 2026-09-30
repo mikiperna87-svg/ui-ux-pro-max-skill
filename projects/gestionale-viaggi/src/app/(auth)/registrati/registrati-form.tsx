@@ -42,7 +42,7 @@ export function RegistratiForm({ serveCodice = false }: { serveCodice?: boolean 
         hint="Facoltativa ora, necessaria per emettere fatture."
         error={state.fieldErrors?.vatNumber}
       >
-        {(props) => <Input {...props} name="vatNumber" inputMode="numeric" placeholder="03918470127" />}
+        {(props) => <Input {...props} name="vatNumber" inputMode="numeric" placeholder="03918470125" />}
       </Field>
 
       <Field label="Email" required error={state.fieldErrors?.email}>

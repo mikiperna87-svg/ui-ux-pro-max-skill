@@ -333,10 +333,48 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Accessibilità | `npx playwright test tests/e2e/accessibilita.spec.ts` |
 | Telefono | `npx playwright test tests/e2e/telefono.spec.ts` |
 | Account senza agenzia | `npx playwright test tests/e2e/senza-agenzia.spec.ts` — chi è invitato o resta senza agenzia deve trovare il modulo, non una pagina bianca |
+| Fattura elettronica | `npx playwright test tests/e2e/fattura-elettronica.spec.ts` — il totale del file XML deve coincidere al centesimo con quello della fattura |
+| Formule IVA allineate | `npx vitest run tests/db/sdi-formule.test.ts` — lo scorporo in TypeScript e quello in SQL devono dare lo stesso numero |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
 | Intestazioni | la risposta porta `Content-Security-Policy` e, in HTTPS, `Strict-Transport-Security` |
+
+---
+
+## Fattura elettronica
+
+Il gestionale produce il file XML **FatturaPA 1.2** e lo verifica prima di
+produrlo. Non lo trasmette: la trasmissione passa da un intermediario, e
+l'esito si registra dal pannello sulla scheda della fattura (DECISIONI 79).
+
+Il percorso, dalla scheda di una fattura emessa:
+
+1. Il pannello **Fattura elettronica** dice se il documento è pronto. Se non lo
+   è, elenca che cosa manca e dove si corregge.
+2. **Prepara il file** assegna il progressivo di invio — un contatore per
+   agenzia, in base 36 — e fissa il nome, `IT<partitaIVA>_<progressivo>.xml`.
+   Il progressivo si assegna una volta sola: due file con lo stesso nome dallo
+   stesso trasmittente vengono rifiutati da SdI.
+3. **Scarica XML** dà il file da consegnare all'intermediario. Riscaricarlo dà
+   sempre lo stesso file.
+4. **Registra l'esito** annota che cosa ha risposto SdI: consegnata, non
+   consegnata, scartata.
+
+Prima di emettere la prima fattura vanno compilati, in **Impostazioni →
+Agenzia**: partita IVA, regime fiscale, sede completa di CAP e provincia, e —
+se si dichiara il REA — ufficio e numero insieme. Sul cliente servono
+l'identificativo fiscale e l'indirizzo; il codice destinatario o la PEC sono
+facoltativi, ma senza nessuno dei due la fattura resta solo nel cassetto
+fiscale del cliente.
+
+| Regime IVA della riga | Nel file |
+| --- | --- |
+| Ordinaria | Aliquota esposta, IVA scorporata dal prezzo |
+| 74-ter | Aliquota 0, Natura **N5**, corrispettivo intero, nessuna imposta esposta |
+| Esente art. 10 | Aliquota 0, Natura **N4** |
+| Fuori campo | Aliquota 0, Natura **N2.2** |
+| Inversione contabile | Aliquota 0, Natura **N6.9**, modificabile riga per riga |
 
 ---
 

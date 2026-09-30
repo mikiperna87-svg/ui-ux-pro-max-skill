@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { CONDIZIONI_PAGAMENTO, MODALITA_PAGAMENTO, NATURE_IVA } from '@/lib/sdi/codici'
 import {
   amountCents,
   intero,
@@ -50,6 +51,20 @@ export const invoiceSchema = z
     payment_terms: optionalText(300),
     notes: optionalText(2000),
     legal_notes: optionalText(2000),
+    // --- Fattura elettronica -------------------------------------------------
+    payment_method: z
+      .enum(MODALITA_PAGAMENTO.map((v) => v.codice) as [string, ...string[]], {
+        error: 'Modalità di pagamento non riconosciuta',
+      })
+      .default('MP05'),
+    payment_condition: z
+      .enum(CONDIZIONI_PAGAMENTO.map((v) => v.codice) as [string, ...string[]], {
+        error: 'Condizione di pagamento non riconosciuta',
+      })
+      .default('TP02'),
+    // Il bollo si applica o non si applica secondo il regime e l'importo, e a
+    // deciderlo è chi tiene la contabilità: qui si chiede, non si indovina.
+    stamp_duty: amountCents('Bollo'),
   })
   .refine(
     (data) => data.due_date === null || data.due_date >= data.issue_date,
@@ -69,6 +84,18 @@ export const invoiceItemSchema = z.object({
   cost: amountCents('Costo del viaggio'),
   vat_percent: percentBps('Aliquota IVA'),
   vat_regime: z.enum(REGIMI, { error: 'Regime IVA non valido' }),
+  // Deroga sulla Natura: vuota vuol dire «quella che discende dal regime».
+  // Serve per l'inversione contabile, dove i sottocodici da N6.1 a N6.8
+  // cambiano con il tipo di operazione e nessuno si può indovinare.
+  vat_nature: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .transform((value) => (value === '' || value === '—' ? null : (value ?? null)))
+    .refine((value) => value === null || NATURE_IVA.some((n) => n.codice === value), {
+      message: 'Natura IVA non riconosciuta',
+    }),
   sort_order: intero('Ordine', 0, 9999, 0),
 })
 

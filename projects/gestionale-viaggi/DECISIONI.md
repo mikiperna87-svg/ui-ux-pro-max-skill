@@ -1427,3 +1427,60 @@ finivano nello stesso muro. La query che il middleware non può permettersi, la
 pagina sì: `/registrati` la fa una volta sola, per sé. Il test end-to-end
 percorre la strada intera — registrazione, agenzia cancellata sotto i piedi,
 ritorno — perché è la sequenza che nessuno rifarebbe a mano.
+
+---
+
+## 79. La fattura elettronica: il file sì, il canale no
+
+**Scelta.** Il gestionale produce il file XML FatturaPA 1.2, lo verifica prima
+di produrlo, gli assegna un progressivo di invio univoco e tiene traccia
+dell'esito. Non lo trasmette: quello resta a un intermediario, e l'esito si
+registra a mano dal pannello.
+
+**Perché.** Parlare direttamente con il Sistema di Interscambio richiede
+accreditamento, un canale accreditato e una firma: è un rapporto contrattuale,
+non una libreria da installare. Gli intermediari che lo fanno per conto terzi
+hanno API diverse fra loro e credenziali che qui non ci sono. Scrivere
+l'integrazione con uno di essi senza poterla provare avrebbe prodotto codice
+che *sembra* funzionare, che è la cosa peggiore da consegnare a chi ci deve
+fatturare davvero.
+
+**Conseguenza.** Il confine è dove il lavoro è verificabile per intero. Quello
+che c'è — tracciato, verifica, progressivo, stato — è provato: i test mettono
+il generatore contro ventisei casi, e la catena intera contro una fattura vera
+del banco di prova, confrontando il totale del file con quello della fattura al
+centesimo. Quando si sceglierà un intermediario, il punto in cui innestarlo è
+uno solo: l'azione che oggi registra l'esito a mano.
+
+La verifica preventiva è la parte che si nota usandolo. Uno scarto di SdI
+arriva giorni dopo, con un codice tipo «00423» e nessun riferimento al campo
+da correggere; il pannello dice la stessa cosa prima, in italiano, e dice
+anche dove si corregge — «Impostazioni → Agenzia», «Scheda del cliente». La
+differenza è fra un problema di cinque minuti e uno di mezza giornata.
+
+---
+
+## 80. Il prezzo è IVA inclusa, e il generatore non lo sapeva
+
+**Scelta.** `ivaRiga` e `imponibileRiga` scorporano l'IVA dal prezzo di riga,
+con la stessa formula di `app.line_vat_cents` sul database. Un test di
+integrazione confronta le due su centosettantasei combinazioni di importo,
+aliquota e quantità.
+
+**Perché.** Il primo generatore trattava il prezzo di riga come imponibile e
+ci aggiungeva l'IVA sopra. Era sbagliato: in tutto il gestionale il prezzo è
+il corrispettivo, IVA compresa — è così che si parla a un cliente al banco, ed
+è così che il database calcola imponibile e imposta. L'errore non si vedeva
+guardando il file, che era ben formato e plausibile: si è visto solo
+confrontando il totale del file (385,83) con quello della fattura (316,25). Il
+ventidue per cento di differenza, dichiarato al fisco.
+
+**Conseguenza.** Il confronto con il database non è un test in più: è il test.
+Una formula fiscale scritta due volte in due linguaggi diverge il giorno in cui
+qualcuno ne tocca una sola, e qui la divergenza sarebbe fra un documento
+fiscale e la sua copia telematica. Da qui viene anche la scelta di sommare
+imponibile e imposta riga per riga invece di ricalcolarli sul gruppo:
+ricalcolare darebbe numeri più tondi e un documento che contraddice il suo
+originale di un centesimo. Il prezzo unitario, nel file, si ricava dividendo
+il totale di riga per la quantità e si porta fino a otto decimali — il totale
+è il numero che deve tornare, quindi è quello a restare intero.
