@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { codiceRegistrazione } from '@/lib/registrazione'
+import { getSession } from '@/server/session'
 import { RegistratiForm } from './registrati-form'
 
 export const metadata: Metadata = { title: 'Crea la tua agenzia' }
 
-export default function RegistratiPage() {
+export default async function RegistratiPage() {
+  // Il rimbalzo che il middleware non puo' fare: li' servirebbe una query a
+  // ogni richiesta, qui basta su questa pagina. Chi ha gia' un'agenzia viva
+  // torna alla panoramica; chi ha solo un account resta e la crea.
+  if (await getSession()) redirect('/')
+
   // Letto sul server: il codice non passa mai dal browser, solo il fatto che
   // ne serva uno.
   const serveCodice = codiceRegistrazione() !== null

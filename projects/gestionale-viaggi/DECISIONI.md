@@ -1398,3 +1398,32 @@ a `maybeSingle`: per un ex membro la riga non è più visibile, e trattarlo come
 un errore a ogni richiesta sarebbe rumore — la sessione semplicemente non si
 apre. Il registro attività resta intatto: dice ancora che quelle agenzie sono
 esistite, che è esattamente il suo mestiere.
+
+---
+
+## 78. Due redirect che si rilanciavano, e una pagina bianca
+
+**Scelta.** Il middleware non rimanda più su `/` chi è autenticato e apre
+`/registrati`: quel rimbalzo resta solo per `/accedi`. A decidere è la pagina
+stessa, che rimanda alla panoramica solo chi ha davvero una sessione
+applicativa.
+
+**Perché.** Avere un utente autenticato non vuol dire avere un'agenzia. Il
+middleware però non lo sa: sa leggere il token, non interrogare le membership —
+e per saperlo servirebbe una query a ogni richiesta, comprese quelle
+speculative che Next fa in anticipo. Così rimbalzava su `/` anche chi
+un'agenzia non ce l'aveva, e `/` — dove `requireSession()` non trova la
+sessione — lo rispediva su `/registrati`. I due redirect si rilanciavano, il
+browser smetteva di seguirli, e al posto di una risposta restava una pagina
+bianca con dentro solo «Salta al contenuto».
+
+**Conseguenza.** Il caso non era teorico e non l'ho introdotto io marcando
+cancellate le agenzie di prova: ci finiva chi riceve un invito — il percorso
+che `signUpAction` dichiara di gestire, «se l'utente ha già una sessione
+creiamo solo l'agenzia» — e chi conferma l'indirizzo senza completare la
+registrazione, che è esattamente quello che il messaggio «dopo la conferma
+potrai completare la creazione dell'agenzia» promette. Tre strade diverse
+finivano nello stesso muro. La query che il middleware non può permettersi, la
+pagina sì: `/registrati` la fa una volta sola, per sé. Il test end-to-end
+percorre la strada intera — registrazione, agenzia cancellata sotto i piedi,
+ritorno — perché è la sequenza che nessuno rifarebbe a mano.

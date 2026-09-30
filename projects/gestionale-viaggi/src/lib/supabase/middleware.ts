@@ -117,7 +117,17 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     return conIntestazioni(NextResponse.redirect(new URL(`/accedi${query}`, request.url)))
   }
 
-  if (user && (pathname === '/accedi' || pathname === '/registrati')) {
+  // Chi ha gia' una sessione non ha niente da fare sul modulo di accesso.
+  //
+  // `/registrati` invece resta raggiungibile, e non e' una svista: avere un
+  // utente autenticato non vuol dire avere un'agenzia. Ci arriva chi e' stato
+  // invitato, chi ha confermato l'indirizzo e non ha finito, e chi aveva
+  // un'agenzia poi cancellata. Rimbalzarli su `/` li mandava contro
+  // `requireSession()`, che li rispediva su `/registrati`: due redirect che si
+  // rilanciavano a vicenda e una pagina bianca al posto di una risposta. Chi
+  // invece l'agenzia ce l'ha viene rimandato indietro dalla pagina stessa, che
+  // puo' permettersi la query che qui costerebbe a ogni richiesta.
+  if (user && pathname === '/accedi') {
     return conIntestazioni(NextResponse.redirect(new URL('/', request.url)))
   }
 
