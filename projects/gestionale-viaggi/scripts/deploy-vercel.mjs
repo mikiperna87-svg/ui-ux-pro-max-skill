@@ -45,8 +45,19 @@ const token = process.env.VERCEL_TOKEN
 const base = process.env.VERCEL_API_URL ?? 'https://api.vercel.com'
 const query = team ? `?teamId=${encodeURIComponent(team)}` : ''
 
-/** Una chiamata all'API di Vercel. Ritorna { stato, corpo }. */
-async function chiama(metodo, percorso, { json, file, intestazioni = [] } = {}) {
+const attesa = (ms) => new Promise((ok) => setTimeout(ok, ms))
+
+/**
+ * Una chiamata all'API di Vercel. Ritorna { stato, corpo }.
+ *
+ * `ripetibile` dice che rifare la stessa chiamata non produce un secondo
+ * effetto: le letture, e il caricamento di un file, che e' indirizzato dal suo
+ * digest e quindi riscrive lo stesso oggetto. Solo quelle vengono ritentate
+ * dopo un 5xx — l'API risponde 502 «upstream request failed» abbastanza spesso
+ * da fermare un rilascio per niente. La creazione della pubblicazione no: un
+ * ritentativo alla cieca ne aprirebbe due.
+ */
+async function chiama(metodo, percorso, { json, file, intestazioni = [], ripetibile = false } = {}) {
   const comando = [
     '-sS',
     '-X', metodo,
@@ -62,17 +73,25 @@ async function chiama(metodo, percorso, { json, file, intestazioni = [] } = {}) 
   }
   comando.push(`${base}${percorso}`)
 
-  const { stdout } = await esegui('curl', comando, { maxBuffer: 64 * 1024 * 1024 })
-  const taglio = stdout.lastIndexOf('\n')
-  const testo = stdout.slice(0, taglio)
-  const stato = Number(stdout.slice(taglio + 1).trim())
-  let corpo = testo
-  try {
-    corpo = JSON.parse(testo)
-  } catch {
-    // Alcune risposte sono vuote: si tiene il testo.
+  let esito
+  for (let tentativo = 0; ; tentativo += 1) {
+    const { stdout } = await esegui('curl', comando, { maxBuffer: 64 * 1024 * 1024 })
+    const taglio = stdout.lastIndexOf('\n')
+    const testo = stdout.slice(0, taglio)
+    const stato = Number(stdout.slice(taglio + 1).trim())
+    let corpo = testo
+    try {
+      corpo = JSON.parse(testo)
+    } catch {
+      // Alcune risposte sono vuote: si tiene il testo.
+    }
+    esito = { stato, corpo }
+    if (!ripetibile || stato < 500 || tentativo >= 3) break
+    const pausa = 2000 * 2 ** tentativo
+    console.log(`  · HTTP ${stato} su ${percorso}, riprovo fra ${pausa / 1000}s`)
+    await attesa(pausa)
   }
-  return { stato, corpo }
+  return esito
 }
 
 function errore(etichetta, { stato, corpo }) {
@@ -114,7 +133,9 @@ async function run() {
 
   // Il progetto: se esiste già si riusa, così le variabili d'ambiente
   // impostate a mano non vengono perse a ogni pubblicazione.
-  const esistente = await chiama('GET', `/v9/projects/${encodeURIComponent(nome)}${query}`)
+  const esistente = await chiama('GET', `/v9/projects/${encodeURIComponent(nome)}${query}`, {
+    ripetibile: true,
+  })
   if (esistente.stato === 404) {
     const creato = await chiama('POST', `/v10/projects${query}`, {
       json: { name: nome, framework: 'nextjs' },
@@ -135,6 +156,7 @@ async function run() {
         `Content-Length: ${f.size}`,
         'Content-Type: application/octet-stream',
       ],
+      ripetibile: true,
     })
     if (caricato.stato >= 300) throw errore(`caricamento di ${f.relativo}`, caricato)
   }
@@ -159,7 +181,7 @@ async function run() {
 
 /** Legge lo stato di una pubblicazione già avviata. */
 async function stato(id) {
-  const risposta = await chiama('GET', `/v13/deployments/${id}${query}`)
+  const risposta = await chiama('GET', `/v13/deployments/${id}${query}`, { ripetibile: true })
   if (risposta.stato >= 300) throw errore('lettura della pubblicazione', risposta)
   const { readyState, url, errorMessage } = risposta.corpo
   console.log(`${readyState}  https://${url}`)
