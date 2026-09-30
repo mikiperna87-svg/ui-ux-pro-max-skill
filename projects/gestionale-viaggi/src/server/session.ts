@@ -63,7 +63,11 @@ export const getSession = cache(async (): Promise<AppSession | null> => {
   if (!membership) return null
 
   const [{ data: agency }, { data: settings }] = await Promise.all([
-    supabase.from('agencies').select('*').eq('id', membership.agency_id).single(),
+    // `maybeSingle` e non `single`: dalla 0017 un'agenzia cancellata non e' piu'
+    // visibile attraverso la RLS, e per i suoi ex membri la riga semplicemente
+    // non c'e'. `single` lo tratterebbe come un errore a ogni richiesta; qui
+    // torna null e la sessione non si apre, che e' la cosa giusta.
+    supabase.from('agencies').select('*').eq('id', membership.agency_id).maybeSingle(),
     supabase.from('agency_settings').select('*').eq('agency_id', membership.agency_id).single(),
   ])
 

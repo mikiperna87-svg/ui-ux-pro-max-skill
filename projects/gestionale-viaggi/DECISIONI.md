@@ -1345,3 +1345,56 @@ decide, consapevolmente, o di riportare il database allo stato appena creato —
 `drop schema public cascade` e le sedici migrazioni da capo, che porta via il
 registro insieme a tutto il resto — o di tenerle. La scelta che non si può fare
 è la terza: togliere due righe dal registro e lasciare il resto in piedi.
+
+---
+
+## 76. La registrazione si chiude con un codice, non con un interruttore
+
+**Scelta.** La variabile `CODICE_REGISTRAZIONE`. Se c'è, il modulo di
+registrazione chiede un codice di invito e il server lo verifica prima di
+toccare qualunque cosa; se non c'è, il modulo resta aperto com'era.
+
+**Perché.** La strada ovvia era `disable_signup` su Supabase: un interruttore,
+zero righe di codice. Ma chiude fuori anche il proprietario, e in questa
+installazione l'agenzia vera non era ancora stata creata: girarlo avrebbe
+lasciato il gestionale in piedi e inaccessibile a tutti, compreso chi lo
+possiede. Un codice chiude la porta agli sconosciuti lasciando la chiave a chi
+deve entrare, e la stessa chiave serve per far entrare la seconda agenzia
+quando arriverà.
+
+**Conseguenza.** La verifica sta nella Server Action e non nel modulo: un campo
+nascosto o il `required` del browser non fermano nessuno, chiunque può inviare
+il form a mano. Sta dopo il limite di frequenza — cinque tentativi l'ora per
+indirizzo — così provare i codici a tappeto non è un'opzione. Il confronto passa
+da uno sha256 e da `timingSafeEqual`: un `===` esce al primo carattere diverso,
+e su abbastanza tentativi quella differenza di tempo si misura; lo sha256 serve
+anche a non far trapelare la lunghezza del codice. La variabile non ha il
+prefisso `NEXT_PUBLIC`, quindi il codice non finisce nel pacchetto che arriva
+al browser: il modulo sa soltanto che un codice serve.
+
+---
+
+## 77. Una colonna che dice «cancellata» adesso cancella
+
+**Scelta.** La migrazione 0017 insegna a `app.current_agency_ids()`,
+`app.current_role()` e `app.current_membership_id()` a ignorare le agenzie con
+`deleted_at` valorizzato.
+
+**Perché.** La colonna esisteva dalla 0002 e non la guardava nessuno. Si poteva
+marcare un'agenzia come cancellata e i suoi membri continuavano a entrare, a
+leggere e a scrivere: una colonna che dichiara una cosa e non la fa è peggio di
+una colonna che non c'è, perché qualcuno prima o poi ci conta. Me ne sono
+accorto cercando un modo onesto di togliere di mezzo le due agenzie nate dalla
+verifica di rilascio, dopo che il registro attività — immutabile, come chiesto
+— si era rifiutato di lasciarle cancellare.
+
+**Conseguenza.** Il controllo sta nelle tre funzioni e non nel codice
+dell'applicazione perché quelle tre sono la porta da cui passa ogni policy di
+questo schema: chiudendola lì, la cancellazione vale per venticinque tabelle in
+un colpo solo, comprese le query che nessuno ha ancora scritto. `has_role`,
+`can_write`, `can_manage_accounting` e `is_owner` leggono tutte `current_role`
+e si adeguano da sole. In `getSession` la lettura dell'agenzia passa da `single`
+a `maybeSingle`: per un ex membro la riga non è più visibile, e trattarlo come
+un errore a ogni richiesta sarebbe rumore — la sessione semplicemente non si
+apre. Il registro attività resta intatto: dice ancora che quelle agenzie sono
+esistite, che è esattamente il suo mestiere.

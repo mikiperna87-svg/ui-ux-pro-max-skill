@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { fieldErrorsFrom, type ActionState } from '@/lib/action-state'
 import { createClient } from '@/lib/supabase/server'
 import { siteUrl } from '@/lib/env'
+import { codiceCorretto, codiceRegistrazione } from '@/lib/registrazione'
 import { checkRateLimit } from '@/server/rate-limit'
 import {
   magicLinkSchema,
@@ -161,6 +162,19 @@ export async function signUpAction(_previous: ActionState, formData: FormData): 
   const allowed = await checkRateLimit({ action: 'registrazione', limit: 5, windowSeconds: 3600 })
   if (!allowed) {
     return { status: 'error', message: 'Troppe registrazioni da questo indirizzo. Riprova più tardi.' }
+  }
+
+  // Il codice si verifica qui e non nel modulo: il campo nascosto o la
+  // validazione del browser non sono una difesa, chiunque può inviare il form
+  // a mano. Sta dopo il limite di frequenza, così i tentativi a tappeto si
+  // fermano prima di arrivare al confronto.
+  const atteso = codiceRegistrazione()
+  if (atteso !== null && !codiceCorretto(atteso, String(formData.get('codice') ?? ''))) {
+    return {
+      status: 'error',
+      message: 'Il codice di invito non è valido.',
+      fieldErrors: { codice: 'Controlla il codice ricevuto dall’agenzia' },
+    }
   }
 
   const supabase = await createClient()

@@ -282,6 +282,8 @@ installarla avrebbe dato a un servizio terzo la lettura dell'intero repository
    | `SUPABASE_SERVICE_ROLE_KEY` | **sensibile**: scavalca la RLS, non deve essere rileggibile |
    | `NEXT_PUBLIC_SITE_URL` | normale, l'indirizzo definitivo |
 
+   | `CODICE_REGISTRAZIONE` | normale — il codice di invito senza cui non si aprono nuove agenzie |
+
    `RESEND_API_KEY` ed `EMAIL_MITTENTE` solo quando la posta è configurata, e la
    prima è sensibile.
 
@@ -315,9 +317,9 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Cosa | Dove | Perché |
 | --- | --- | --- |
 | Conferma dell'email spenta | Supabase → Authentication → Providers, `mailer_autoconfirm` | Senza un fornitore di posta la conferma bloccherebbe la registrazione a metà (DECISIONI 74) |
-| Registrazione aperta a chiunque | Supabase → Authentication, `disable_signup` | Da chiudere quando le agenzie sono entrate |
+| ~~Registrazione aperta a chiunque~~ | risolto | Chiusa da `CODICE_REGISTRAZIONE`: senza il codice di invito non si apre nessuna agenzia (DECISIONI 76). Si cambia riscrivendo la variabile su Vercel e ripubblicando |
 | Posta in coda | `RESEND_API_KEY`, `EMAIL_MITTENTE` | Senza chiave i messaggi si compongono e restano in attesa: nulla si perde, nulla parte |
-| Due agenzie di prova | database | Nate dalla verifica di rilascio, isolate dalla RLS (DECISIONI 75) |
+| ~~Due agenzie di prova~~ | risolto | Marcate cancellate. Dalla 0017 `agencies.deleted_at` vale davvero: la RLS le toglie da ogni query e i loro account non entrano più (DECISIONI 77) |
 | Supabase è sul piano gratuito | Supabase → Billing | Un progetto gratuito viene **messo in pausa dopo sette giorni senza attività**: il gestionale smette di rispondere finché qualcuno non lo riattiva. Per un'agenzia che ci lavora davvero è il primo costo da mettere in conto |
 | Vercel è sul piano Hobby | Vercel → Settings → Billing | Il piano Hobby è riservato a usi non commerciali dalle condizioni di Vercel. Un'agenzia che fattura con questo gestionale ha bisogno del piano Pro |
 

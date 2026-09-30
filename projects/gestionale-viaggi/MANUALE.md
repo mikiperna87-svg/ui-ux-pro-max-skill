@@ -42,10 +42,16 @@ Guida per il personale dell'agenzia. Nessuna conoscenza tecnica richiesta.
 Apri **https://gestionale-viaggi-nu.vercel.app**. Hai due modi per entrare.
 
 Se l'agenzia non è ancora stata creata, dal riquadro di accesso scegli **Crea
-un'agenzia**: servono il nome dell'agenzia, il tuo nome e cognome, l'email e una
-password di almeno 10 caratteri con maiuscole, minuscole e numeri. La partita IVA
-si può aggiungere dopo, da Impostazioni. Chi crea l'agenzia ne diventa il
-titolare.
+un'agenzia**: servono il **codice di invito**, il nome dell'agenzia, il tuo nome
+e cognome, l'email e una password di almeno 10 caratteri con maiuscole,
+minuscole e numeri. La partita IVA si può aggiungere dopo, da Impostazioni. Chi
+crea l'agenzia ne diventa il titolare.
+
+> **Il codice di invito** serve perché l'indirizzo del gestionale è pubblico:
+> senza, chiunque ci capitasse potrebbe aprirsi un'agenzia. Lo dà chi gestisce
+> l'installazione, ed è lo stesso per tutte le agenzie che si vogliono far
+> entrare. Non serve ai collaboratori: loro ricevono un invito dal titolare
+> (capitolo 17).
 
 **Con la password.** Inserisci email e password e premi **Accedi**.
 

@@ -9,11 +9,24 @@ import { Input } from '@/components/ui/input'
 import { IDLE } from '@/lib/action-state'
 import { signUpAction } from '@/server/actions/auth'
 
-export function RegistratiForm() {
+export function RegistratiForm({ serveCodice = false }: { serveCodice?: boolean }) {
   const [state, submit] = useActionState(signUpAction, IDLE)
 
   return (
     <form action={submit} className="space-y-4" noValidate>
+      {serveCodice ? (
+        <Field
+          label="Codice di invito"
+          required
+          hint="Te lo dà chi gestisce il gestionale."
+          error={state.fieldErrors?.codice}
+        >
+          {(props) => (
+            <Input {...props} name="codice" autoComplete="off" spellCheck={false} required />
+          )}
+        </Field>
+      ) : null}
+
       <Field label="Nome dell’agenzia" required error={state.fieldErrors?.agencyName}>
         {(props) => (
           <Input {...props} name="agencyName" autoComplete="organization" placeholder="Orizzonti Viaggi" required />
