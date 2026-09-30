@@ -318,6 +318,8 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Registrazione aperta a chiunque | Supabase → Authentication, `disable_signup` | Da chiudere quando le agenzie sono entrate |
 | Posta in coda | `RESEND_API_KEY`, `EMAIL_MITTENTE` | Senza chiave i messaggi si compongono e restano in attesa: nulla si perde, nulla parte |
 | Due agenzie di prova | database | Nate dalla verifica di rilascio, isolate dalla RLS (DECISIONI 75) |
+| Supabase è sul piano gratuito | Supabase → Billing | Un progetto gratuito viene **messo in pausa dopo sette giorni senza attività**: il gestionale smette di rispondere finché qualcuno non lo riattiva. Per un'agenzia che ci lavora davvero è il primo costo da mettere in conto |
+| Vercel è sul piano Hobby | Vercel → Settings → Billing | Il piano Hobby è riservato a usi non commerciali dalle condizioni di Vercel. Un'agenzia che fattura con questo gestionale ha bisogno del piano Pro |
 
 ### Prima di dire che è finita
 

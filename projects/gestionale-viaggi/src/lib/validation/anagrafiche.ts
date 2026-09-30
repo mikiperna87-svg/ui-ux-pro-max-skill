@@ -50,13 +50,13 @@ export const customerSchema = z
     marketing_consent: checkbox,
     profiling_consent: checkbox,
   })
+  // Il cognome, non «uno dei due»: e' la colonna su cui l'elenco si ordina e si
+  // cerca, ed e' quella che compare in fattura. Un cliente registrato con il
+  // solo nome resta introvabile il giorno dopo.
   .refine(
-    (data) =>
-      data.kind === 'azienda'
-        ? data.company_name !== null
-        : data.first_name !== null || data.last_name !== null,
+    (data) => (data.kind === 'azienda' ? data.company_name !== null : data.last_name !== null),
     {
-      message: 'Per un privato serve almeno il cognome, per un azienda la ragione sociale',
+      message: 'Per un privato serve il cognome, per un’azienda la ragione sociale',
       path: ['last_name'],
     },
   )

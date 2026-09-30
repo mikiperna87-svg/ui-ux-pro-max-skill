@@ -9,9 +9,26 @@ const clienteBase = {
 }
 
 describe('schema cliente', () => {
-  it('accetta un privato con il solo cognome', () => {
+  it('accetta un privato con nome e cognome', () => {
     const result = customerSchema.safeParse(clienteBase)
     expect(result.success).toBe(true)
+  })
+
+  it('accetta un privato con il solo cognome', () => {
+    const result = customerSchema.safeParse({ ...clienteBase, first_name: '' })
+    expect(result.success).toBe(true)
+  })
+
+  // Il contrario non vale: il cognome e' la colonna su cui l'elenco si ordina e
+  // si cerca, e quella che finisce in fattura. Con il solo nome il cliente
+  // risulta registrato e resta introvabile.
+  it('rifiuta un privato con il solo nome', () => {
+    const result = customerSchema.safeParse({ ...clienteBase, last_name: '' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(['last_name'])
+      expect(result.error.issues[0]?.message).toContain('cognome')
+    }
   })
 
   it('pretende la ragione sociale per un azienda', () => {
