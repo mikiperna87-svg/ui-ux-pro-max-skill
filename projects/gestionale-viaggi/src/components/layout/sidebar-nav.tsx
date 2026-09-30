@@ -9,15 +9,17 @@ import { cn } from '@/lib/utils'
 
 export function SidebarNav({
   role,
+  piattaforma = false,
   collapsed = false,
   onNavigate,
 }: {
   role: Role
+  piattaforma?: boolean
   collapsed?: boolean
   onNavigate?: () => void
 }) {
   const pathname = usePathname()
-  const items = visibleNavItems(NAV_ITEMS, role)
+  const items = visibleNavItems(NAV_ITEMS, role, piattaforma)
 
   return (
     <nav aria-label="Navigazione principale" className="flex flex-col gap-0.5">

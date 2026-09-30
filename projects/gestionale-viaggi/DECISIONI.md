@@ -1534,3 +1534,53 @@ controlli restano immediati riga per riga — e vale per tutte le chiavi, non
 solo per le due del ciclo: scegliere quali vorrebbe dire rifare la scelta a
 ogni tabella nuova, e sbagliarla una volta. Beneficia anche l'importazione di
 dati da un altro gestionale, che ha lo stesso problema.
+
+---
+
+## 83. Il pannello di piattaforma vede i numeri, mai i dati
+
+**Scelta.** Chi amministra la piattaforma vede l'elenco delle agenzie con i
+loro conteggi — utenti, clienti, pratiche, fatture, ultima attività — e i
+nomi dei membri. Non vede un solo cliente, una sola pratica, una sola fattura.
+
+**Perché.** Un pannello di amministrazione è il posto più naturale dove
+l'isolamento fra agenzie si rompe. La promessa «i tuoi dati li vedi solo tu»
+vale finché non esiste un ruolo che la scavalca, e quel ruolo, una volta
+creato, tende a crescere. Il confine sta nello schema e non nella disciplina
+di chi scrive le query: nessuna policy dà all'amministratore accesso a
+`customers`, `bookings`, `quotes` o `invoices`, e due test lo verificano
+leggendo quelle tabelle e contando zero.
+
+**Conseguenza.** I conteggi non potevano venire dalla vista, che gira con i
+permessi di chi la legge: tornavano tutti zero, che è l'isolamento che
+funziona e un pannello che non serve. Vengono da `app.platform_counts`, una
+funzione `security definer` che restituisce numeri e nient'altro, e che chiude
+con `where app.is_platform_admin()` — una funzione `security definer` senza
+controllo è una porta di servizio lasciata aperta.
+
+Amministratore non si diventa dall'applicazione: la riga in `platform_admins`
+si inserisce da SQL o con la chiave di servizio. Il primo amministratore di un
+sistema non può crearselo attraverso il sistema stesso.
+
+---
+
+## 84. Sospendere ferma la scrittura, non la lettura
+
+**Scelta.** Un'agenzia sospesa continua a consultare ed esportare tutto quello
+che ha registrato. Smette solo di registrarne di nuovo. La sospensione
+richiede un motivo, e il motivo finisce nel registro attività dell'agenzia e
+in una striscia in cima a ogni pagina.
+
+**Perché.** Tenere in ostaggio i dati di chi non ha pagato è una leva che non
+serve: chi vuole andarsene se ne va comunque, e chi sta per rimettersi in
+regola nel frattempo non può lavorare né capire perché. Su dati fiscali di
+un'azienda è anche una posizione difficile da difendere. Fermare la scrittura
+ottiene lo stesso risultato commerciale senza nessuna di queste conseguenze.
+
+**Conseguenza.** Il blocco sta in `can_write`, `can_manage_accounting` e
+`is_owner`, che passano tutte da `agency_suspended`: una riga in più in tre
+funzioni, e vale per le venticinque tabelle in una volta sola. `can_write`
+resta falsa comunque per chi ha il ruolo di sola lettura, quindi la
+sospensione non allenta niente. Il motivo obbligatorio non è burocrazia: chi
+si trova il gestionale in sola lettura deve poter leggere perché, invece di
+telefonare per scoprirlo.

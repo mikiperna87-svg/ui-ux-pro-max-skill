@@ -336,10 +336,33 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Fattura elettronica | `npx playwright test tests/e2e/fattura-elettronica.spec.ts` — il totale del file XML deve coincidere al centesimo con quello della fattura |
 | Formule IVA allineate | `npx vitest run tests/db/sdi-formule.test.ts` — lo scorporo in TypeScript e quello in SQL devono dare lo stesso numero |
 | Copia di sicurezza ripristinabile | `npm run db:verifica-backup -- --sono-sicuro` sul banco locale: copia, azzera, rimette, confronta |
+| Isolamento dal pannello di piattaforma | `npx vitest run tests/db/piattaforma.test.ts` — l'amministratore deve contare zero clienti, zero pratiche, zero fatture |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
 | Intestazioni | la risposta porta `Content-Security-Policy` e, in HTTPS, `Strict-Transport-Security` |
+
+---
+
+## Amministrazione della piattaforma
+
+Chi vende il gestionale a più agenzie ha una sezione **Piattaforma**: elenco
+delle agenzie con i loro numeri, chi è il titolare, sospensione e
+riattivazione. Il pannello mostra **quante righe** ha ogni agenzia, non che
+cosa contengono — nessuna policy dà accesso a clienti, pratiche o fatture
+altrui, e due test lo verificano contando zero (DECISIONI 83).
+
+Amministratore non si diventa dall'applicazione. La riga si inserisce da SQL:
+
+```sql
+insert into public.platform_admins (user_id, note)
+select id, 'titolare della piattaforma' from auth.users where email = 'tu@esempio.it';
+```
+
+**Sospendere** ferma la scrittura, non la lettura: l'agenzia continua a
+consultare ed esportare i propri dati, e vede in cima a ogni pagina una
+striscia con il motivo. Il motivo è obbligatorio e finisce anche nel suo
+registro attività (DECISIONI 84).
 
 ---
 

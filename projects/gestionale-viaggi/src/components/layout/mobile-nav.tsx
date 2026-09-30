@@ -9,7 +9,15 @@ import { DialogTitle } from '@/components/ui/dialog'
 import type { Role } from '@/lib/roles'
 
 /** Su schermo stretto la barra laterale diventa un pannello a scomparsa. */
-export function MobileNav({ role, agencyName }: { role: Role; agencyName: string }) {
+export function MobileNav({
+  role,
+  piattaforma = false,
+  agencyName,
+}: {
+  role: Role
+  piattaforma?: boolean
+  agencyName: string
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -32,7 +40,7 @@ export function MobileNav({ role, agencyName }: { role: Role; agencyName: string
             <DialogTitle className="truncate text-small font-semibold">{agencyName}</DialogTitle>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
-            <SidebarNav role={role} onNavigate={() => setOpen(false)} />
+            <SidebarNav role={role} piattaforma={piattaforma} onNavigate={() => setOpen(false)} />
           </div>
           <div className="border-t border-border p-2">
             <DialogPrimitive.Close asChild>

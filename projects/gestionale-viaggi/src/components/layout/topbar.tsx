@@ -15,6 +15,7 @@ import type { ThemePreference } from '@/lib/preferences'
 
 export function Topbar({
   role,
+  piattaforma = false,
   roleLabel,
   fullName,
   email,
@@ -23,6 +24,7 @@ export function Topbar({
   canOpenSettings,
 }: {
   role: Role
+  piattaforma?: boolean
   roleLabel: string
   fullName: string
   email: string
@@ -36,7 +38,7 @@ export function Topbar({
 
   // Le stesse voci della barra laterale: una scorciatoia non porta mai dove
   // l'utente non potrebbe comunque andare.
-  const sezioni = useMemo(() => visibleNavItems(NAV_ITEMS, role), [role])
+  const sezioni = useMemo(() => visibleNavItems(NAV_ITEMS, role, piattaforma), [role, piattaforma])
 
   /** Scorciatoie globali: ⌘/ per l’aiuto, "g" seguito da una lettera per navigare. */
   useEffect(() => {
@@ -79,7 +81,7 @@ export function Topbar({
 
   return (
     <header className="sticky top-0 z-30 flex h-(--container-topbar) shrink-0 items-center gap-2 border-b border-border bg-bg/85 px-3 backdrop-blur">
-      <MobileNav role={role} agencyName={agencyName} />
+      <MobileNav role={role} piattaforma={piattaforma} agencyName={agencyName} />
 
       <div className="flex-1">
         <CommandPalette role={role} onOpenShortcuts={() => setShortcutsOpen(true)} />

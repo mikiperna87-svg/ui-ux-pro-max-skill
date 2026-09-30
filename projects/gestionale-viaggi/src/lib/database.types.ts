@@ -116,6 +116,8 @@ export interface Database {
           share_capital_cents: number | null
           sole_shareholder: boolean
           in_liquidation: boolean
+          suspended_at: string | null
+          suspension_reason: string | null
         }
         Insert: {
           id?: string
@@ -147,6 +149,8 @@ export interface Database {
           share_capital_cents?: number | null
           sole_shareholder?: boolean
           in_liquidation?: boolean
+          suspended_at?: string | null
+          suspension_reason?: string | null
         }
         Update: {
           id?: string
@@ -178,6 +182,8 @@ export interface Database {
           share_capital_cents?: number | null
           sole_shareholder?: boolean
           in_liquidation?: boolean
+          suspended_at?: string | null
+          suspension_reason?: string | null
         }
         Relationships: []
       }
@@ -1259,6 +1265,27 @@ export interface Database {
         }
         Relationships: []
       }
+      platform_admins: {
+        Row: {
+          user_id: string
+          note: string | null
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          user_id: string
+          note?: string | null
+          created_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          user_id?: string
+          note?: string | null
+          created_at?: string
+          created_by?: string | null
+        }
+        Relationships: []
+      }
       quote_items: {
         Row: {
           id: string
@@ -2072,6 +2099,37 @@ export interface Database {
         }
         Relationships: []
       }
+      platform_agencies: {
+        Row: {
+          id: string | null
+          name: string | null
+          vat_number: string | null
+          city: string | null
+          province: string | null
+          created_at: string | null
+          suspended_at: string | null
+          suspension_reason: string | null
+          deleted_at: string | null
+          members: number | null
+          customers: number | null
+          bookings: number | null
+          invoices: number | null
+          last_activity: string | null
+        }
+        Relationships: []
+      }
+      platform_members: {
+        Row: {
+          agency_id: string | null
+          membership_id: string | null
+          full_name: string | null
+          email: string | null
+          role: Enums['user_role'] | null
+          is_active: boolean | null
+          created_at: string | null
+        }
+        Relationships: []
+      }
       quote_item_list: {
         Row: {
           id: string | null
@@ -2371,6 +2429,10 @@ export interface Database {
         Args: { p_from: string | null; p_to: string | null }
         Returns: { owner_id: string | null; owner_name: string | null; quotes_count: number | null; sent_count: number | null; accepted_count: number | null; converted_count: number | null; rejected_count: number | null; conversion_bps: number | null; accepted_cents: number | null }[]
       }
+      resume_agency: {
+        Args: { p_agency_id: string | null }
+        Returns: undefined
+      }
       send_invoice: {
         Args: { p_invoice_id: string | null }
         Returns: unknown
@@ -2378,6 +2440,10 @@ export interface Database {
       set_payout_status: {
         Args: { p_payout_id: string | null; p_status: Enums['payout_status'] | null; p_paid_at?: string | null; p_method?: Enums['payment_method'] | null; p_reference?: string | null; p_supplier_invoice_number?: string | null }
         Returns: unknown
+      }
+      suspend_agency: {
+        Args: { p_agency_id: string | null; p_reason: string | null }
+        Returns: undefined
       }
       sync_booking_payouts: {
         Args: { p_booking_id: string | null }

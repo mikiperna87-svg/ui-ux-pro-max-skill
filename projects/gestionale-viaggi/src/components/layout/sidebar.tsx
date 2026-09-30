@@ -11,10 +11,12 @@ import { cn } from '@/lib/utils'
 
 export function Sidebar({
   role,
+  piattaforma = false,
   agencyName,
   defaultCollapsed,
 }: {
   role: Role
+  piattaforma?: boolean
   agencyName: string
   defaultCollapsed: boolean
 }) {
@@ -60,7 +62,7 @@ export function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
-        <SidebarNav role={role} collapsed={collapsed} />
+        <SidebarNav role={role} piattaforma={piattaforma} collapsed={collapsed} />
       </div>
 
       <div className={cn('border-t border-border p-2', collapsed && 'flex justify-center')}>

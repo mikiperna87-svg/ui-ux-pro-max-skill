@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { cache } from 'react'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { canSeeMargins, PERMISSIONS, type Role } from '@/lib/roles'
@@ -98,6 +98,33 @@ export async function requireSession(): Promise<AppSession> {
 
   const session = await getSession()
   if (!session) redirect('/registrati')
+  return session
+}
+
+/**
+ * Vero se l'utente autenticato amministra la piattaforma.
+ *
+ * Una query per richiesta, memorizzata come la sessione: la chiede la barra
+ * laterale per decidere se mostrare la voce, e la chiede la pagina per
+ * decidere se servirla. La verità però non sta qui — sta nella RLS, che a chi
+ * non è amministratore restituisce una vista vuota comunque.
+ */
+export const isPlatformAdmin = cache(async (): Promise<boolean> => {
+  const user = await getUtente()
+  if (!user) return false
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('platform_admins')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  return data !== null
+})
+
+/** Pagina riservata a chi amministra la piattaforma. */
+export async function requirePlatformAdmin(): Promise<AppSession> {
+  const session = await requireSession()
+  if (!(await isPlatformAdmin())) notFound()
   return session
 }
 
