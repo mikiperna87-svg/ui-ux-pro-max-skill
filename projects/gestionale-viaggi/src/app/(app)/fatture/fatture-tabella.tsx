@@ -290,15 +290,20 @@ export function FattureTabella({
           <EmptyState
             icon={<FileText />}
             title="Nessuna fattura"
-            description="Una fattura nasce quasi sempre da una pratica: dalla scheda della pratica, «Fattura» ne apre la bozza con le righe già compilate."
+            description="Una fattura nasce quasi sempre da una pratica: dalla scheda della pratica, «Fattura» ne apre la bozza con le righe già compilate. I documenti già emessi dal gestionale precedente si importano con il loro numero."
             action={
               canWrite ? (
-                <Button asChild variant="primary" size="sm">
-                  <Link href="/fatture/nuova">
-                    <Plus aria-hidden="true" />
-                    Nuova fattura
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button asChild variant="primary" size="sm">
+                    <Link href="/fatture/nuova">
+                      <Plus aria-hidden="true" />
+                      Nuova fattura
+                    </Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link href="/fatture/importa">Importa i documenti pregressi</Link>
+                  </Button>
+                </div>
               ) : undefined
             }
           />

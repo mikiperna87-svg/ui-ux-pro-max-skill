@@ -213,6 +213,7 @@ export interface Database {
           email_from_name: string | null
           email_reply_to: string | null
           email_signature: string | null
+          onboarding_dismissed_at: string | null
         }
         Insert: {
           id?: string
@@ -238,6 +239,7 @@ export interface Database {
           email_from_name?: string | null
           email_reply_to?: string | null
           email_signature?: string | null
+          onboarding_dismissed_at?: string | null
         }
         Update: {
           id?: string
@@ -263,6 +265,7 @@ export interface Database {
           email_from_name?: string | null
           email_reply_to?: string | null
           email_signature?: string | null
+          onboarding_dismissed_at?: string | null
         }
         Relationships: []
       }

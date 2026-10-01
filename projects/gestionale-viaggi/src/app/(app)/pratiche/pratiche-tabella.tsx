@@ -324,15 +324,20 @@ export function PraticheTabella({
           <EmptyState
             icon={<Luggage />}
             title="Nessuna pratica aperta"
-            description="La pratica è il contenitore di un viaggio: cliente, passeggeri, servizi, incassi e scadenze."
+            description="La pratica è il contenitore di un viaggio: cliente, passeggeri, servizi, incassi e scadenze. Se arrivi da un altro gestionale, portale dentro invece di riscriverle."
             action={
               canWrite ? (
-                <Button asChild variant="primary" size="sm">
-                  <Link href="/pratiche/nuova">
-                    <Luggage aria-hidden="true" />
-                    Apri la prima pratica
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button asChild variant="primary" size="sm">
+                    <Link href="/pratiche/nuova">
+                      <Luggage aria-hidden="true" />
+                      Apri la prima pratica
+                    </Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link href="/pratiche/importa">Importa da CSV</Link>
+                  </Button>
+                </div>
               ) : undefined
             }
           />

@@ -229,3 +229,32 @@ export async function updateMemberAction(_previous: ActionState, formData: FormD
   revalidatePath('/impostazioni')
   return { status: 'success', message: 'Utente aggiornato.' }
 }
+
+/**
+ * Chiude o riapre il riquadro dei primi passi.
+ *
+ * Lo stato sta sull'agenzia e non sulla persona: i primi passi riguardano la
+ * configurazione dell'agenzia, e il secondo titolare che entra non deve
+ * rivedere un percorso già fatto. Chiuderlo non è una via senza ritorno — dalle
+ * impostazioni si riapre.
+ */
+export async function primiPassiAction(mostra: boolean): Promise<ActionState> {
+  const session = await requirePermission('settings')
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('agency_settings')
+    .update({ onboarding_dismissed_at: mostra ? null : new Date().toISOString() })
+    .eq('agency_id', session.agency.id)
+
+  if (error) {
+    return { status: 'error', message: 'Non siamo riusciti a salvare la scelta.' }
+  }
+
+  revalidatePath('/')
+  revalidatePath('/impostazioni')
+  return {
+    status: 'success',
+    message: mostra ? 'I primi passi sono di nuovo in panoramica.' : 'Primi passi nascosti.',
+  }
+}

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@/components/dashboard/page-header'
+import { RiapriPrimiPassi } from '@/components/dashboard/primi-passi'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/server'
 import { listEmailMessages, statoPosta } from '@/server/queries/email'
@@ -67,7 +69,28 @@ export default async function ImpostazioniPage() {
         </TabsContent>
 
         <TabsContent value="parametri">
-          <ParametriForm settings={session.settings} />
+          <div className="space-y-4">
+            <ParametriForm settings={session.settings} />
+
+            {/* Nascondere i primi passi non è una via senza ritorno: chi li ha
+                chiusi e vuole finire il percorso li ritrova qui. */}
+            {session.settings.onboarding_dismissed_at ? (
+              <Card>
+                <CardHeader>
+                  <div className="space-y-1">
+                    <CardTitle>Primi passi</CardTitle>
+                    <p className="text-small text-text-muted">
+                      Il percorso del primo giorno è nascosto dalla panoramica. Rimettilo per
+                      vedere che cosa resta da configurare.
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <RiapriPrimiPassi />
+                </CardContent>
+              </Card>
+            ) : null}
+          </div>
         </TabsContent>
 
         <TabsContent value="posta">

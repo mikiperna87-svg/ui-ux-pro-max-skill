@@ -39,6 +39,7 @@ documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 | **Clienti** | Elenco con ricerca insensibile ad accenti e maiuscole, filtri, ordinamento, colonne configurabili, selezione multipla, esportazione CSV e importazione guidata · scheda con valore generato, margine, viaggi, passeggeri, consensi e cronologia · esportazione e anonimizzazione GDPR |
 | **Passeggeri** | Anagrafica separata dai clienti, con documento di viaggio, scadenze e filtro su chi non è in regola |
 | **Fornitori** | Tipo, condizioni di pagamento, commissione predefinita, regime IVA, IBAN · acquistato, margine generato, da pagare e prossima scadenza · disattivazione senza perdita dello storico |
+| **Primo giorno** | Percorso guidato in panoramica con sei passi, ognuno con il motivo e il comando che lo esegue · le spunte si ricavano dai dati, non sono memorizzate · sparisce quando non ha più niente da dire, e si nasconde o si riapre dalle impostazioni |
 | **Trasloco da un altro gestionale** | Importazione guidata da CSV di clienti, passeggeri, fornitori, pratiche, preventivi e **documenti pregressi** · modello scaricabile per ciascuna entità, con righe di esempio · le intestazioni si riconoscono da sole, anche quelle di un altro programma · anteprima riga per riga prima di confermare · le fatture già emesse conservano numero e data, e non vengono ritrasmesse allo SdI |
 
 Il database contiene l'intero modello dati (incassi, piani rateali, fatture,
@@ -346,6 +347,7 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Modelli reimportabili | `npx vitest run tests/unit/import-modelli.test.ts` — il file che consegniamo deve superare la nostra stessa validazione |
 | Dati dimostrativi validi | `npx vitest run tests/unit/dati-dimostrativi.test.ts` — IBAN e partite IVA del seed devono passare i validatori dell'applicazione |
 | Trasloco completo | `npx playwright test tests/e2e/importazioni.spec.ts` |
+| Il primo giorno | `npx playwright test tests/e2e/primi-passi.spec.ts` — il percorso guidato deve comparire a un'agenzia nuova, spuntarsi da solo e non avere violazioni axe nei due temi |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
@@ -507,6 +509,35 @@ fiscale del cliente.
 | Esente art. 10 | Aliquota 0, Natura **N4** |
 | Fuori campo | Aliquota 0, Natura **N2.2** |
 | Inversione contabile | Aliquota 0, Natura **N6.9**, modificabile riga per riga |
+
+---
+
+## Il primo giorno
+
+Un gestionale vuoto non si giudica dalle funzioni che ha: si giudica da quanto
+ci vuole a far succedere la prima cosa utile. Un'agenzia appena registrata trova
+in panoramica il riquadro **Primi passi**, con sei passi in ordine, il motivo di
+ciascuno e il comando che lo esegue:
+
+1. **Completa i dati dell'agenzia** — partita IVA, sede e provincia finiscono su
+   ogni documento: senza, la fattura non si emette.
+2. **Porta i clienti** — vengono prima di tutto il resto, perché pratiche,
+   preventivi e fatture li citano per nome.
+3. **Porta i fornitori** — condizioni di pagamento e commissione predefinita
+   fanno il resto da sole.
+4. **Porta le pratiche aperte** — da lì nascono scadenze, incassi e partenze.
+5. **Porta i documenti pregressi** (facoltativo).
+6. **Invita chi lavora con te** (facoltativo).
+
+Le spunte non sono memorizzate: si ricavano contando i dati che ci sono, quindi
+non possono mentire (DECISIONI 93). Il riquadro sparisce da solo quando tutti i
+passi sono fatti, lo vede solo il titolare — gli altri ruoli non possono aprire
+le pagine che i passi indicano — e si può nascondere prima, ritrovandolo in
+**Impostazioni → Parametri**.
+
+Gli elenchi vuoti dicono la stessa cosa nel punto in cui serve: clienti,
+pratiche, preventivi e fatture offrono, accanto al comando per creare il primo,
+quello per importare quello che c'è già.
 
 ---
 

@@ -1808,3 +1808,38 @@ voce in meno si vede, perché il totale non torna.
 prende righe già validate e restituisce documenti e conflitti, senza toccare il
 database. È l'unica parte di questa importazione che si può provare per intero
 senza un database, quindi è dove sta la logica.
+
+---
+
+## 93. I primi passi si ricavano dai dati, non si memorizzano
+
+**Scelta.** Il percorso guidato del primo giorno mostra sei passi e li spunta
+contando i dati che ci sono: dati fiscali compilati, clienti, fornitori,
+pratiche, documenti, persone. Sul database non resta traccia di quali passi
+sono «fatti»: l'unica cosa salvata è il momento in cui l'agenzia ha chiuso il
+riquadro.
+
+**Perché.** Un elenco di passi completati salvato a parte diverge dalla realtà
+al primo cliente cancellato, e mostra spuntato un passo che non lo è. Una
+spunta che resta accesa quando il dato non c'è più è peggio di nessuna spunta:
+dice il falso proprio nel momento in cui qualcuno la sta usando per capire
+dove si trova. Contare costa cinque `count` con `head: true` dentro il confine
+di sospensione che la panoramica ha già.
+
+**Perché al titolare.** I passi portano alle impostazioni e all'importazione dei
+documenti, due pagine che gli altri ruoli non possono aprire. Mostrare a un
+operatore un percorso con quattro comandi su sei che finiscono in «pagina non
+trovata» è peggio che non mostrarglielo.
+
+**Conseguenza.** Lo stato sta su `agency_settings` e non sull'iscrizione della
+singola persona: i primi passi riguardano la configurazione dell'agenzia, e il
+secondo titolare che entra non deve rivedere un percorso già fatto. Nascondere
+il riquadro non è una via senza ritorno — dalle impostazioni si riapre, perché
+un comando che cancella per sempre una cosa utile senza chiedere niente è una
+trappola. Le regole stanno in `src/lib/primi-passi.ts`, che è codice puro: quali
+passi, in che ordine, quali facoltativi si provano senza database.
+
+**Quello che non si fa.** Nessuna procedura guidata a schermo pieno che
+impedisce di usare il gestionale finché non è finita, e nessun dato di esempio
+caricato di nascosto. Chi entra deve poter andare dove vuole; il riquadro
+suggerisce, e sparisce da solo quando non ha più niente da dire.

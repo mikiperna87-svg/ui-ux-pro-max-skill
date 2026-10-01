@@ -310,15 +310,20 @@ export function PreventiviTabella({
           <EmptyState
             icon={<FileText />}
             title="Nessun preventivo"
-            description="Un preventivo mette a confronto due o tre proposte per lo stesso viaggio. Quello accettato diventa una pratica in un clic."
+            description="Un preventivo mette a confronto due o tre proposte per lo stesso viaggio. Quello accettato diventa una pratica in un clic. Le proposte che stai già seguendo si importano da un file."
             action={
               canWrite ? (
-                <Button asChild variant="primary" size="sm">
-                  <Link href="/preventivi/nuovo">
-                    <FileText aria-hidden="true" />
-                    Scrivi il primo preventivo
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button asChild variant="primary" size="sm">
+                    <Link href="/preventivi/nuovo">
+                      <FileText aria-hidden="true" />
+                      Scrivi il primo preventivo
+                    </Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link href="/preventivi/importa">Importa da CSV</Link>
+                  </Button>
+                </div>
               ) : undefined
             }
           />

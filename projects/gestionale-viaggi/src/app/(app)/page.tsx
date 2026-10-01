@@ -13,6 +13,7 @@ import { Suspense } from 'react'
 import { DeltaBadge } from '@/components/dashboard/delta-badge'
 import { KpiCard } from '@/components/dashboard/kpi-card'
 import { PageHeader } from '@/components/dashboard/page-header'
+import { PrimiPassi } from '@/components/dashboard/primi-passi'
 import { TrendChart } from '@/components/dashboard/trend-chart'
 import { BookingStatusBadge, PaymentStateBadge, PayoutStatusBadge } from '@/components/domain/status-badge'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,7 @@ import {
   getSupplierPayments,
   getUpcomingDepartures,
 } from '@/server/queries/dashboard'
+import { statoPrimiPassi } from '@/server/queries/primi-passi'
 import { requireSession } from '@/server/session'
 
 export const metadata: Metadata = { title: 'Panoramica' }
@@ -106,6 +108,7 @@ export default async function PanoramicaPage({
           ownerId={ownerId}
           showMargins={session.permissions.margins}
           showAccounting={session.permissions.accounting}
+          showSetup={session.permissions.settings}
         />
       </Suspense>
     </div>
@@ -118,24 +121,36 @@ async function CorpoPanoramica({
   ownerId,
   showMargins,
   showAccounting,
+  showSetup,
 }: {
   from: string
   to: string
   ownerId: string | null
   showMargins: boolean
   showAccounting: boolean
+  showSetup: boolean
 }) {
   // Le sezioni non dipendono l'una dall'altra: partono insieme.
-  const [kpi, andamento, attivita, partenze, fornitori] = await Promise.all([
+  const [kpi, andamento, attivita, partenze, fornitori, primiPassi] = await Promise.all([
     KpiSection({ from, to, ownerId, showMargins }),
     TrendSection({ ownerId }),
     ActivitySection(),
     DeparturesSection({ ownerId }),
     showAccounting ? SupplierSection() : Promise.resolve(null),
+    // Il percorso guidato lo vede il titolare: i passi portano alle impostazioni
+    // e all'importazione dei documenti, che gli altri ruoli non possono aprire.
+    showSetup ? statoPrimiPassi() : Promise.resolve(null),
   ])
 
   return (
     <>
+      {/* Sopra gli indicatori finché c'è qualcosa da fare: a un'agenzia nuova
+          sei zeri in fila non dicono niente, e il primo comando utile non deve
+          stare sotto la piega. Spariscono da soli quando i passi sono fatti. */}
+      {primiPassi && !primiPassi.nascosto && primiPassi.fatti < primiPassi.totale ? (
+        <PrimiPassi stato={primiPassi} puoNascondere />
+      ) : null}
+
       {kpi}
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
