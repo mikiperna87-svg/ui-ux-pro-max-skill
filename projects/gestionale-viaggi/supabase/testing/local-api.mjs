@@ -249,7 +249,15 @@ async function handleRest(request, response, url, claims, body) {
     const fn = extra[0]
     const args = body ?? {}
     const names = Object.keys(args)
-    const values = names.map((name) => args[name])
+    // Un oggetto o un elenco vanno al database come JSON, non come parametro
+    // strutturato: e' quello che fa PostgREST con un argomento json/jsonb, e
+    // quello che il driver di Node non fa da se' — un array JavaScript
+    // diventerebbe un array di Postgres («{...}»), e la funzione lo rifiuta
+    // con «invalid input syntax for type json».
+    const values = names.map((name) => {
+      const valore = args[name]
+      return valore !== null && typeof valore === 'object' ? JSON.stringify(valore) : valore
+    })
     const call = names.map((name, index) => `${name} => $${index + 1}`).join(', ')
     const rows = await runAs(claims, async (client) => {
       const result = await client.query(`select * from public.${fn}(${call})`, values)

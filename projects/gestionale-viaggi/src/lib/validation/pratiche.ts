@@ -120,3 +120,90 @@ export const savedViewSchema = z.object({
 })
 
 export type SavedViewInput = z.infer<typeof savedViewSchema>
+
+/**
+ * Lo schema di una pratica che arriva da un file CSV.
+ *
+ * Differisce da `bookingSchema` in un punto solo, ma decisivo: il cliente
+ * arriva come testo — un nome, un'email, una partita IVA — e non come
+ * identificativo. Nessun gestionale esporta gli UUID di questo, e chiedere a
+ * chi migra di procurarseli equivale a dirgli di non migrare.
+ *
+ * Porta anche l'importo e il costo della pratica. Senza, si importerebbero
+ * sessanta viaggi a margine zero: dati che occupano spazio e non dicono
+ * niente, ed e' la prima cosa che chi valuta il trasloco va a guardare.
+ */
+export const bookingImportSchema = z
+  .object({
+    cliente: z
+      .string()
+      .trim()
+      .min(1, 'Indica il cliente: nome, email, partita IVA o codice fiscale'),
+    title: z.string().trim().min(2, 'Il titolo è obbligatorio').max(200),
+    destination: z.string().trim().min(2, 'La destinazione è obbligatoria').max(160),
+    country: optionalText(80),
+    departure_date: optionalDate,
+    return_date: optionalDate,
+    pax_count: intero('Numero di passeggeri', 0, 500, 1),
+    sale_type: z.enum(['intermediazione', 'organizzazione'], {
+      error: 'Tipo di vendita non valido: ammessi "intermediazione" e "organizzazione"',
+    }),
+    status: z.enum(['bozza', 'opzione', 'confermata', 'annullata', 'conclusa'], {
+      error: 'Stato non valido',
+    }),
+    notes: optionalText(4000),
+    servizio: optionalText(300),
+    importo: amountCents('Importo'),
+    costo: amountCents('Costo'),
+  })
+  .refine(
+    (data) =>
+      data.departure_date === null ||
+      data.return_date === null ||
+      data.return_date >= data.departure_date,
+    { message: 'Il rientro non può precedere la partenza', path: ['return_date'] },
+  )
+
+export type BookingImportInput = z.infer<typeof bookingImportSchema>
+
+// --- Preventivo importato -----------------------------------------------------
+/**
+ * Un preventivo in arrivo da un altro gestionale.
+ *
+ * Il numero del preventivo non si conserva: non è un documento fiscale, e la
+ * numerazione di questo gestionale riparte da uno ogni anno. Se il numero
+ * vecchio serve a ritrovarlo, finisce nelle note — dove si cerca.
+ */
+export const quoteImportSchema = z
+  .object({
+    cliente: z
+      .string()
+      .trim()
+      .min(1, 'Indica il cliente: nome, email, partita IVA o codice fiscale'),
+    title: z.string().trim().min(2, 'Il titolo è obbligatorio').max(200),
+    destination: z.string().trim().min(2, 'La destinazione è obbligatoria').max(160),
+    departure_date: optionalDate,
+    return_date: optionalDate,
+    pax_count: intero('Numero di passeggeri', 0, 500, 1),
+    sale_type: z.enum(['intermediazione', 'organizzazione'], {
+      error: 'Tipo di vendita non valido: ammessi "intermediazione" e "organizzazione"',
+    }),
+    status: z.enum(['bozza', 'inviato', 'accettato', 'rifiutato', 'scaduto'], {
+      error: 'Stato non valido',
+    }),
+    valid_until: optionalDate,
+    notes: optionalText(4000),
+    riferimento: optionalText(80),
+    servizio: optionalText(300),
+    importo: amountCents('Importo'),
+    costo: amountCents('Costo'),
+  })
+  .refine(
+    (data) =>
+      data.departure_date === null ||
+      data.return_date === null ||
+      data.return_date >= data.departure_date,
+    { message: 'Il rientro non può precedere la partenza', path: ['return_date'] },
+  )
+
+export type QuoteImportInput = z.infer<typeof quoteImportSchema>

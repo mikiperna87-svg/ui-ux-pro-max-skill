@@ -115,3 +115,57 @@ export const creditNoteSchema = z.object({
     .min(3, 'Scrivi il motivo dello storno')
     .max(500, 'Il motivo è troppo lungo'),
 })
+
+// --- Documento pregresso ------------------------------------------------------
+/**
+ * Una fattura già emessa dal gestionale di prima.
+ *
+ * Differisce dalla fattura nata qui su tre punti, e sono i tre che contano. Il
+ * numero è obbligatorio e si conserva: una fattura è il suo numero, e se cambia
+ * l'estratto conto del cliente non torna con quello del commercialista. Lo
+ * stato non può essere «bozza»: il documento esiste già, da qualche parte è già
+ * stato consegnato. E il cliente arriva come testo, come in tutte le
+ * importazioni, perché nessun gestionale esporta gli identificativi di questo.
+ *
+ * Ogni riga del file è una riga del documento: più righe con lo stesso numero
+ * fanno una fattura sola. Il raggruppamento sta in `raggruppaDocumenti`.
+ */
+export const legacyInvoiceImportSchema = z.object({
+  cliente: z
+    .string()
+    .trim()
+    .min(1, 'Indica il cliente: nome, email, partita IVA o codice fiscale'),
+  kind: z.enum(['fattura', 'nota_credito'], {
+    error: 'Tipo di documento non valido: ammessi "fattura" e "nota di credito"',
+  }),
+  // Il numero deve essere un numero: è la colonna su cui il database garantisce
+  // l'unicità per agenzia, anno e tipo. Il formato completo del gestionale di
+  // prima — «FT-2025/0417» — va nella colonna del codice, dove resta leggibile
+  // senza che nessuno debba indovinare quale gruppo di cifre sia il numero.
+  number: z
+    .string()
+    .trim()
+    .min(1, 'Il numero del documento è obbligatorio')
+    .transform((value) => value.replace(/\s/g, ''))
+    .refine((value) => /^\d{1,7}$/.test(value), {
+      message:
+        'Il numero del documento deve essere solo cifre: scrivi il formato completo nella colonna «Codice»',
+    })
+    .refine((value) => Number(value) >= 1, { message: 'Il numero del documento parte da 1' })
+    .transform((value) => Number(value)),
+  issue_date: dataEmissione,
+  due_date: optionalDate,
+  status: z.enum(['emessa', 'inviata', 'pagata', 'annullata'], {
+    error: 'Stato non valido: un documento importato non è una bozza',
+  }),
+  vat_regime: z.enum(REGIMI, { error: 'Regime IVA non valido' }),
+  code: optionalText(40),
+  description: z.string().trim().min(2, 'La descrizione della riga è obbligatoria').max(300),
+  quantity: intero('Quantità', 1, 1000, 1),
+  importo: amountCents('Importo', { obbligatorio: true }),
+  costo: amountCents('Costo del viaggio'),
+  vat_percent: percentBps('Aliquota IVA'),
+  notes: optionalText(2000),
+})
+
+export type LegacyInvoiceImportInput = z.infer<typeof legacyInvoiceImportSchema>

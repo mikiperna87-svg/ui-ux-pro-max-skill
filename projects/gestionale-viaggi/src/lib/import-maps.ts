@@ -222,7 +222,14 @@ export interface HeaderMapping {
   readonly required: boolean
 }
 
-/** Associa le intestazioni del file ai campi previsti. */
+/**
+ * Associa le intestazioni del file ai campi previsti.
+ *
+ * Fra i nomi accettati c'e' sempre l'etichetta del campo: e' l'intestazione
+ * che il modello scaricabile stampa, e un modello che non si lascia
+ * reimportare e' il modo piu' rapido di perdere chi sta traslocando. La prova
+ * sta in `tests/unit/import-modelli.test.ts`.
+ */
 export function mapHeaders(
   headers: readonly string[],
   fields: readonly ImportField[],
@@ -230,7 +237,7 @@ export function mapHeaders(
   return fields.map((field) => ({
     field: field.field,
     label: field.label,
-    header: matchHeader(headers, [field.field, ...field.aliases]),
+    header: matchHeader(headers, [field.field, ...field.aliases, field.label]),
     required: field.required ?? false,
   }))
 }
@@ -261,3 +268,380 @@ export function buildRowValues(
   // Le caselle di consenso assenti nel file restano semplicemente non spuntate.
   return values
 }
+
+const STATI_PRATICA: Record<string, string> = {
+  bozza: 'bozza',
+  preventivo: 'bozza',
+  opzione: 'opzione',
+  opzionata: 'opzione',
+  prenotata: 'confermata',
+  confermata: 'confermata',
+  confermato: 'confermata',
+  annullata: 'annullata',
+  annullato: 'annullata',
+  cancellata: 'annullata',
+  conclusa: 'conclusa',
+  concluso: 'conclusa',
+  chiusa: 'conclusa',
+  partita: 'conclusa',
+}
+
+const VENDITE: Record<string, string> = {
+  intermediazione: 'intermediazione',
+  intermediata: 'intermediazione',
+  commissione: 'intermediazione',
+  biglietteria: 'intermediazione',
+  organizzazione: 'organizzazione',
+  organizzata: 'organizzazione',
+  pacchetto: 'organizzazione',
+  tour: 'organizzazione',
+  terter: 'organizzazione',
+}
+
+/**
+ * Le pratiche in arrivo da un altro gestionale.
+ *
+ * Il cliente arriva come testo e non come identificativo: nessun gestionale
+ * esporta gli UUID di questo, e l'importazione lo risolve cercandolo in
+ * anagrafica. Per questo l'ordine del trasloco e' prima i clienti, poi le
+ * pratiche — ed e' scritto nella pagina.
+ *
+ * Lo stato e il tipo di vendita si traducono da un vocabolario largo: ogni
+ * gestionale ha le sue parole per le stesse cose, e chiedere di rinominarle
+ * a mano in un file di duemila righe significa non farsi scegliere.
+ */
+export const BOOKING_IMPORT_FIELDS: readonly ImportField[] = [
+  {
+    field: 'cliente',
+    aliases: [
+      'cliente', 'intestatario', 'nominativo', 'customer', 'ragione_sociale',
+      'cognome_nome', 'cliente_email', 'email_cliente', 'partita_iva_cliente',
+    ],
+    label: 'Cliente',
+    required: true,
+  },
+  {
+    field: 'title',
+    aliases: ['titolo', 'descrizione', 'pratica', 'viaggio', 'title'],
+    label: 'Titolo',
+    required: true,
+  },
+  {
+    field: 'destination',
+    aliases: ['destinazione', 'localita', 'meta', 'destination'],
+    label: 'Destinazione',
+    required: true,
+  },
+  { field: 'country', aliases: ['paese', 'nazione', 'country'], label: 'Paese' },
+  {
+    field: 'departure_date',
+    aliases: ['partenza', 'data_partenza', 'dal', 'departure', 'departure_date'],
+    label: 'Partenza',
+    transform: asDate,
+  },
+  {
+    field: 'return_date',
+    aliases: ['rientro', 'ritorno', 'data_rientro', 'al', 'return', 'return_date'],
+    label: 'Rientro',
+    transform: asDate,
+  },
+  {
+    field: 'pax_count',
+    aliases: ['passeggeri', 'pax', 'numero_passeggeri', 'adulti'],
+    label: 'Passeggeri',
+    fallback: () => '1',
+  },
+  {
+    field: 'sale_type',
+    aliases: ['tipo_vendita', 'vendita', 'tipologia', 'sale_type'],
+    label: 'Tipo di vendita',
+    transform: (raw) => mapValue(VENDITE, raw, 'intermediazione'),
+    // Senza la colonna: chi ha un costo di acquisto organizza, chi no
+    // intermedia. E' la distinzione che conta per il 74-ter, e dedurla dai
+    // numeri sbaglia meno che imporre un valore fisso.
+    fallback: (values) => (isFilled(values.costo) ? 'organizzazione' : 'intermediazione'),
+  },
+  {
+    field: 'status',
+    aliases: ['stato', 'status', 'situazione'],
+    label: 'Stato',
+    transform: (raw) => mapValue(STATI_PRATICA, raw, 'confermata'),
+    fallback: () => 'confermata',
+  },
+  {
+    field: 'servizio',
+    aliases: ['servizio', 'voce', 'service'],
+    label: 'Servizio',
+  },
+  {
+    field: 'importo',
+    aliases: ['importo', 'prezzo', 'totale', 'venduto', 'ricavo', 'imponibile'],
+    label: 'Importo',
+  },
+  {
+    field: 'costo',
+    aliases: ['costo', 'acquisto', 'costo_fornitore', 'netto'],
+    label: 'Costo',
+  },
+  { field: 'notes', aliases: ['note', 'annotazioni', 'notes'], label: 'Note' },
+]
+
+const STATI_PREVENTIVO: Record<string, string> = {
+  bozza: 'bozza',
+  aperto: 'bozza',
+  inviato: 'inviato',
+  inviata: 'inviato',
+  spedito: 'inviato',
+  proposto: 'inviato',
+  accettato: 'accettato',
+  accettata: 'accettato',
+  confermato: 'accettato',
+  confermata: 'accettato',
+  vinto: 'accettato',
+  rifiutato: 'rifiutato',
+  rifiutata: 'rifiutato',
+  perso: 'rifiutato',
+  annullato: 'rifiutato',
+  scaduto: 'scaduto',
+  scaduta: 'scaduto',
+  // Un preventivo diventato pratica nel gestionale di prima arriva qui come
+  // accettato: «convertito» è uno stato che solo questo gestionale assegna, e
+  // lo assegna quando la conversione la fa lui.
+  convertito: 'accettato',
+  convertita: 'accettato',
+}
+
+/**
+ * I preventivi in arrivo da un altro gestionale.
+ *
+ * Come per le pratiche il cliente arriva come testo. Il numero di origine,
+ * quando c'è, si conserva nel riferimento: è la stringa con cui l'agenzia lo
+ * cerca quando il cliente telefona citando il preventivo vecchio.
+ */
+export const QUOTE_IMPORT_FIELDS: readonly ImportField[] = [
+  {
+    field: 'cliente',
+    aliases: [
+      'cliente', 'intestatario', 'nominativo', 'customer', 'ragione_sociale',
+      'cognome_nome', 'cliente_email', 'email_cliente',
+    ],
+    label: 'Cliente',
+    required: true,
+  },
+  {
+    field: 'title',
+    aliases: ['titolo', 'descrizione', 'oggetto', 'viaggio', 'title'],
+    label: 'Titolo',
+    required: true,
+  },
+  {
+    field: 'destination',
+    aliases: ['destinazione', 'localita', 'meta', 'destination'],
+    label: 'Destinazione',
+    required: true,
+  },
+  {
+    field: 'departure_date',
+    aliases: ['partenza', 'data_partenza', 'dal', 'departure'],
+    label: 'Partenza',
+    transform: asDate,
+  },
+  {
+    field: 'return_date',
+    aliases: ['rientro', 'ritorno', 'data_rientro', 'al', 'return'],
+    label: 'Rientro',
+    transform: asDate,
+  },
+  {
+    field: 'pax_count',
+    aliases: ['passeggeri', 'pax', 'numero_passeggeri', 'adulti'],
+    label: 'Passeggeri',
+    fallback: () => '1',
+  },
+  {
+    field: 'sale_type',
+    aliases: ['tipo_vendita', 'vendita', 'tipologia', 'sale_type'],
+    label: 'Tipo di vendita',
+    transform: (raw) => mapValue(VENDITE, raw, 'intermediazione'),
+    fallback: (values) => (isFilled(values.costo) ? 'organizzazione' : 'intermediazione'),
+  },
+  {
+    field: 'status',
+    aliases: ['stato', 'status', 'esito'],
+    label: 'Stato',
+    transform: (raw) => mapValue(STATI_PREVENTIVO, raw, 'inviato'),
+    // Un preventivo importato è già stato mostrato a qualcuno: «bozza» direbbe
+    // il falso, e nasconderebbe dall'elenco quello che l'agenzia sta seguendo.
+    fallback: () => 'inviato',
+  },
+  {
+    field: 'valid_until',
+    aliases: ['validita', 'valido_fino', 'scadenza', 'valid_until'],
+    label: 'Valido fino al',
+    transform: asDate,
+  },
+  {
+    field: 'riferimento',
+    aliases: ['numero', 'numero_preventivo', 'codice', 'riferimento', 'protocollo'],
+    label: 'Numero di origine',
+  },
+  { field: 'servizio', aliases: ['servizio', 'voce', 'service'], label: 'Servizio' },
+  {
+    field: 'importo',
+    aliases: ['importo', 'prezzo', 'totale', 'venduto', 'quotazione'],
+    label: 'Importo',
+  },
+  { field: 'costo', aliases: ['costo', 'acquisto', 'costo_fornitore', 'netto'], label: 'Costo' },
+  { field: 'notes', aliases: ['note', 'annotazioni', 'notes'], label: 'Note' },
+]
+
+const TIPI_DOCUMENTO: Record<string, string> = {
+  fattura: 'fattura',
+  fattere: 'fattura',
+  ft: 'fattura',
+  fa: 'fattura',
+  td: 'fattura',
+  notadicredito: 'nota_credito',
+  notacredito: 'nota_credito',
+  nc: 'nota_credito',
+  credito: 'nota_credito',
+  reso: 'nota_credito',
+  storno: 'nota_credito',
+}
+
+const STATI_DOCUMENTO: Record<string, string> = {
+  emessa: 'emessa',
+  emesso: 'emessa',
+  aperta: 'emessa',
+  daincassare: 'emessa',
+  nonpagata: 'emessa',
+  inviata: 'inviata',
+  inviato: 'inviata',
+  spedita: 'inviata',
+  consegnata: 'inviata',
+  pagata: 'pagata',
+  pagato: 'pagata',
+  incassata: 'pagata',
+  saldata: 'pagata',
+  chiusa: 'pagata',
+  annullata: 'annullata',
+  annullato: 'annullata',
+  stornata: 'annullata',
+}
+
+const REGIMI_IVA: Record<string, string> = {
+  ordinaria: 'ordinaria',
+  ordinario: 'ordinaria',
+  iva: 'ordinaria',
+  imponibile: 'ordinaria',
+  artter: 'art_74_ter',
+  ter: 'art_74_ter',
+  margine: 'art_74_ter',
+  regimedelmargine: 'art_74_ter',
+  esente: 'esente_art_10',
+  esenteart: 'esente_art_10',
+  escluso: 'fuori_campo',
+  fuoricampo: 'fuori_campo',
+  noniva: 'fuori_campo',
+  reversecharge: 'reverse_charge',
+  inversionecontabile: 'reverse_charge',
+}
+
+/**
+ * I documenti già emessi dal gestionale di prima.
+ *
+ * Una riga del file è una riga del documento: più righe con lo stesso numero e
+ * lo stesso anno fanno una fattura sola, con tutte le sue voci. È la forma in
+ * cui i gestionali esportano il registro delle vendite, ed è anche la sola che
+ * permette di importare una fattura con il dettaglio invece di un totale.
+ *
+ * Il numero è l'unico campo obbligatorio in più rispetto alle altre
+ * importazioni, e lo è perché una fattura è il suo numero.
+ */
+export const INVOICE_IMPORT_FIELDS: readonly ImportField[] = [
+  {
+    field: 'number',
+    aliases: ['numero', 'numero_documento', 'n_documento', 'num', 'number'],
+    label: 'Numero',
+    required: true,
+  },
+  {
+    field: 'kind',
+    aliases: ['tipo', 'tipo_documento', 'documento', 'kind'],
+    label: 'Tipo di documento',
+    transform: (raw) => mapValue(TIPI_DOCUMENTO, raw, 'fattura'),
+    fallback: () => 'fattura',
+  },
+  {
+    field: 'cliente',
+    aliases: [
+      'cliente', 'intestatario', 'nominativo', 'customer', 'ragione_sociale',
+      'cognome_nome', 'cliente_email', 'email_cliente', 'partita_iva_cliente',
+    ],
+    label: 'Cliente',
+    required: true,
+  },
+  {
+    field: 'issue_date',
+    aliases: ['data', 'data_documento', 'data_emissione', 'emissione', 'issue_date'],
+    label: 'Data di emissione',
+    required: true,
+    transform: asDate,
+  },
+  {
+    field: 'due_date',
+    aliases: ['scadenza', 'data_scadenza', 'pagamento_entro', 'due_date'],
+    label: 'Scadenza',
+    transform: asDate,
+  },
+  {
+    field: 'status',
+    aliases: ['stato', 'status', 'pagata', 'incassata'],
+    label: 'Stato',
+    transform: (raw) => mapValue(STATI_DOCUMENTO, raw, 'emessa'),
+    // Senza la colonna: emessa e non pagata. Dire «pagata» a un documento che
+    // non lo è toglie soldi dallo scadenzario; il contrario li fa solo
+    // ricomparire, e ricomparire si corregge in due clic.
+    fallback: () => 'emessa',
+  },
+  {
+    field: 'vat_regime',
+    aliases: ['regime', 'regime_iva', 'natura', 'vat_regime'],
+    label: 'Regime IVA',
+    transform: (raw) => mapValue(REGIMI_IVA, raw, 'art_74_ter'),
+    // Il 74-ter è il regime della quasi totalità dei documenti di un'agenzia di
+    // viaggio, e il costo del viaggio nel file lo conferma.
+    fallback: (values) => (isFilled(values.costo) ? 'art_74_ter' : 'ordinaria'),
+  },
+  {
+    field: 'code',
+    aliases: ['codice', 'protocollo', 'riferimento', 'numero_completo', 'code'],
+    label: 'Codice',
+  },
+  {
+    field: 'description',
+    aliases: ['descrizione', 'servizio', 'voce', 'oggetto', 'description'],
+    label: 'Descrizione',
+    required: true,
+  },
+  { field: 'quantity', aliases: ['quantita', 'qta', 'quantity'], label: 'Quantità', fallback: () => '1' },
+  {
+    field: 'importo',
+    aliases: ['importo', 'totale', 'prezzo', 'imponibile_lordo', 'totale_riga'],
+    label: 'Importo',
+    required: true,
+  },
+  {
+    field: 'costo',
+    aliases: ['costo', 'costo_viaggio', 'acquisto', 'netto'],
+    label: 'Costo del viaggio',
+  },
+  {
+    field: 'vat_percent',
+    aliases: ['aliquota', 'aliquota_iva', 'iva', 'percentuale_iva'],
+    label: 'Aliquota IVA',
+    // Senza la colonna: 22%, che nel 74-ter è l'aliquota sul margine.
+    fallback: () => '22',
+  },
+  { field: 'notes', aliases: ['note', 'annotazioni', 'notes'], label: 'Note' },
+]

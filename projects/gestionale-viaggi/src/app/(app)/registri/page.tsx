@@ -112,6 +112,26 @@ async function Corpo({ anno }: { anno: number }) {
         ))}
       </div>
 
+      {/* I documenti importati non si sommano due volte: il registro li conta,
+          ma il mese in cui cadono potrebbe essere già stato liquidato con il
+          gestionale di prima. Chi legge il registro deve saperlo qui, non dopo
+          averlo portato al commercialista. */}
+      {registro.importati > 0 ? (
+        <div
+          role="note"
+          className="rounded-lg border border-warning-border bg-warning-subtle p-4 text-small text-warning-fg"
+        >
+          <p className="font-semibold">
+            {plurale(registro.importati, 'documento importato', 'documenti importati')} da un
+            gestionale precedente
+          </p>
+          <p className="mt-1">
+            Sono compresi nei totali di questo registro. Se i mesi in cui cadono li hai già
+            liquidati con il gestionale di prima, considerali una volta sola.
+          </p>
+        </div>
+      ) : null}
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Documenti"

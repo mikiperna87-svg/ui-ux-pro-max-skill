@@ -930,6 +930,7 @@ export interface Database {
           sdi_filename: string | null
           sdi_sent_at: string | null
           sdi_message: string | null
+          imported_at: string | null
         }
         Insert: {
           id?: string
@@ -965,6 +966,7 @@ export interface Database {
           sdi_filename?: string | null
           sdi_sent_at?: string | null
           sdi_message?: string | null
+          imported_at?: string | null
         }
         Update: {
           id?: string
@@ -1000,6 +1002,7 @@ export interface Database {
           sdi_filename?: string | null
           sdi_sent_at?: string | null
           sdi_message?: string | null
+          imported_at?: string | null
         }
         Relationships: []
       }
@@ -2443,6 +2446,10 @@ export interface Database {
       export_customer_data: {
         Args: { p_customer_id: string | null }
         Returns: Json
+      }
+      import_legacy_invoice: {
+        Args: { p_customer_id: string | null; p_kind: Enums['invoice_kind'] | null; p_year: number | null; p_number: number | null; p_code: string | null; p_issue_date: string | null; p_due_date: string | null; p_status: Enums['invoice_status'] | null; p_vat_regime: Enums['vat_regime'] | null; p_notes: string | null; p_items: Json | null }
+        Returns: unknown
       }
       invoice_from_booking: {
         Args: { p_booking_id: string | null; p_mode?: string | null }

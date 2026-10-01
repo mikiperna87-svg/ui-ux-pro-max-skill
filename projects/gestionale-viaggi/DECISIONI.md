@@ -1699,3 +1699,112 @@ Le credenziali stanno in due variabili con prefisso `NEXT_PUBLIC`, ed è
 corretto: non sono un segreto, sono l'indirizzo di casa di un account che non
 può scrivere. Dove non sono impostate il pulsante non compare — l'installazione
 di un'agenzia vera non deve mostrare un invito a entrare in casa d'altri.
+
+---
+
+## 89. Il modello scaricabile deve tornare indietro
+
+**Scelta.** Fra i nomi di colonna che l'importazione riconosce c'è sempre
+l'etichetta del campo, e un test genera il modello di ogni entità, lo rilegge
+con il nostro stesso lettore e lo valida con lo schema dell'entità.
+
+**Perché.** Il modello è la prima cosa che un'agenzia tocca di questo gestionale:
+lo scarica, lo compila, lo ricarica. Quattro campi su cinque entità non si
+riconoscevano da sole — «Tipo di vendita», «Data di nascita», «Luogo di
+nascita», «Giorni di pagamento»: l'intestazione stampata dal modello non era fra
+gli alias, e la colonna veniva ignorata **in silenzio**. Nessun errore, nessuna
+riga scartata: solo dati che non arrivano. Chi importa duemila clienti scopre
+dopo un mese che non ha le date di nascita, e non ha modo di sapere perché.
+
+**Conseguenza.** Le righe di esempio dei cinque modelli sono passate dalle
+rotte `/<entità>/modello` a `IMPORT_DEFINITIONS`, così il file che consegniamo e
+il file che rileggiamo nascono dalla stessa definizione e non possono divergere.
+Il test ha trovato anche un IBAN di esempio con la cifra di controllo sbagliata
+— e, da lì, nove IBAN su dieci sbagliati nel seed dimostrativo: dati che il
+database accetta (non verifica il mod-97) e che il form rifiuta, cioè la demo
+che si blocca appena qualcuno salva un fornitore. Da qui il test che verifica
+IBAN e partite IVA del seed con gli stessi validatori dell'applicazione.
+
+---
+
+## 90. Le pratiche e i preventivi importati non portano il loro numero
+
+**Scelta.** Una pratica o un preventivo che arriva da un altro gestionale prende
+la numerazione di questo. Il numero di origine, per i preventivi, finisce nelle
+note, dove la ricerca lo trova.
+
+**Perché.** Non sono documenti fiscali: nessuno li deve ritrovare per numero,
+e la numerazione di questo gestionale è progressiva per anno e senza buchi
+perché è così che si legge un registro. Conservare numeri altrui vorrebbe dire
+accettare buchi, doppioni e formati arbitrari in una sequenza che serve a
+contare.
+
+**Conseguenza.** Chi cerca «PREV-2026-114» lo trova comunque, perché la ricerca
+dei preventivi guarda anche le note. Per le fatture la scelta è opposta, e per
+una ragione precisa: lì il numero *è* il documento (decisione 91).
+
+---
+
+## 91. I documenti pregressi conservano numero e data, e non si ritrasmettono
+
+**Scelta.** Le fatture già emesse dal gestionale precedente si importano con il
+loro numero, il loro codice e la loro data di emissione. Il contatore della
+numerazione viene portato avanti fino al numero più alto importato. Un documento
+importato non può essere trasmesso allo SdI: il divieto sta sul database.
+
+**Perché.** Tre cose, in ordine di costo.
+
+Il numero. Una fattura *è* il suo numero: l'estratto conto del cliente, il
+registro del commercialista e la nota di credito che la rettifica la citano per
+numero. Rinumerarla significa che nessuno di quei tre documenti torna.
+
+Il contatore. Se importo la 417 e il contatore è a 12, la prossima fattura
+emessa qui prende la 13 — e prima o poi arriva a 417, dove il vincolo di
+unicità la respinge. L'agenzia lo scopre il giorno in cui deve emettere, cioè
+nel momento peggiore. `app.catch_up_document_counter` porta il contatore al
+massimo fra il valore attuale e quello importato, e non lo arretra mai.
+
+La trasmissione. Il documento era già stato trasmesso al Sistema di
+Interscambio dal gestionale di prima. Rimandarlo deposita una seconda fattura
+con lo stesso numero all'Agenzia delle Entrate, e si corregge con una
+comunicazione di variazione — non con un messaggio di errore. Per questo il
+divieto è un trigger (`app.invoices_guard_imported`) e non un controllo
+nell'interfaccia: vale anche per una chiamata diretta all'API, che la policy RLS
+consente a chi ha i permessi contabili. Lo stesso trigger impedisce di
+cancellare la provenienza e di appiccicarla a un documento nato qui — che
+sarebbe il modo più semplice di sottrarre una fattura vera alla trasmissione.
+
+**Quello che non si fa.** I documenti importati **non** vengono esclusi dal
+registro IVA. Un'agenzia che importa l'anno in corso vuole il registro
+completo; una che ha già liquidato quei mesi importa solo i documenti aperti. È
+una decisione di chi tiene la contabilità, non una regola da nascondere in una
+vista — e il registro lo dice, con un avviso che conta quanti documenti
+dell'anno arrivano da un gestionale precedente.
+
+**Conseguenza.** Il tetto di righe per file scende a 300 per i soli documenti,
+contro le 2000 delle altre entità: ogni documento è una chiamata a sé —
+`import_legacy_invoice` apre la bozza, scrive le righe, numera e porta avanti il
+contatore in una transazione — e trecento chiamate sono già il limite del tempo
+massimo di una funzione serverless. Chi ha tre anni di fatturato li importa un
+anno per volta.
+
+---
+
+## 92. Una riga del file è una riga del documento
+
+**Scelta.** Nell'importazione dei documenti pregressi, più righe con lo stesso
+tipo, anno e numero fanno un documento solo con tutte le sue voci. La prima riga
+ne fissa la testata; una riga successiva che la contraddice — un altro cliente,
+un'altra data — viene scartata da sola, senza far cadere il documento.
+
+**Perché.** È la forma in cui i gestionali esportano il registro delle vendite,
+ed è la sola che permetta di importare una fattura con il suo dettaglio invece
+di un totale unico. Scartare la riga in conflitto e non il documento è la scelta
+più prudente nella direzione giusta: una fattura con la riga di un altro cliente
+attaccata sarebbe sbagliata e nessuno se ne accorgerebbe; una fattura con una
+voce in meno si vede, perché il totale non torna.
+
+**Conseguenza.** Il raggruppamento (`src/lib/import-fatture.ts`) è codice puro:
+prende righe già validate e restituisce documenti e conflitti, senza toccare il
+database. È l'unica parte di questa importazione che si può provare per intero
+senza un database, quindi è dove sta la logica.

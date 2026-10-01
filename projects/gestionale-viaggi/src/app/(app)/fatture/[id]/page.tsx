@@ -62,7 +62,13 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
   // La verifica per il Sistema di Interscambio ha senso solo su un documento
   // emesso: una bozza non ha numero, e senza numero non c'è niente da
   // trasmettere.
-  const sdi = bozza ? null : await verificaSdi(invoice.id)
+  // Un documento importato da un gestionale precedente era già stato trasmesso
+  // allo SdI da quello: il pannello di trasmissione non va nemmeno mostrato,
+  // perché l'unica cosa che potrebbe fare è un deposito doppio. Il divieto vero
+  // sta sul database (migrazione 0023); qui si evita di proporre un bottone che
+  // il database rifiuterà.
+  const importato = invoice.imported_at !== null
+  const sdi = bozza || importato ? null : await verificaSdi(invoice.id)
   const rilievi = sdi?.esito === 'ok' ? sdi.verifica.rilievi : []
 
   return (
@@ -100,6 +106,19 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
           </>
         }
       />
+
+      {importato ? (
+        <div
+          role="note"
+          className="rounded-lg border border-info-border bg-info-subtle p-4 text-small text-info-fg"
+        >
+          <p className="font-semibold">Documento importato da un gestionale precedente</p>
+          <p className="mt-1">
+            Numero e data sono quelli di origine. Era già stato trasmesso al Sistema di Interscambio
+            dal gestionale di prima: da qui non si ritrasmette, perché lo depositerebbe due volte.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-4">

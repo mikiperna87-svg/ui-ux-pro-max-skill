@@ -1,4 +1,4 @@
-import { Download, Plus } from 'lucide-react'
+import { Download, Plus, Upload } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -44,6 +44,14 @@ export default async function PratichePage({ searchParams }: { searchParams: Sea
                 <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
+            {session.permissions.write ? (
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/pratiche/importa" aria-label="Importa">
+                  <Upload aria-hidden="true" />
+                  <EtichettaBottone>Importa</EtichettaBottone>
+                </Link>
+              </Button>
+            ) : null}
             {session.permissions.write ? (
               <Button asChild variant="primary" size="sm">
                 <Link href="/pratiche/nuova">

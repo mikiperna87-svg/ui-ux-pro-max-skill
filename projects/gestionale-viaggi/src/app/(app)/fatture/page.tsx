@@ -1,4 +1,4 @@
-import { Download, Plus, Table2 } from 'lucide-react'
+import { Download, Plus, Table2, Upload } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -51,6 +51,14 @@ export default async function FatturePage({ searchParams }: { searchParams: Sear
                 <EtichettaBottone>Esporta</EtichettaBottone>
               </a>
             </Button>
+            {session.permissions.accounting ? (
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/fatture/importa" aria-label="Importa">
+                  <Upload aria-hidden="true" />
+                  <EtichettaBottone>Importa</EtichettaBottone>
+                </Link>
+              </Button>
+            ) : null}
             {session.permissions.accounting ? (
               <Button asChild variant="primary" size="sm">
                 <Link href="/fatture/nuova">

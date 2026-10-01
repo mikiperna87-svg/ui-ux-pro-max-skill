@@ -30,6 +30,8 @@ export type EsitoSdi =
   | { readonly esito: 'dati_mancanti' }
   | { readonly esito: 'non_valida'; readonly verifica: EsitoVerifica }
   | { readonly esito: 'non_preparata' }
+  /** Importato da un gestionale precedente: era gia' stato trasmesso da quello. */
+  | { readonly esito: 'importato' }
 
 /**
  * Tutti gli esiti tranne il successo.
@@ -77,6 +79,11 @@ async function monta(invoiceId: string): Promise<Montaggio | ProblemaMontaggio> 
   // trigger li assegna all'emissione. Un documento senza numero non è una
   // fattura, e lo stato da solo non basta a garantirlo.
   if (detail.invoice.status === 'bozza' || !detail.invoice.code) return { esito: 'bozza' }
+  // Un documento importato era gia' stato trasmesso dal gestionale di prima:
+  // produrne il file qui servirebbe solo a depositarlo due volte. Il divieto
+  // vero sta sul database (migrazione 0023), questo lo anticipa con un
+  // messaggio che si capisce.
+  if (detail.invoice.imported_at !== null) return { esito: 'importato' }
   const numero = detail.invoice.code
 
   const supabase = await createClient()

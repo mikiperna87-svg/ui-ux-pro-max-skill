@@ -39,6 +39,7 @@ documenti e scadenze. Tutto il resto ruota attorno a questa entità.
 | **Clienti** | Elenco con ricerca insensibile ad accenti e maiuscole, filtri, ordinamento, colonne configurabili, selezione multipla, esportazione CSV e importazione guidata · scheda con valore generato, margine, viaggi, passeggeri, consensi e cronologia · esportazione e anonimizzazione GDPR |
 | **Passeggeri** | Anagrafica separata dai clienti, con documento di viaggio, scadenze e filtro su chi non è in regola |
 | **Fornitori** | Tipo, condizioni di pagamento, commissione predefinita, regime IVA, IBAN · acquistato, margine generato, da pagare e prossima scadenza · disattivazione senza perdita dello storico |
+| **Trasloco da un altro gestionale** | Importazione guidata da CSV di clienti, passeggeri, fornitori, pratiche, preventivi e **documenti pregressi** · modello scaricabile per ciascuna entità, con righe di esempio · le intestazioni si riconoscono da sole, anche quelle di un altro programma · anteprima riga per riga prima di confermare · le fatture già emesse conservano numero e data, e non vengono ritrasmesse allo SdI |
 
 Il database contiene l'intero modello dati (incassi, piani rateali, fatture,
 documenti, attività, posta in uscita, audit) con le relative policy di
@@ -341,6 +342,10 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Webhook degli abbonamenti | `npx playwright test tests/e2e/abbonamenti.spec.ts` — quattro firme non valide devono ricevere 401 |
 | Documento emesso immutabile | `npx vitest run tests/db/fattura-immutabile.test.ts` — non deve tornare in bozza nemmeno da SQL |
 | Demo in sola lettura | `npx playwright test tests/e2e/demo.spec.ts` |
+| Documenti pregressi | `npx vitest run tests/db/documenti-pregressi.test.ts` — un documento importato non deve lasciarsi ritrasmettere allo SdI, e il contatore deve arrivare al numero importato |
+| Modelli reimportabili | `npx vitest run tests/unit/import-modelli.test.ts` — il file che consegniamo deve superare la nostra stessa validazione |
+| Dati dimostrativi validi | `npx vitest run tests/unit/dati-dimostrativi.test.ts` — IBAN e partite IVA del seed devono passare i validatori dell'applicazione |
+| Trasloco completo | `npx playwright test tests/e2e/importazioni.spec.ts` |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
@@ -502,6 +507,78 @@ fiscale del cliente.
 | Esente art. 10 | Aliquota 0, Natura **N4** |
 | Fuori campo | Aliquota 0, Natura **N2.2** |
 | Inversione contabile | Aliquota 0, Natura **N6.9**, modificabile riga per riga |
+
+---
+
+## Trasloco da un altro gestionale
+
+Un'agenzia non lascia il suo gestionale se non può portarsi dietro il lavoro.
+Sei entità si importano da CSV, ognuna dalla propria pagina:
+
+| Entità | Pagina | Modello |
+| --- | --- | --- |
+| Clienti | `/clienti/importa` | `/clienti/modello` |
+| Passeggeri | `/passeggeri/importa` | `/passeggeri/modello` |
+| Fornitori | `/fornitori/importa` | `/fornitori/modello` |
+| Pratiche | `/pratiche/importa` | `/pratiche/modello` |
+| Preventivi | `/preventivi/importa` | `/preventivi/modello` |
+| Documenti pregressi | `/fatture/importa` | `/fatture/modello` |
+
+**L'ordine conta.** Prima i clienti, poi tutto il resto: pratiche, preventivi e
+documenti indicano il loro cliente con il nome, l'email, la partita IVA o il
+codice fiscale, e una riga il cui cliente non è in anagrafica viene scartata con
+scritto perché. Se due clienti rispondono allo stesso nome la riga viene
+scartata anche allora: importare sul cliente sbagliato è peggio che non
+importare, perché nessuno se ne accorge.
+
+**Le intestazioni si riconoscono da sole.** Nessuno rinomina duemila colonne a
+mano: ogni campo accetta più nomi («Partita IVA», «P.IVA», `partita_iva`), e le
+parole con cui ogni programma scrive stati e tipi vengono tradotte
+(«Prenotata» → confermata, «Biglietteria» → intermediazione, «Regime del
+margine» → art. 74-ter). Una parola sconosciuta non fa cadere la riga: prende il
+valore più comune. Le colonne che mancano prendono un ripiego, e dove si può lo
+ricavano dal resto della riga — senza la colonna del tipo di vendita, chi ha un
+costo d'acquisto organizza e chi no intermedia.
+
+**Il modello si lascia reimportare.** Il file che si scarica da
+`/<entità>/modello` porta le intestazioni riconosciute e righe di esempio
+compilate; compilarlo e ricaricarlo funziona, e c'è un test che lo verifica
+generando il modello e rileggendolo (DECISIONI 89).
+
+**Prima si vede, poi si conferma.** Il file viene letto nel browser e mostrato
+riga per riga con l'esito; la validazione che decide è quella del server, che di
+ciò che arriva dal client non si fida mai. Reimportare lo stesso file non
+duplica niente: ogni entità ha la sua chiave naturale (email o codici fiscali
+per le anagrafiche, cliente + titolo + partenza per pratiche e preventivi, tipo
++ anno + numero per i documenti).
+
+### I documenti pregressi
+
+Le fatture e le note di credito già emesse dal gestionale precedente si
+importano con il loro numero, il loro codice e la loro data. Tre cose da sapere
+prima di premere, e le dice anche la pagina:
+
+1. **Il numero resta quello di prima**, e la numerazione di questo gestionale
+   riparte dal numero più alto importato: la prima fattura nuova non riusa un
+   numero già speso.
+2. **Non vengono ritrasmesse allo SdI.** Erano già state trasmesse dal
+   gestionale di prima; rimandarle le depositerebbe due volte all'Agenzia delle
+   Entrate. Il divieto sta sul database, non nell'interfaccia.
+3. **Una riga per voce.** Più righe con lo stesso numero e la stessa data fanno
+   un documento solo. La prima riga ne fissa la testata; una riga che la
+   contraddice viene scartata da sola.
+
+I documenti importati entrano nel registro IVA del mese della loro data di
+emissione, e il registro lo segnala contando quanti documenti dell'anno arrivano
+da un gestionale precedente. Se quei mesi sono già stati liquidati con il
+gestionale di prima, si importano solo i documenti ancora da incassare
+(DECISIONI 91).
+
+Il file dei documenti accetta al massimo **300 righe** contro le 2000 delle
+altre entità: ogni documento è una transazione a sé, e trecento sono il limite
+del tempo di una funzione serverless. Tre anni di fatturato si importano un anno
+per volta. Serve il permesso di **amministrazione**: importare documenti fiscali
+non è «scrivere».
 
 ---
 

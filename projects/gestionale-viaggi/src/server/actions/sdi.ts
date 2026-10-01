@@ -45,6 +45,13 @@ export async function preparaXmlAction(invoiceId: unknown): Promise<ActionState>
   if (montato.esito === 'dati_mancanti') {
     return { status: 'error', message: 'Dati dell’agenzia o del cliente non disponibili.' }
   }
+  if (montato.esito === 'importato') {
+    return {
+      status: 'error',
+      message:
+        'Il documento è stato importato da un gestionale precedente: era già stato trasmesso allo SdI e non si ritrasmette.',
+    }
+  }
   if (montato.esito === 'non_valida') {
     const primo = montato.verifica.bloccanti[0]
     return {

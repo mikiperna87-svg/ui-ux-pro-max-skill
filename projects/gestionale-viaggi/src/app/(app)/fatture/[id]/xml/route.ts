@@ -29,6 +29,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (esito.esito === 'bozza') {
     return new Response('La bozza non ha un numero: emetti il documento.', { status: 409 })
   }
+  if (esito.esito === 'importato') {
+    return new Response(
+      'Il documento è stato importato da un gestionale precedente: era già stato trasmesso allo SdI e non si ritrasmette.',
+      { status: 409 },
+    )
+  }
   if (esito.esito === 'non_preparata') {
     return new Response('Il file non è ancora stato preparato.', { status: 409 })
   }

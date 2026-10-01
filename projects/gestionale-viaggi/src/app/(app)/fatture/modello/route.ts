@@ -5,10 +5,10 @@ import { requireSession } from '@/server/session'
 export async function GET() {
   await requireSession()
 
-  return new Response(templateCsv('clienti'), {
+  return new Response(templateCsv('fatture'), {
     headers: {
       'content-type': 'text/csv; charset=utf-8',
-      'content-disposition': `attachment; filename="${IMPORT_DEFINITIONS.clienti.templateFile}"`,
+      'content-disposition': `attachment; filename="${IMPORT_DEFINITIONS.fatture.templateFile}"`,
       'cache-control': 'no-store',
     },
   })

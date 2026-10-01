@@ -228,6 +228,14 @@ export interface VatRegister {
     readonly totale: number
     readonly margine: number
   }
+  /**
+   * Quanti documenti dell'anno arrivano da un gestionale precedente.
+   *
+   * Non cambia l'aritmetica del registro: cambia quello che chi lo legge deve
+   * sapere. Un documento importato era già stato dichiarato altrove, e se quel
+   * mese è già stato liquidato va contato una volta sola.
+   */
+  readonly importati: number
 }
 
 /**
@@ -240,7 +248,7 @@ export interface VatRegister {
 export async function vatRegister(year: number): Promise<VatRegister> {
   const supabase = await createClient()
 
-  const [{ data, error }, { data: anni }] = await Promise.all([
+  const [{ data, error }, { data: anni }, { count: importati }] = await Promise.all([
     supabase
       .from('vat_register')
       .select('*')
@@ -253,6 +261,13 @@ export async function vatRegister(year: number): Promise<VatRegister> {
       .select('year')
       .not('year', 'is', null)
       .order('year', { ascending: false }),
+    supabase
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('year', year)
+      .not('imported_at', 'is', null)
+      .is('deleted_at', null)
+      .neq('status', 'bozza'),
   ])
 
   if (error) throw new Error(`Registro IVA non disponibile: ${error.message}`)
@@ -305,6 +320,7 @@ export async function vatRegister(year: number): Promise<VatRegister> {
     years: elencoAnni.length > 0 ? elencoAnni : [year],
     rows,
     totals,
+    importati: importati ?? 0,
   }
 }
 

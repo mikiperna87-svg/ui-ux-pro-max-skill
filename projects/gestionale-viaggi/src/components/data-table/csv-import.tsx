@@ -22,7 +22,7 @@ import { buildRowValues, mapHeaders, type HeaderMapping } from '@/lib/import-map
 import { IMPORT_DEFINITIONS, type ImportEntity } from '@/lib/import-registry'
 import { cn } from '@/lib/utils'
 import type { ImportReport } from '@/lib/action-state'
-import { importRowsAction } from '@/server/actions/anagrafiche'
+import { importRowsAction } from '@/server/actions/importazioni'
 import { plurale } from '@/lib/labels'
 
 interface PreparedRow {
