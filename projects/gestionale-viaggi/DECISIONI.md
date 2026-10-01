@@ -1637,3 +1637,65 @@ solo in produzione. Ora la scrittura passa da una funzione — la stessa che usa
 il pannello di piattaforma — revocata a tutti i ruoli tranne quello di
 servizio, `authenticated` compreso, che altrimenti avrebbe trovato lì un modo
 per regalarsi un piano.
+
+---
+
+## 87. Una fattura emessa non torna in bozza
+
+**Scelta.** La migrazione 0022 aggiunge una riga al controllo della 0013: se lo
+stato esce da «bozza», non ci rientra.
+
+**Perché.** Il controllo esistente proteggeva codice, numero, cliente, data,
+regime e importi — e si spegneva da solo alla prima riga, `if old.status =
+'bozza' then return new`. Ma nessuno impediva di *portare* lo stato a «bozza».
+Una fattura emessa poteva essere riaperta e, da lì, modificata o eliminata come
+se non fosse mai esistita; le sue righe pure, perché il loro controllo legge lo
+stato del documento padre.
+
+Dall'interfaccia non era raggiungibile — l'azione di salvataggio filtra su
+`status = 'bozza'` — ma la policy RLS permette la scrittura diretta sulla
+tabella a chi ha i permessi contabili, e una chiamata all'API bastava. Una
+protezione che vale solo finché si passa dal modulo non è una protezione: è una
+convenzione.
+
+**Conseguenza.** L'ho trovata cercando un modo di ricostruire la demo, che si
+fermava proprio su questi controlli. La tentazione era usare quella strada
+(riporta a bozza, cancella, rifai) e andare avanti. Usarla voleva dire
+dipendere da un buco invece di chiuderlo. Chiuso il buco, il seed smette di
+essere rieseguibile su un database dove ha gia' emesso fatture — e lo dice,
+invece di fallire con un messaggio che parla d'altro. È il prezzo giusto:
+l'integrità di un documento fiscale vale più della comodità di rifare una demo.
+
+La regola aggiunta è volutamente minima — solo il ritorno in bozza. Le
+transizioni in avanti restano libere, perché inventare qui una macchina a stati
+completa vorrebbe dire decidere al posto di chi fa la contabilità.
+
+---
+
+## 88. La demo entra dalla porta principale
+
+**Scelta.** L'agenzia dimostrativa vive in produzione accanto alle altre, con
+un account di sola lettura le cui credenziali sono pubbliche, e un pulsante
+sulla pagina di accesso che le usa. Nessuna modalità speciale, nessuna sessione
+costruita a parte, nessuna scorciatoia che salti i controlli.
+
+**Perché.** Una «modalità demo» scritta a parte è codice che non è il prodotto:
+diverge, si rompe in silenzio, e il giorno in cui qualcuno la guarda non mostra
+piu' quello che il gestionale fa davvero. Entrando dalla porta principale, la
+demo è la prova che il prodotto funziona — e il ruolo di sola lettura che la
+protegge è lo stesso che protegge le agenzie vere, già verificato dai suoi
+test.
+
+**Conseguenza.** Il seed, che finora girava solo sul banco di prova, ha dovuto
+imparare due cose che su Supabase vero sono obbligatorie e in locale non si
+notavano: le righe in `auth.identities`, senza le quali l'accesso con password
+non funziona affatto, e i quattro campi di testo (`confirmation_token`,
+`recovery_token`, `email_change`, `email_change_token_new`) che il servizio di
+autenticazione legge come stringhe non nulle — a NULL, risponde «credenziali
+errate» a credenziali giuste. Due trappole che costano un pomeriggio a chi non
+le conosce.
+
+Le credenziali stanno in due variabili con prefisso `NEXT_PUBLIC`, ed è
+corretto: non sono un segreto, sono l'indirizzo di casa di un account che non
+può scrivere. Dove non sono impostate il pulsante non compare — l'installazione
+di un'agenzia vera non deve mostrare un invito a entrare in casa d'altri.

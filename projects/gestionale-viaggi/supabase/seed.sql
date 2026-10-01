@@ -5,7 +5,9 @@
 --   60 pratiche in stati diversi, con servizi, incassi, scadenze e pagamenti
 --   fatture e note di credito · task · registro attivita'
 --
--- Rieseguibile: cancella i dati dell'agenzia dimostrativa e li ricrea.
+-- Si applica a un database nuovo. NON e' rieseguibile su uno dove la demo ha
+-- gia' emesso fatture: un documento emesso non si cancella e non torna bozza,
+-- per costruzione (migrazioni 0013 e 0022). Il seed se ne accorge e lo dice.
 -- Credenziali: titolare@orizzontiviaggi.it / Gestionale2026!
 --              (stessa password per amministrativo@, operatore@ e revisore@)
 -- =============================================================================
@@ -21,35 +23,128 @@ declare
   v_m_admin     uuid;
   v_m_operator  uuid;
   v_password    text;
+  v_tabella     text;
+  v_restano     boolean;
+  v_giri        integer;
 begin
-  -- Pulizia: l'agenzia e' la radice, il cascade fa il resto.
-  delete from public.agencies where id = v_agency_id;
+  -- Un documento emesso non si cancella: e' la regola del gestionale, e vale
+  -- anche per la demo. Meglio fermarsi qui con una frase chiara che a meta'
+  -- pulizia con un errore che parla d'altro.
+  if exists (
+    select 1 from public.invoices
+    where agency_id = v_agency_id and status <> 'bozza' and deleted_at is null
+  ) then
+    raise exception using
+      message = 'L''agenzia dimostrativa ha gia'' fatture emesse e non si puo'' ricostruire.',
+      hint = 'Un documento emesso non si elimina ne'' torna in bozza. Per rifare la demo: azzera il database (npm run db:reset in locale) oppure usa una seconda agenzia dimostrativa.';
+  end if;
+
+  -- Pulizia.
+  --
+  -- Non si cancella l'agenzia: il cascade arriverebbe su `activity_log`, che
+  -- rifiuta qualunque DELETE. E' il comportamento chiesto dalla specifica, e
+  -- vale anche per un'agenzia dimostrativa — un registro che si puo' svuotare
+  -- quando fa comodo non e' un registro.
+  --
+  -- Si svuota invece ogni altra tabella dell'agenzia, scoprendole da
+  -- `information_schema`: cosi' una tabella nuova non richiede di ricordarsi
+  -- di aggiungerla a un elenco scritto a mano.
+  --
+  -- L'ordine pero' conta, e non basta differire i vincoli: `on delete
+  -- restrict` viene verificato subito anche su una chiave dichiarata
+  -- differibile — e' il senso di «restrict». Invece di mantenere a mano una
+  -- lista ordinata, si prova e si riprova: quello che fallisce per una chiave
+  -- esterna torna al giro dopo, quando i suoi figli non ci sono piu'. Si
+  -- ferma da solo, perche' ogni giro ne toglie almeno uno.
+  --
+  -- Conseguenza voluta: il registro attivita' della demo cresce a ogni
+  -- ricostruzione, e dice la verita' — quella demo e' stata rifatta.
+  v_restano := true;
+  v_giri := 0;
+
+  while v_restano and v_giri < 25 loop
+    v_restano := false;
+    v_giri := v_giri + 1;
+
+    for v_tabella in
+      select c.table_name
+      from information_schema.columns c
+      join information_schema.tables t
+        on t.table_schema = c.table_schema and t.table_name = c.table_name
+      where c.table_schema = 'public'
+        and c.column_name = 'agency_id'
+        and t.table_type = 'BASE TABLE'
+        and c.table_name not in ('activity_log', 'agencies')
+    loop
+      begin
+        execute format('delete from public.%I where agency_id = $1', v_tabella)
+          using v_agency_id;
+      exception when foreign_key_violation then
+        v_restano := true;
+      end;
+    end loop;
+  end loop;
+
+  if v_restano then
+    raise exception 'Pulizia della demo non riuscita in % giri: c''e'' un ciclo di chiavi esterne non risolvibile', v_giri;
+  end if;
+
   delete from auth.users where id in (v_owner_id, v_admin_id, v_operator_id, v_reader_id);
 
   v_password := crypt('Gestionale2026!', gen_salt('bf'));
 
+  -- I quattro campi di testo in coda non sono decorazione. Il servizio di
+  -- autenticazione di Supabase li legge come stringhe non nulle, e su una riga
+  -- che li ha a NULL fallisce prima ancora di guardare la password: l'accesso
+  -- risponde «credenziali errate» su credenziali giuste. Lasciarli al loro
+  -- default non basta, perche' un default c'e' solo su alcuni.
   insert into auth.users (
     instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change, email_change_token_new
   )
   values
     ('00000000-0000-0000-0000-000000000000', v_owner_id, 'authenticated', 'authenticated',
      'titolare@orizzontiviaggi.it', v_password, now(),
      '{"provider":"email","providers":["email"]}'::jsonb,
-     '{"full_name":"Giulia Marchetti"}'::jsonb, now() - interval '400 days', now()),
+     '{"full_name":"Giulia Marchetti"}'::jsonb, now() - interval '400 days', now(), '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', v_admin_id, 'authenticated', 'authenticated',
      'amministrativo@orizzontiviaggi.it', v_password, now(),
      '{"provider":"email","providers":["email"]}'::jsonb,
-     '{"full_name":"Paolo Ferrero"}'::jsonb, now() - interval '380 days', now()),
+     '{"full_name":"Paolo Ferrero"}'::jsonb, now() - interval '380 days', now(), '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', v_operator_id, 'authenticated', 'authenticated',
      'operatore@orizzontiviaggi.it', v_password, now(),
      '{"provider":"email","providers":["email"]}'::jsonb,
-     '{"full_name":"Sara Bonomi"}'::jsonb, now() - interval '300 days', now()),
+     '{"full_name":"Sara Bonomi"}'::jsonb, now() - interval '300 days', now(), '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', v_reader_id, 'authenticated', 'authenticated',
      'revisore@orizzontiviaggi.it', v_password, now(),
      '{"provider":"email","providers":["email"]}'::jsonb,
-     '{"full_name":"Enrico Pavan"}'::jsonb, now() - interval '200 days', now())
+     '{"full_name":"Enrico Pavan"}'::jsonb, now() - interval '200 days', now(), '', '', '', '')
   on conflict (id) do nothing;
+
+  -- Le identita'. Senza, su un Supabase vero l'accesso con la password non
+  -- funziona: GoTrue cerca l'identita' prima della riga in auth.users, e un
+  -- utente senza identita' e' un utente che non entrera' mai. Finche' il seed
+  -- girava solo sul banco di prova locale la cosa non si notava — ed e'
+  -- esattamente il motivo per cui questo seed non si poteva usare per una
+  -- demo pubblica.
+  --
+  -- Il banco locale non ha `auth.identities`: li' il blocco si salta, e la
+  -- finzione dell'autenticazione resta quella del shim.
+  if to_regclass('auth.identities') is not null then
+    insert into auth.identities (user_id, provider_id, provider, identity_data, created_at, updated_at)
+    select u.id, u.id::text, 'email',
+           jsonb_build_object(
+             'sub', u.id::text,
+             'email', u.email,
+             'email_verified', true,
+             'phone_verified', false
+           ),
+           u.created_at, now()
+    from auth.users u
+    where u.id in (v_owner_id, v_admin_id, v_operator_id, v_reader_id)
+    on conflict do nothing;
+  end if;
 
   -- --- Agenzia ---------------------------------------------------------------
   insert into public.agencies (
@@ -66,7 +161,34 @@ begin
     'https://www.orizzontiviaggi.it', 'IT60X0542811101000000123456', 'ordinario',
     'RF01', 2000000, 'AUT-VA-2016-0421', 'Polizza RC professionale n. 4417-88231',
     v_owner_id, now() - interval '400 days'
-  );
+  )
+  -- La riga dell'agenzia sopravvive alla pulizia, quindi qui si aggiorna.
+  on conflict (id) do update set
+    name = excluded.name,
+    legal_name = excluded.legal_name,
+    vat_number = excluded.vat_number,
+    tax_code = excluded.tax_code,
+    rea_number = excluded.rea_number,
+    rea_office = excluded.rea_office,
+    address_line = excluded.address_line,
+    postal_code = excluded.postal_code,
+    city = excluded.city,
+    province = excluded.province,
+    country = excluded.country,
+    email = excluded.email,
+    pec = excluded.pec,
+    phone = excluded.phone,
+    website = excluded.website,
+    iban = excluded.iban,
+    fiscal_regime = excluded.fiscal_regime,
+    sdi_regime = excluded.sdi_regime,
+    share_capital_cents = excluded.share_capital_cents,
+    license_number = excluded.license_number,
+    insurance_policy = excluded.insurance_policy,
+    suspended_at = null,
+    suspension_reason = null,
+    deleted_at = null,
+    updated_at = now();
 
   insert into public.agency_settings (
     agency_id, deposit_due_days, balance_due_days_before_departure, deposit_percent_bps,

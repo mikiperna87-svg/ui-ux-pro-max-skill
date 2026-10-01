@@ -339,10 +339,43 @@ l'indirizzo di produzione cambia solo al primo rilascio.
 | Isolamento dal pannello di piattaforma | `npx vitest run tests/db/piattaforma.test.ts` — l'amministratore deve contare zero clienti, zero pratiche, zero fatture |
 | Limiti e scadenza degli abbonamenti | `npx vitest run tests/db/abbonamenti.test.ts` |
 | Webhook degli abbonamenti | `npx playwright test tests/e2e/abbonamenti.spec.ts` — quattro firme non valide devono ricevere 401 |
+| Documento emesso immutabile | `npx vitest run tests/db/fattura-immutabile.test.ts` — non deve tornare in bozza nemmeno da SQL |
+| Demo in sola lettura | `npx playwright test tests/e2e/demo.spec.ts` |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |
 | Posta verificata | il dominio del mittente è verificato presso il fornitore |
 | Intestazioni | la risposta porta `Content-Security-Policy` e, in HTTPS, `Strict-Transport-Security` |
+
+---
+
+## Demo pubblica
+
+L'installazione dimostrativa mostra, sulla pagina di accesso, un pulsante
+**Entra nella demo**: un clic e si è dentro l'agenzia «Orizzonti Viaggi», con
+sessanta pratiche, preventivi, incassi, fatture e registro IVA. L'account è di
+**sola lettura** — lo stesso ruolo che protegge le agenzie vere, con i suoi
+test.
+
+Si accende con due variabili, che non sono un segreto:
+
+```
+NEXT_PUBLIC_DEMO_EMAIL=revisore@orizzontiviaggi.it
+NEXT_PUBLIC_DEMO_PASSWORD=...
+```
+
+Dove non ci sono, il pulsante non compare: l'installazione di un'agenzia vera
+non deve invitare a entrare in casa d'altri.
+
+I dati arrivano da `supabase/seed.sql`, che si applica a un database nuovo:
+
+```bash
+SUPABASE_ACCESS_TOKEN=sbp_... npm run db:apply:api -- --ref <ref> --seed
+```
+
+**Non è rieseguibile** su un database dove la demo ha già emesso fatture: un
+documento emesso non si cancella e non torna in bozza, per costruzione
+(DECISIONI 87). Il seed se ne accorge e lo dice. Per rifare la demo si azzera
+il database, oppure si usa una seconda agenzia dimostrativa.
 
 ---
 

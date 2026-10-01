@@ -25,7 +25,10 @@ export async function signInAction(_previous: ActionState, formData: FormData): 
   const parsed = signInSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
-    successivo: formData.get('successivo'),
+    // `get` torna null quando il campo non c'è, e `optional()` accetta
+    // undefined ma non null: senza questa conversione chi chiama l'azione
+    // senza quel campo si vede rifiutare dati validi.
+    successivo: formData.get('successivo') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -58,7 +61,10 @@ export async function signInAction(_previous: ActionState, formData: FormData): 
 export async function magicLinkAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = magicLinkSchema.safeParse({
     email: formData.get('email'),
-    successivo: formData.get('successivo'),
+    // `get` torna null quando il campo non c'è, e `optional()` accetta
+    // undefined ma non null: senza questa conversione chi chiama l'azione
+    // senza quel campo si vede rifiutare dati validi.
+    successivo: formData.get('successivo') ?? undefined,
   })
 
   if (!parsed.success) {

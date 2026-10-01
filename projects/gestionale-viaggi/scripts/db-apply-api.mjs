@@ -7,9 +7,10 @@
  *
  * --ref <ref>   il riferimento del progetto (si legge anche da SUPABASE_PROJECT_REF)
  * --forza       riapplica anche le migrazioni già registrate
- * --seed        applica supabase/seed.sql al termine (MAI su un progetto vero:
- *               il seed scrive auth.users senza auth.identities e quegli utenti
- *               non riuscirebbero ad accedere)
+ * --seed        applica supabase/seed.sql al termine. Crea l'agenzia
+ *               dimostrativa «Orizzonti Viaggi» con i suoi quattro accessi,
+ *               cancellandola e rifacendola se c'e' gia'. Non tocca nient'altro:
+ *               le altre agenzie restano dove sono.
  * --prova       stampa che cosa farebbe, senza toccare niente
  *
  * Perché esiste, accanto a db-apply.mjs: la porta 5432 di un progetto Supabase
@@ -143,9 +144,7 @@ async function run() {
     if (saltate > 0) console.log(`· ${saltate} migrazioni già applicate, saltate`)
 
     if (args.has('--seed')) {
-      console.log(
-        '\n⚠ Il seed crea utenti senza identità: va bene solo su un database di prova.',
-      )
+      console.log('\n· applico il seed dimostrativo (cancella e rifà solo la sua agenzia)')
       await applicaFile(path.join(root, 'supabase/seed.sql'), 'supabase/seed.sql')
     }
 
