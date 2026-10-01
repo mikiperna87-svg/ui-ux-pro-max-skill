@@ -1260,7 +1260,7 @@ l'inizio di `updateSession`.
 | TanStack Query | — | Lo scadenzario si è rivelato una griglia come le altre: stato nell'indirizzo, dati dal server. Una libreria di stato client non avrebbe nulla da gestire |
 | Realtime | Non pianificata | L'agenda si rilegge a ogni apertura e la posta ha il suo pannello: una connessione persistente aggiungerebbe complessità senza togliere un solo clic |
 | Esportazione XLSX | Non pianificata | Il CSV si apre in Excel italiano senza passaggi, e nessuno ha chiesto formule o fogli multipli: una libreria in più va giustificata da un bisogno vero, non dal fatto che si potrebbe |
-| Fatturazione elettronica (XML SdI) | Modulo a sé | Il tracciato FatturaPA e l'invio al Sistema di Interscambio sono un modulo a sé: servono l'accreditamento, la firma e un canale. Lo schema dei documenti è già quello giusto per generarlo |
+| Fatturazione elettronica (XML SdI) | Risolta a metà | Il tracciato FatturaPA 1.2 è stato costruito dopo la roadmap (migrazione 0018, DECISIONI 79): il file si produce e si verifica prima di produrlo. Resta fuori la **trasmissione**, che richiede accreditamento, firma e un canale presso un intermediario: l'esito si registra a mano dal pannello sulla scheda della fattura |
 
 ---
 

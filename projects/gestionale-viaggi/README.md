@@ -644,9 +644,17 @@ non è «scrivere».
 | 8 | Agenda, attività, posta in uscita | **completata** |
 | 9 | Rifinitura: accessibilità, prestazioni, E2E, mobile, manuale, rilascio | **completata** |
 
-La roadmap è chiusa. Ciò che resta fuori è scritto in fondo a `DECISIONI.md`,
-con il motivo di ciascun rinvio: la fatturazione elettronica verso il Sistema
-di Interscambio, l'esportazione in XLSX e l'aggiornamento in tempo reale.
+La roadmap è chiusa, e dopo di essa sono arrivati i moduli che servono a
+vendere il gestionale a un'agenzia vera: fattura elettronica, copie di
+sicurezza, pannello di piattaforma, abbonamenti, demo pubblica, trasloco da un
+altro gestionale e percorso del primo giorno.
+
+Ciò che resta fuori è scritto in `DECISIONI.md` con il motivo di ciascun rinvio.
+In breve: la **trasmissione** allo SdI (il file XML si produce e si verifica, ma
+consegnarlo richiede un intermediario accreditato — DECISIONI 79), l'**incasso**
+degli abbonamenti (il webhook firmato è pronto e chiuso, manca il fornitore di
+pagamenti — DECISIONI 86), l'esportazione in XLSX e l'aggiornamento in tempo
+reale, questi ultimi due non pianificati per scelta.
 
 ## Licenza
 
