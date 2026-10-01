@@ -67,7 +67,7 @@ export default async function FatturaPage({ params }: { params: Promise<{ id: st
   // perché l'unica cosa che potrebbe fare è un deposito doppio. Il divieto vero
   // sta sul database (migrazione 0023); qui si evita di proporre un bottone che
   // il database rifiuterà.
-  const importato = invoice.imported_at !== null
+  const importato = (invoice.imported_at ?? null) !== null
   const sdi = bozza || importato ? null : await verificaSdi(invoice.id)
   const rilievi = sdi?.esito === 'ok' ? sdi.verifica.rilievi : []
 

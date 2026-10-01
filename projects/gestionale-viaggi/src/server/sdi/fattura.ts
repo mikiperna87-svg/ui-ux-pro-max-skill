@@ -83,7 +83,12 @@ async function monta(invoiceId: string): Promise<Montaggio | ProblemaMontaggio> 
   // produrne il file qui servirebbe solo a depositarlo due volte. Il divieto
   // vero sta sul database (migrazione 0023), questo lo anticipa con un
   // messaggio che si capisce.
-  if (detail.invoice.imported_at !== null) return { esito: 'importato' }
+  // `?? null` e non `!== null` secco: se l'applicazione gira su un database su
+  // cui la migrazione 0023 non e' ancora passata, la colonna non arriva e il
+  // valore e' `undefined` — che non e' `null`, e farebbe sembrare importato
+  // ogni documento. Un ordine di rilascio sbagliato non deve nascondere la
+  // trasmissione a tutte le fatture.
+  if ((detail.invoice.imported_at ?? null) !== null) return { esito: 'importato' }
   const numero = detail.invoice.code
 
   const supabase = await createClient()

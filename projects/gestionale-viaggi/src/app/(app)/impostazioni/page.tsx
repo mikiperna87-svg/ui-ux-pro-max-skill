@@ -74,7 +74,7 @@ export default async function ImpostazioniPage() {
 
             {/* Nascondere i primi passi non è una via senza ritorno: chi li ha
                 chiusi e vuole finire il percorso li ritrova qui. */}
-            {session.settings.onboarding_dismissed_at ? (
+            {(session.settings.onboarding_dismissed_at ?? null) !== null ? (
               <Card>
                 <CardHeader>
                   <div className="space-y-1">

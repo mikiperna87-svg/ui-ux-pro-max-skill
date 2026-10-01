@@ -47,6 +47,6 @@ export async function statoPrimiPassi(): Promise<StatoPrimiPassi> {
     pratiche: pratiche.count ?? 0,
     documenti: documenti.count ?? 0,
     persone: persone.count ?? 0,
-    nascosto: session.settings.onboarding_dismissed_at !== null,
+    nascosto: (session.settings.onboarding_dismissed_at ?? null) !== null,
   })
 }
