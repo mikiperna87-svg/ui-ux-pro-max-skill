@@ -173,6 +173,7 @@ durata, utile quando un test si blocca).
 | `npm run db:apply` | Applica le migrazioni (`-- --seed` per i dati dimostrativi) |
 | `npm run db:reset` | Ricrea da zero il database locale con migrazioni e seed |
 | `npm run db:types` | Rigenera `src/lib/database.types.ts` dallo schema |
+| `npm run db:query:api` | Interroga un progetto ospitato (`-- --ref <ref> --sql "..."`); serve `--scrivi` per tutto ciò che non è una lettura |
 | `npm run dev:api` | Banco di prova Supabase per lo sviluppo locale |
 | `npm run dev:stack` | Accende Postgres e il banco di prova se sono spenti |
 | `npm run start:e2e` | Server di produzione con i limiti di accesso alzati |
@@ -313,6 +314,22 @@ VERCEL_TOKEN=... npm run deploy
 Lo stato della pubblicazione si legge con
 `node scripts/deploy-vercel.mjs --stato <id>`: passa da `BUILDING` a `READY`, e
 l'indirizzo di produzione cambia solo al primo rilascio.
+
+**L'ordine conta**: prima le migrazioni, poi la pubblicazione. Il codice è
+scritto per non sbagliare se l'ordine si invertisse — le colonne nuove che non
+arrivano dal database vengono lette con un ripiego invece di cambiare
+comportamento in silenzio — ma una funzione nuova resta inerte finché la sua
+migrazione non è passata.
+
+Per guardare che cosa c'è davvero sul database dopo un rilascio:
+
+```bash
+SUPABASE_ACCESS_TOKEN=... npm run db:query:api -- --ref <ref> \
+  --sql "select version from public.schema_migrations order by version desc limit 3"
+```
+
+Il comando rifiuta tutto ciò che non è una lettura se non si aggiunge
+`--scrivi`: una query sbagliata su produzione non si annulla.
 
 ### Da sistemare prima di aprire al pubblico
 
