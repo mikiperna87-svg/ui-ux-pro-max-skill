@@ -17,6 +17,23 @@ const inter = localFont({
   fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'],
 })
 
+/**
+ * Le funzioni girano accanto al database, non accanto a Vercel.
+ *
+ * Ogni pagina di questo gestionale è resa dal server e fa più andate e ritorno
+ * al database. Con le funzioni nella regione predefinita di Vercel (`iad1`,
+ * Washington) e il database in Irlanda, ciascuna costava circa 85 ms di solo
+ * viaggio — misurati — contro i 2-5 ms che il database impiega a rispondere: il
+ * tempo di una pagina era quasi tutto Atlantico. `dub1` è Dublino, la stessa
+ * regione AWS del progetto Supabase.
+ *
+ * La regione autorevole è quella impostata sul progetto Vercel, che
+ * `scripts/deploy-vercel.mjs` tiene allineata a ogni pubblicazione. Questa riga
+ * la dichiara anche nel repository, dove si legge insieme al codice che ne
+ * dipende.
+ */
+export const preferredRegion = 'dub1'
+
 export const metadata: Metadata = {
   title: {
     default: 'Gestionale Viaggi',

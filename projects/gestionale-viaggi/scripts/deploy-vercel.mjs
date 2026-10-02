@@ -5,6 +5,7 @@
  *
  *   VERCEL_TOKEN=... node scripts/deploy-vercel.mjs --nome gestionale-viaggi
  *
+ * --regione <id>  regione delle funzioni (predefinita dub1, accanto al database)
  * --nome <nome>   nome del progetto Vercel (default: gestionale-viaggi)
  * --team <id>     identificativo del team, se il progetto non è personale
  * --anteprima     pubblica come anteprima invece che in produzione
@@ -40,6 +41,18 @@ function opzione(nome) {
 }
 
 const nome = opzione('--nome') ?? 'gestionale-viaggi'
+/**
+ * La regione in cui girano le funzioni.
+ *
+ * `dub1` è Dublino, la stessa regione AWS (eu-west-1) in cui sta il progetto
+ * Supabase. Le pagine di questo gestionale sono rese dal server e ogni pagina
+ * fa più andate e ritorno al database: con le funzioni negli Stati Uniti —
+ * `iad1`, il valore predefinito di Vercel — ciascuna costava circa 85 ms di
+ * solo viaggio, misurati, contro i 2-5 ms che il database impiega a rispondere.
+ * Accanto al database quel viaggio scende sotto il millisecondo, e per chi usa
+ * il gestionale dall'Italia si accorcia anche la strada del browser.
+ */
+const regione = opzione('--regione') ?? 'dub1'
 const team = opzione('--team') ?? process.env.VERCEL_TEAM_ID
 const token = process.env.VERCEL_TOKEN
 const base = process.env.VERCEL_API_URL ?? 'https://api.vercel.com'
@@ -138,14 +151,26 @@ async function run() {
   })
   if (esistente.stato === 404) {
     const creato = await chiama('POST', `/v10/projects${query}`, {
-      json: { name: nome, framework: 'nextjs' },
+      json: { name: nome, framework: 'nextjs', serverlessFunctionRegion: regione },
     })
     if (creato.stato >= 300) throw errore('creazione del progetto', creato)
-    console.log(`· progetto creato: ${creato.corpo.name}`)
+    console.log(`· progetto creato: ${creato.corpo.name} (regione ${regione})`)
   } else if (esistente.stato >= 300) {
     throw errore('lettura del progetto', esistente)
   } else {
     console.log(`· progetto già presente: ${esistente.corpo.name}`)
+
+    // La regione si corregge solo quando è sbagliata: toccare le impostazioni
+    // del progetto a ogni pubblicazione, anche per riscrivere lo stesso valore,
+    // è un effetto collaterale che non serve a nessuno.
+    const attuale = esistente.corpo.serverlessFunctionRegion ?? null
+    if (attuale !== regione) {
+      const spostato = await chiama('PATCH', `/v9/projects/${encodeURIComponent(nome)}${query}`, {
+        json: { serverlessFunctionRegion: regione },
+      })
+      if (spostato.stato >= 300) throw errore('impostazione della regione', spostato)
+      console.log(`· regione delle funzioni: ${attuale ?? 'predefinita'} → ${regione}`)
+    }
   }
 
   for (const f of file) {

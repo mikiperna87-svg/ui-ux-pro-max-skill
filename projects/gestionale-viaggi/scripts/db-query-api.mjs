@@ -49,14 +49,26 @@ if (!ref) {
   process.exit(1)
 }
 
-/** Vero quando l'istruzione è, con ogni evidenza, una sola lettura. */
+/**
+ * Vero quando l'istruzione è, con ogni evidenza, una sola lettura.
+ *
+ * `explain` e `explain analyze` davanti a una `select` restano letture: il
+ * piano si misura eseguendo quella select e nient'altro. Davanti a una
+ * `insert` no — `explain analyze insert` scrive per davvero — quindi il
+ * prefisso si toglie e si guarda che cosa c'è sotto.
+ */
 function soloLettura(sql) {
-  const pulito = sql
+  let pulito = sql
     .replace(/--[^\n]*/g, ' ')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .trim()
     .toLowerCase()
-  return /^(select|with)\b/.test(pulito) && !/\b(insert|update|delete|drop|alter|create|truncate|grant|revoke)\b/.test(pulito)
+
+  // `explain`, con le sue opzioni fra parentesi oppure come parole sciolte.
+  pulito = pulito.replace(/^explain\s*(\([^)]*\)\s*)?((analyze|analyse|verbose|costs|buffers|timing|summary|settings|wal|generic_plan|format\s+\w+|true|false|on|off|,)\s+)*/, '')
+
+  return /^(select|with|table|values|show)\b/.test(pulito) &&
+    !/\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|refresh|vacuum|reindex|call|do)\b/.test(pulito)
 }
 
 async function run() {
