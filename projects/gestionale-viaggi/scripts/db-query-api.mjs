@@ -30,6 +30,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
+import { pathToFileURL } from 'node:url'
 
 const esegui = promisify(execFile)
 const argv = process.argv.slice(2)
@@ -44,11 +45,6 @@ const ref = opzione('--ref') ?? process.env.SUPABASE_PROJECT_REF
 const token = process.env.SUPABASE_ACCESS_TOKEN
 const base = process.env.SUPABASE_API_URL ?? 'https://api.supabase.com'
 
-if (!ref) {
-  console.error('✖ Serve il riferimento del progetto: --ref <project-ref> oppure SUPABASE_PROJECT_REF.')
-  process.exit(1)
-}
-
 /**
  * Vero quando l'istruzione è, con ogni evidenza, una sola lettura.
  *
@@ -57,7 +53,7 @@ if (!ref) {
  * `insert` no — `explain analyze insert` scrive per davvero — quindi il
  * prefisso si toglie e si guarda che cosa c'è sotto.
  */
-function soloLettura(sql) {
+export function soloLettura(sql) {
   let pulito = sql
     .replace(/--[^\n]*/g, ' ')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
@@ -72,6 +68,11 @@ function soloLettura(sql) {
 }
 
 async function run() {
+  if (!ref) {
+    console.error('✖ Serve il riferimento del progetto: --ref <project-ref> oppure SUPABASE_PROJECT_REF.')
+    process.exit(1)
+  }
+
   const file = opzione('--file')
   const sql = file ? await readFile(path.resolve(file), 'utf8') : opzione('--sql')
 
@@ -139,7 +140,19 @@ async function run() {
   }
 }
 
-run().catch((errore) => {
-  console.error(`✖ ${errore.message}`)
-  process.exit(1)
-})
+/**
+ * Si esegue solo quando è questo il comando invocato.
+ *
+ * `soloLettura` è esportata perché la provano i test — è l'unica cosa fra un
+ * comando scritto in fretta e il database di produzione — e un modulo che
+ * all'import legge gli argomenti e parte non si può provare.
+ */
+const invocato =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href
+
+if (invocato) {
+  run().catch((errore) => {
+    console.error(`✖ ${errore.message}`)
+    process.exit(1)
+  })
+}

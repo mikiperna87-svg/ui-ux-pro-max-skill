@@ -315,6 +315,14 @@ Lo stato della pubblicazione si legge con
 `node scripts/deploy-vercel.mjs --stato <id>`: passa da `BUILDING` a `READY`, e
 l'indirizzo di produzione cambia solo al primo rilascio.
 
+**La regione conta più di qualunque indice.** Le funzioni girano in `dub1`
+(Dublino), la stessa regione AWS del progetto Supabase: `deploy-vercel.mjs` la
+imposta alla creazione e la corregge se il progetto sta altrove. Con il valore
+predefinito di Vercel — `iad1`, Washington — ogni andata e ritorno al database
+costava circa 85 ms contro i 2-5 ms che il database impiega a rispondere, e il
+TTFB delle pagine era doppio o triplo (misure in DECISIONI 94). Se un giorno il
+database si sposta, si sposta anche questa: `--regione <id>`.
+
 **L'ordine conta**: prima le migrazioni, poi la pubblicazione. Il codice è
 scritto per non sbagliare se l'ordine si invertisse — le colonne nuove che non
 arrivano dal database vengono lette con un ripiego invece di cambiare

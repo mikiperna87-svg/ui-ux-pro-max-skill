@@ -1843,3 +1843,68 @@ passi, in che ordine, quali facoltativi si provano senza database.
 impedisce di usare il gestionale finché non è finita, e nessun dato di esempio
 caricato di nascosto. Chi entra deve poter andare dove vuole; il riquadro
 suggerisce, e sparisce da solo quando non ha più niente da dire.
+
+---
+
+## 94. Le funzioni girano accanto al database, non accanto a Vercel
+
+**Scelta.** Le funzioni serverless girano in `dub1` (Dublino), la stessa regione
+AWS — `eu-west-1` — in cui sta il progetto Supabase. La regione autorevole è
+quella impostata sul progetto Vercel, che `scripts/deploy-vercel.mjs` allinea a
+ogni pubblicazione; `preferredRegion` nel layout radice la dichiara anche nel
+repository.
+
+**Perché.** Il gestionale era lento, e l'istinto diceva «ottimizza le query». La
+misura diceva un'altra cosa. `EXPLAIN ANALYZE` sui tre elenchi più pesanti e
+sulle tre funzioni della panoramica, sul database di produzione:
+
+| Interrogazione | Esecuzione |
+| --- | --- |
+| elenco pratiche (25 righe) | 3,9 ms |
+| elenco clienti (25 righe) | 4,7 ms |
+| elenco fatture (25 righe) | 1,7 ms |
+| `dashboard_kpis` su 12 mesi | 1,7 ms |
+| `monthly_trend` | 0,8 ms |
+| `upcoming_departures` | 0,7 ms |
+
+Il database risponde in millisecondi. Le pagine autenticate, intanto, avevano un
+TTFB fra 750 e 1500 ms. La differenza non era calcolo: era geografia. Le funzioni
+giravano in `iad1` — Washington, il valore predefinito di Vercel — e il database
+sta in Irlanda. Ogni andata e ritorno costava circa 85 ms, e una pagina resa dal
+server ne fa diverse in fila: l'autenticazione, l'iscrizione, poi agenzia e
+parametri, poi i dati. A questo si sommava la strada del browser, perché chi usa
+il gestionale dall'Italia raggiungeva Washington e non Dublino.
+
+Misurato dopo lo spostamento, dallo stesso punto di osservazione:
+
+| Pagina | `iad1` | `dub1` |
+| --- | --- | --- |
+| Panoramica | 1424 ms | 698 ms |
+| Pratiche | 1494 ms | 503 ms |
+| Scadenzario | 1002 ms | 456 ms |
+| Clienti | 1002 ms | 521 ms |
+| Report | 914 ms | 424 ms |
+| Agenda | 966 ms | 421 ms |
+
+Da un punto di osservazione italiano il guadagno è maggiore di così: la misura
+qui sopra è presa attraverso un proxy americano, che dopo lo spostamento paga
+*più* strada per raggiungere la funzione, non meno.
+
+**Quello che non si è fatto, e perché.** Nessuna query riscritta, nessun indice
+aggiunto: non c'era niente da correggere, e cambiare codice che funziona per un
+problema che sta altrove avrebbe aggiunto rischio senza togliere millisecondi.
+
+Niente cache dei dati lato client (`experimental.staleTimes`): il ritorno
+all'elenco da una scheda è stato misurato fra 130 e 155 ms, già servito dalla
+cronologia del browser senza toccare il server. Accenderla avrebbe barattato un
+guadagno inesistente con il rischio di mostrare uno scadenzario vecchio di
+secondi a chi registra un incasso mentre un collega registra lo stesso.
+
+Il middleware resta com'è: valida la sessione contro il server di
+autenticazione a ogni richiesta, e dal bordo di rete più vicino all'utente costa
+una trentina di millisecondi. È una proprietà di sicurezza scelta e documentata
+(il token non si crede sulla parola), e trenta millisecondi su una pagina ora
+veloce sono un prezzo proporzionato. Chi volesse togliere anche quelli deve
+passare alle chiavi asimmetriche di Supabase e verificare la firma in locale:
+è un cambio all'autenticazione di un sistema in produzione, non
+un'ottimizzazione.
