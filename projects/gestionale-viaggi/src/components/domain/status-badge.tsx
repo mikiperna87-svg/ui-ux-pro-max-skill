@@ -1,0 +1,88 @@
+import { Badge } from '@/components/ui/badge'
+import type { Enums } from '@/lib/database.types'
+import {
+  BOOKING_STATUS,
+  INSTALLMENT_STATE,
+  INVOICE_PAYMENT_STATE,
+  PAYMENT_STATE,
+  PAYOUT_STATUS,
+  QUOTE_STATUS,
+  isInstallmentState,
+  isInvoicePaymentState,
+} from '@/lib/labels'
+
+/** Stato della pratica: colore e testo insieme, mai il colore da solo. */
+export function BookingStatusBadge({ status }: { status: Enums['booking_status'] }) {
+  const { label, tone } = BOOKING_STATUS[status]
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
+
+export function PaymentStateBadge({ state }: { state: Enums['payment_state'] }) {
+  const { label, tone } = PAYMENT_STATE[state]
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
+
+export function PayoutStatusBadge({ status }: { status: Enums['payout_status'] }) {
+  const { label, tone } = PAYOUT_STATUS[status]
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
+
+/**
+ * Stato di una scadenza. Accetta anche una stringa sconosciuta perché il valore
+ * arriva da una vista e non da un enum: meglio un "Da incassare" prudente che
+ * una pagina che si rompe se un giorno la vista imparasse un nuovo stato.
+ */
+export function InstallmentStateBadge({ state }: { state: string | null }) {
+  const { label, tone } = INSTALLMENT_STATE[isInstallmentState(state) ? state : 'attesa']
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
+
+/**
+ * Stato di un preventivo. La scadenza non è un valore dell'enum: un preventivo
+ * inviato e scaduto resta "inviato" sul database, e si legge "Scaduto" qui,
+ * dove conta.
+ */
+export function QuoteStatusBadge({
+  status,
+  expired = false,
+}: {
+  status: Enums['quote_status']
+  expired?: boolean
+}) {
+  const { label, tone } = expired && status === 'inviato' ? QUOTE_STATUS.scaduto : QUOTE_STATUS[status]
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
+
+/**
+ * Stato di incasso di una fattura. Come per le scadenze il valore arriva da una
+ * vista: uno stato sconosciuto non deve far cadere la pagina.
+ */
+export function InvoicePaymentStateBadge({ state }: { state: string | null }) {
+  const { label, tone } =
+    INVOICE_PAYMENT_STATE[isInvoicePaymentState(state) ? state : 'da_incassare']
+  return (
+    <Badge tone={tone} dot>
+      {label}
+    </Badge>
+  )
+}
