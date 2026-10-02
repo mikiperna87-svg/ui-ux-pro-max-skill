@@ -1908,3 +1908,53 @@ veloce sono un prezzo proporzionato. Chi volesse togliere anche quelli deve
 passare alle chiavi asimmetriche di Supabase e verificare la firma in locale:
 è un cambio all'autenticazione di un sistema in produzione, non
 un'ottimizzazione.
+
+---
+
+## 95. Il clic risponde subito, anche quando la pagina arriva dopo
+
+**Scelta.** Due segnali, nessun `loading.tsx`. La riga dell'elenco su cui si
+clicca si dichiara occupata — sbiadita, `aria-busy`, cursore di attesa — e una
+barra sottile in cima alla finestra annuncia qualunque navigazione interna.
+Entrambi compaiono nell'istante del clic, prima che il server abbia risposto.
+
+**Perché.** Il router di Next tiene a schermo la pagina corrente finché la
+prossima non è pronta. Misurato in produzione, dal clic al primo cambiamento
+visibile:
+
+| Clic | Primo segnale | Contenuto |
+| --- | --- | --- |
+| riga dell'elenco → scheda | **1094 ms** | 1105 ms |
+| voce di menu → Fatture | **14 ms** | 1485 ms |
+
+La voce di menu arriva *più tardi* e sembra più veloce. La differenza non è la
+velocità: è che una rotellina compariva in quattordici millisecondi mentre la
+riga restava muta per oltre un secondo. Un gestionale che non reagisce al clic
+viene cliccato due volte, e di un'applicazione che risponde dopo un secondo si
+dice che è rotta.
+
+**Perché non `loading.tsx`.** Sarebbe la risposta di Next, e resta esclusa per
+la ragione misurata nella decisione 35: il confine Suspense che crea sopra le
+pagine lascia le mutazioni bloccate su «Salvataggio...», 16 volte su 40. Questi
+due segnali non toccano la gerarchia dei confini — osservano e disegnano.
+
+**Perché globale e non su ogni collegamento.** I comandi che portano a un'altra
+pagina sono cinquantaquattro. Metterci la mano uno per uno vuol dire
+dimenticarne qualcuno oggi e tutti quelli aggiunti domani, e rischiare
+l'impaginazione in punti che nessuno riaprirà. La barra osserva i clic sui
+collegamenti interni e il cambio di indirizzo: vale per tutti, compresi quelli
+che verranno.
+
+**I tre modi in cui potrebbe mentire**, tutti chiusi e sotto prova
+(`tests/e2e/risposta-al-clic.spec.ts`): segnalare righe che non c'entrano — solo
+quella cliccata; restare accesa dopo l'arrivo — si spegne al cambio di
+indirizzo, con un ripiego a tempo perché una navigazione si può abbandonare;
+accendersi su un gesto che non naviga — una casella di selezione, un
+collegamento alla pagina in cui si è già, un clic con un modificatore che apre
+altrove non la fanno comparire.
+
+**Quello che non si è toccato.** Filtri, ricerca, ordinamento e paginazione un
+segnale lo avevano già: la tabella sbiadisce durante la transizione e il campo
+di ricerca espone `aria-busy`. Il movimento della barra si spegne da solo per
+chi chiede meno movimento, e al suo posto resta una barra ferma: un segnale,
+non un'animazione.

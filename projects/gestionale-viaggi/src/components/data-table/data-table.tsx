@@ -31,6 +31,7 @@ import {
   TableRow,
   TableWrapper,
 } from '@/components/ui/table'
+import { useRigaInAttesa } from '@/components/data-table/riga-in-attesa'
 import { buildListHref } from '@/lib/list-params'
 import { cn } from '@/lib/utils'
 
@@ -97,6 +98,7 @@ export function DataTable<T>({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [pending, startTransition] = useTransition()
+  const { inAttesa, segnalaClic } = useRigaInAttesa()
   const [selection, setSelection] = useState<Record<string, boolean>>({})
   const [hidden, setHidden] = useState<VisibilityState>({})
 
@@ -378,7 +380,19 @@ export function DataTable<T>({
               </TableHead>
               <TableBody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-riga="" data-selected={row.getIsSelected()}>
+                  <TableRow
+                    key={row.id}
+                    data-riga=""
+                    data-selected={row.getIsSelected()}
+                    // La riga si dichiara occupata nell'istante del clic: il
+                    // router tiene a schermo questa pagina finché la prossima
+                    // non è pronta, e senza un segnale qui il gestionale sembra
+                    // non aver ricevuto il clic.
+                    data-attesa={inAttesa === getRowId(row.original) ? '' : undefined}
+                    aria-busy={inAttesa === getRowId(row.original) || undefined}
+                    onClickCapture={segnalaClic(getRowId(row.original))}
+                    className="data-[attesa]:cursor-progress data-[attesa]:opacity-55"
+                  >
                     {bulkActions ? (
                       <TableCell className="w-9">
                         <Checkbox
@@ -411,7 +425,14 @@ export function DataTable<T>({
           {/* Schede: su telefono */}
           <ul className={cn('space-y-2 md:hidden', pending && 'opacity-60 transition-opacity')}>
             {rows.map((row) => (
-              <li key={getRowId(row)} data-riga="">
+              <li
+                key={getRowId(row)}
+                data-riga=""
+                data-attesa={inAttesa === getRowId(row) ? '' : undefined}
+                aria-busy={inAttesa === getRowId(row) || undefined}
+                onClickCapture={segnalaClic(getRowId(row))}
+                className="data-[attesa]:cursor-progress data-[attesa]:opacity-55"
+              >
                 {renderCard(row)}
               </li>
             ))}

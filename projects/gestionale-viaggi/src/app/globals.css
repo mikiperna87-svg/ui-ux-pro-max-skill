@@ -347,6 +347,8 @@
   --animate-in-scale: scale-in 160ms var(--ease-out-soft);
   --animate-in-slide: slide-up 180ms var(--ease-out-soft);
   --animate-shimmer: shimmer 1.4s linear infinite;
+  /* La barra che annuncia una navigazione in corso. */
+  --animate-scorri: scorri 1.1s var(--ease-in-out-soft) infinite;
 
   /* Layout */
   --container-sidebar: 15.5rem;
@@ -503,6 +505,17 @@
   }
   to {
     background-position: 180% 0;
+  }
+}
+
+/* Un segmento che attraversa la barra: dice «sto lavorando» senza fingere di
+   conoscere una percentuale che nessuno conosce. */
+@keyframes scorri {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
   }
 }
 

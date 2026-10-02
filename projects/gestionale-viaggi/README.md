@@ -372,6 +372,7 @@ Il comando rifiuta tutto ciò che non è una lettura se non si aggiunge
 | Modelli reimportabili | `npx vitest run tests/unit/import-modelli.test.ts` — il file che consegniamo deve superare la nostra stessa validazione |
 | Dati dimostrativi validi | `npx vitest run tests/unit/dati-dimostrativi.test.ts` — IBAN e partite IVA del seed devono passare i validatori dell'applicazione |
 | Trasloco completo | `npx playwright test tests/e2e/importazioni.spec.ts` |
+| Risposta al clic | `npx playwright test tests/e2e/risposta-al-clic.spec.ts` — la riga cliccata e la barra in cima devono comparire subito, e spegnersi all'arrivo |
 | Il primo giorno | `npx playwright test tests/e2e/primi-passi.spec.ts` — il percorso guidato deve comparire a un'agenzia nuova, spuntarsi da solo e non avere violazioni axe nei due temi |
 | Bucket privato | `documenti` non è pubblico su Supabase Storage |
 | Chiavi al loro posto | `SUPABASE_SERVICE_ROLE_KEY` e `RESEND_API_KEY` solo sul server |

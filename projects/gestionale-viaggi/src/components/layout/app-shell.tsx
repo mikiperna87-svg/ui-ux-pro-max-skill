@@ -1,4 +1,5 @@
 import { PauseCircle } from 'lucide-react'
+import { IndicatoreNavigazione } from '@/components/layout/indicatore-navigazione'
 import type { ReactNode } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
@@ -17,6 +18,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-bg">
+      {/* Fuori dal flusso e sopra tutto: annuncia il clic senza spostare di un
+          pixel il contenuto che sta per essere sostituito. */}
+      <IndicatoreNavigazione />
       <Sidebar
         role={session.role}
         piattaforma={piattaforma}
