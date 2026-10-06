@@ -1,4 +1,4 @@
-# [NOME BAR] — sito one-page dark luxury
+# Live Coffee — sito one-page dark luxury
 
 Sito statico (HTML + CSS + JS, nessun build step) per un cocktail bar di lusso, con animazione 3D guidata dallo scroll su `<canvas>`.
 
@@ -19,8 +19,8 @@ Cerca e sostituisci in `index.html` (e una volta in `js/main.js`, nel messaggio 
 
 | Segnaposto | Esempio |
 |---|---|
-| `[NOME BAR]` | Nome del locale |
-| `[CITTÀ]` | Città |
+| `Live Coffee` | Nome del locale |
+| `Bitonto` | Città |
 | `[SLOGAN]` | Titolo dell'hero |
 | `Via [Indirizzo], 1`, `00000` | Indirizzo e CAP (anche nel link e nell'iframe della mappa) |
 | `+39 000 000 0000`, `390000000000` | Telefono e numero WhatsApp (formato internazionale, senza `+`) |

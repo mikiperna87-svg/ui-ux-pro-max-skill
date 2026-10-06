@@ -1,5 +1,5 @@
 /* =============================================================
-   [NOME BAR] — scroll-driven frame animation + interazioni
+   Live Coffee — scroll-driven frame animation + interazioni
    Dipendenze (CDN): GSAP 3 + ScrollTrigger, Lenis.
    Fotogrammi: frames/sceneN/{desktop|mobile}/0001.webp (vedi
    tools/extract-frames.sh) descritti da frames/manifest.js.
@@ -495,7 +495,7 @@
       }
 
       // Default: richiesta precompilata su WhatsApp
-      const msg = `Ciao! Vorrei prenotare un tavolo da [NOME BAR].\n\n• Nome: ${data.name}\n• Data: ${nice}\n• Ora: ${data.time}\n• Persone: ${data.people}` +
+      const msg = `Ciao! Vorrei prenotare un tavolo da Live Coffee.\n\n• Nome: ${data.name}\n• Data: ${nice}\n• Ora: ${data.time}\n• Persone: ${data.people}` +
         (data.notes ? `\n• Note: ${data.notes}` : '');
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
       status.textContent = 'Ti abbiamo aperto WhatsApp con la richiesta pronta: premi invio e ti rispondiamo subito.';
