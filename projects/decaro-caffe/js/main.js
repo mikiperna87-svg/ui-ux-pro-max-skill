@@ -1,6 +1,6 @@
 /* =============================================================
    De Caro Caffè — scroll-driven frame animation + interazioni
-   Dipendenze (CDN): GSAP 3 + ScrollTrigger, Lenis.
+   Dipendenze (in js/vendor/): GSAP 3 + ScrollTrigger, Lenis.
    Fotogrammi: frames/sceneN/{desktop|mobile}/0001.webp (vedi
    tools/extract-frames.sh) descritti da frames/manifest.js.
    ============================================================= */
@@ -153,7 +153,7 @@
     shadeEl.style.opacity = Math.max(dip * 0.92, contentShade).toFixed(3);
   }
 
-  /* Progresso di una sezione senza ScrollTrigger (fallback se il CDN non carica) */
+  /* Progresso di una sezione senza ScrollTrigger (fallback se GSAP non carica) */
   function rectProgress(el) {
     const r = el.getBoundingClientRect();
     return clamp(-r.top / (r.height - innerHeight));
