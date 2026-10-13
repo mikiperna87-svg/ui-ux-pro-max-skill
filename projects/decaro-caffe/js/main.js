@@ -1,8 +1,8 @@
 /* =============================================================
    De Caro Caffè — scroll-driven frame animation + interazioni
    Dipendenze (in js/vendor/): GSAP 3 + ScrollTrigger, Lenis.
-   Fotogrammi: frames/sceneN/{desktop|mobile}/0001.webp (vedi
-   tools/extract-frames.sh) descritti da frames/manifest.js.
+   Scene: foto ad alta risoluzione animate in tempo reale (js/scenes.js),
+   oppure sequenze video (tools/extract-frames.sh → frames/manifest.js).
    ============================================================= */
 (() => {
   'use strict';
@@ -22,33 +22,82 @@
   const hasGSAP = Boolean(gsap && ScrollTrigger);
 
   /* -----------------------------------------------------------
-     1. SEQUENZE DI FOTOGRAMMI
+     1. SCENE: foto in tempo reale (js/scenes.js) o sequenze video
      ----------------------------------------------------------- */
+  const PHOTO_SCENES = window.PHOTO_SCENES || {};
+  const ease = t => 0.5 - Math.cos(Math.PI * t) / 2;
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  function loadImage(src) {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+    const ok = () => (img.naturalWidth ? img : null);
+    return (img.decode ? img.decode() : new Promise((r, j) => { img.onload = r; img.onerror = j; })).then(ok, ok);
+  }
+
+  /* Camera virtuale su foto ad alta risoluzione: zoom e pan calcolati a ogni
+     frame del browser, con ricampionamento della GPU (nessuno scatto). */
+  class PhotoScene {
+    constructor(id, section, parts) {
+      this.id = id;
+      this.section = section;
+      this.parts = parts.map(p => ({ ...p, img: null }));
+      this.progress = 0; // 0..1 dallo scroll
+      this.current = 0;  // 0..1 smussato
+    }
+    get ready() { return this.parts.some(p => p.img); }
+    tasks() { return this.parts.map(p => () => loadImage(p.src).then(img => { p.img = img; })); }
+    shot(k, t, alpha) {
+      const p = this.parts[k];
+      if (!p.img) return;
+      const n = this.parts.length;
+      const local = ease(clamp(t * n - k));
+      const [z, cxL, cy, light] = p.from.map((v, i) => lerp(v, p.to[i], local));
+      const W = canvas.width, H = canvas.height;
+      const cx = H > W && p.portraitX ? lerp(p.portraitX[0], p.portraitX[1], local) : cxL;
+      const iw = p.img.naturalWidth, ih = p.img.naturalHeight;
+      const sc = Math.max(W / iw, H / ih) * z;          // pixel schermo per pixel foto
+      const vw = W / sc, vh = H / sc;                     // finestra visibile sulla foto
+      const x0 = clamp(cx * iw - vw / 2, 0, iw - vw);
+      const y0 = clamp(cy * ih - vh / 2, 0, ih - vh);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(p.img, x0, y0, vw, vh, 0, 0, W, H);
+      if (light < 1) { ctx.fillStyle = `rgba(5,4,3,${((1 - light) * alpha).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
+    }
+    draw(t) {
+      const n = this.parts.length;
+      const xf = 0.16; // durata della dissolvenza tra due inquadrature
+      const seg = Math.min(Math.floor(t * n), n - 1);
+      this.shot(seg, t, 1);
+      const edge = (seg + 1) / n;
+      if (seg < n - 1 && t > edge - xf / 2) this.shot(seg + 1, t, ease(clamp((t - (edge - xf / 2)) / xf)));
+      else if (seg > 0 && t < seg / n + xf / 2) {
+        const m = ease(clamp((t - (seg / n - xf / 2)) / xf));
+        this.shot(seg - 1, t, 1);
+        this.shot(seg, t, m);
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /* Sequenza di fotogrammi da video (frames/manifest.js), se presente */
   class FrameSequence {
-    constructor(id, section) {
-      const meta = (MANIFEST[id] || {})[VARIANT] || { count: 0, width: 16, height: 9 };
+    constructor(id, section, meta) {
       this.id = id;
       this.section = section;
       this.count = meta.count;
-      this.width = meta.width;
-      this.height = meta.height;
       this.images = new Array(this.count);
-      this.requested = new Uint8Array(this.count);
-      this.progress = 0; // 0..1 dallo scroll
-      this.current = 0; // indice frame (float) smussato
+      this.progress = 0;
+      this.current = 0;
     }
+    get ready() { return this.images.some(Boolean); }
     src(i) { return `frames/${this.id}/${VARIANT}/${String(i + 1).padStart(4, '0')}.webp`; }
-    load(i) {
-      if (i < 0 || i >= this.count || this.requested[i]) return Promise.resolve();
-      this.requested[i] = 1;
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = this.src(i);
-      const done = () => { if (img.naturalWidth) this.images[i] = img; };
-      return (img.decode ? img.decode() : new Promise((r, j) => { img.onload = r; img.onerror = j; }))
-        .then(done, done);
+    tasks() {
+      // prima un frame ogni 3 (sostituisce i vicini), poi tutti gli altri
+      const order = [...Array(this.count).keys()].sort((a, b) => (a % 3 === 0 ? 0 : 1) - (b % 3 === 0 ? 0 : 1));
+      return order.map(i => () => loadImage(this.src(i)).then(img => { if (img) this.images[i] = img; }));
     }
-    /* il frame richiesto, oppure il più vicino già caricato */
     nearest(i) {
       if (this.images[i]) return this.images[i];
       for (let d = 1; d < this.count; d++) {
@@ -57,10 +106,28 @@
       }
       return null;
     }
-    get target() { return this.progress * (this.count - 1); }
+    draw(t) {
+      const f = t * (this.count - 1);
+      const i0 = Math.floor(f);
+      const a = this.nearest(i0);
+      if (!a) return;
+      const fx = canvas.height > canvas.width ? Number(this.section.dataset.focusX || 0.5) : 0.5;
+      const cover = img => {
+        const W = canvas.width, H = canvas.height, s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+        ctx.drawImage(img, (W - img.naturalWidth * s) * fx, (H - img.naturalHeight * s) / 2, img.naturalWidth * s, img.naturalHeight * s);
+      };
+      ctx.globalAlpha = 1;
+      cover(a);
+      const b = this.images[Math.min(i0 + 1, this.count - 1)];
+      if (f - i0 > 0.01 && b && b !== a) { ctx.globalAlpha = f - i0; cover(b); ctx.globalAlpha = 1; }
+    }
   }
 
-  const sequences = $$('[data-scene]').map(el => new FrameSequence(el.dataset.scene, el));
+  const sequences = $$('[data-scene]').map(el => {
+    const id = el.dataset.scene;
+    const meta = (MANIFEST[id] || {})[VARIANT];
+    return meta && meta.count ? new FrameSequence(id, el, meta) : new PhotoScene(id, el, PHOTO_SCENES[id] || []);
+  });
   let active = sequences[0];
 
   /* Coda di caricamento con concorrenza limitata */
@@ -71,78 +138,41 @@
   }
 
   /* -----------------------------------------------------------
-     2. CANVAS: disegno "cover" + interpolazione tra frame
+     2. CANVAS
      ----------------------------------------------------------- */
   const canvas = $('#scene');
   const ctx = canvas.getContext('2d', { alpha: false });
   const shadeEl = $('#stageShade');
-  let cw = 0, ch = 0, dpr = 1, dirty = true, lastKey = '';
+  let cw = 0, ch = 0, dirty = true, lastKey = '';
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    // densità fino a 2x (le foto sorgente sono 2560px), ma al massimo 2400px di
+    // larghezza: oltre, la differenza non si vede e costa solo lavoro alla GPU
     cw = canvas.clientWidth;
     ch = canvas.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2, 2400 / Math.max(cw, 1));
     canvas.width = Math.round(cw * dpr);
     canvas.height = Math.round(ch * dpr);
+    ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     dirty = true;
   }
 
-  /* "object-fit: cover" per un fotogramma fw×fh. Su schermi verticali il
-     ritaglio orizzontale segue data-focus-x della scena (0 = sinistra, 1 = destra),
-     così il soggetto della foto resta in quadro. */
-  function coverRect(fw, fh, w = cw, h = ch, fx = 0.5) {
-    const s = Math.max(w / fw, h / fh);
-    return { s, x: (w - fw * s) * fx, y: (h - fh * s) / 2, w: fw * s, h: fh * s };
-  }
-
-  function drawImage(img, alpha) {
-    const fx = canvas.height > canvas.width ? Number(active.section.dataset.focusX || 0.5) : 0.5;
-    const r = coverRect(img.naturalWidth, img.naturalHeight, canvas.width, canvas.height, fx);
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(img, r.x, r.y, r.w, r.h);
-    return r;
-  }
-
-  function fadeEdges(r) {
-    if (r.y <= 0) return;
-    const band = r.h * 0.22;
-    const top = ctx.createLinearGradient(0, r.y, 0, r.y + band);
-    top.addColorStop(0, '#050403'); top.addColorStop(1, 'rgba(5,4,3,0)');
-    ctx.fillStyle = top;
-    ctx.fillRect(0, r.y - 1, canvas.width, band + 1);
-    const yb = r.y + r.h;
-    const bot = ctx.createLinearGradient(0, yb - band, 0, yb);
-    bot.addColorStop(0, 'rgba(5,4,3,0)'); bot.addColorStop(1, '#050403');
-    ctx.fillStyle = bot;
-    ctx.fillRect(0, yb - band, canvas.width, band + 1);
-  }
-
   function render() {
     const seq = active;
-    if (!seq || !seq.count) return;
-    const f = clamp(seq.current, 0, seq.count - 1);
-    const i0 = Math.floor(f);
-    const i1 = Math.min(i0 + 1, seq.count - 1);
-    const mix = f - i0;
-    const key = `${seq.id}:${f.toFixed(3)}`;
+    if (!seq || !seq.ready) return;
+    const t = clamp(seq.current);
+    const key = `${seq.id}:${t.toFixed(5)}`;
     if (!dirty && key === lastKey) return;
-    const a = seq.nearest(i0);
-    if (!a) return;
     lastKey = key;
     dirty = false;
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#050403';
+    ctx.fillStyle = '#0a0705';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const r = drawImage(a, 1);
-    // Interpolazione: dissolvenza tra frame adiacenti → movimento fluido a 60fps
-    const b = seq.images[i1];
-    if (mix > 0.01 && b && b !== a) drawImage(b, mix);
-    ctx.globalAlpha = 1;
-    fadeEdges(r);
+    seq.draw(t);
   }
 
-  /* Dissolvenza al nero tra una scena e l'altra + sfondo scurito dopo il fly-through */
+  /* Dissolvenza al nero tra una scena e l'altra + sfondo scurito sotto i contenuti */
   let contentShade = 0;
   function updateShade() {
     const p = active.progress;
@@ -171,12 +201,12 @@
       const content = $('.content');
       contentShade = 0.84 * clamp(1 - content.getBoundingClientRect().top / innerHeight);
     }
-    // Inseguimento morbido del frame bersaglio (indipendente dal frame-rate)
-    const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 11);
+    // Inseguimento morbido della posizione di scroll (indipendente dal frame-rate)
+    const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 8);
     sequences.forEach(s => {
-      if (s !== active) { s.current = s.target; return; }
-      const diff = s.target - s.current;
-      s.current = Math.abs(diff) < 0.002 ? s.target : s.current + diff * k;
+      if (s !== active) { s.current = s.progress; return; }
+      const diff = s.progress - s.current;
+      s.current = Math.abs(diff) < 0.00005 ? s.progress : s.current + diff * k;
     });
     updateShade();
     render();
@@ -190,16 +220,11 @@
   const pct = $('#loaderPct');
 
   function preload() {
-    // Critici: l'inizio della scena 1 + un frame ogni 3 di tutte le scene
-    // (i mancanti vengono sostituiti dal frame caricato più vicino)
-    const critical = [];
-    const rest = [];
-    sequences.forEach((s, n) => {
-      for (let i = 0; i < s.count; i++) {
-        const task = () => s.load(i);
-        if ((n === 0 && i < 24) || i % 3 === 0 || i === s.count - 1) critical.push(task); else rest.push(task);
-      }
-    });
+    // Foto: tutte subito (sono poche). Video: la parte iniziale, il resto in background.
+    const all = sequences.flatMap(s => s.tasks());
+    const photos = sequences.every(s => s instanceof PhotoScene);
+    const critical = photos ? all : all.filter((_, i) => i % 3 === 0);
+    const rest = photos ? [] : all.filter((_, i) => i % 3 !== 0);
     let done = 0;
     const total = critical.length || 1;
     const progress = () => {
@@ -207,12 +232,12 @@
       const p = done / total;
       bar.style.transform = `scaleX(${p})`;
       pct.textContent = Math.round(p * 100);
-      if (done === 1) dirty = true;
+      dirty = true;
     };
     const minTime = new Promise(r => setTimeout(r, reduceMotion ? 0 : 900));
     const maxTime = new Promise(r => setTimeout(r, 15000)); // mai bloccare oltre 15s
-    return Promise.race([Promise.all([runQueue(critical, 8, progress), minTime]), maxTime])
-      .then(() => { runQueue(rest, 4); }); // il resto in background
+    return Promise.race([Promise.all([runQueue(critical, 4, progress), minTime]), maxTime])
+      .then(() => { if (rest.length) runQueue(rest, 4, () => { dirty = true; }); });
   }
 
   function revealSite() {
@@ -284,19 +309,22 @@
     });
     gsap.to('.scroll-hint', { autoAlpha: 0, scrollTrigger: { trigger: '#top', start: 'top top', end: '+=120', scrub: true } });
 
-    // Torrefazione: i 5 passaggi si accendono uno dopo l'altro mentre la camera scorre nella tostatrice
+    // Torrefazione: un passaggio alla volta. La barra oro avanza con lo scroll,
+    // il passaggio attivo si accende e il suo testo appare nel riquadro sotto.
     const steps = $$('.step');
-    const roast = gsap.timeline({ scrollTrigger: { trigger: '#tostatura', start: 'top top', end: 'bottom bottom', scrub: 0.6 }, defaults: { ease: 'power2.out' } });
-    roast.from('.roast__head > *', { autoAlpha: 0, y: 50, stagger: 0.03, duration: 0.08 }, 0.05);
-    const span = 0.66 / steps.length;
+    const stepsList = $('.steps');
+    const roast = gsap.timeline({ scrollTrigger: { trigger: '#tostatura', start: 'top top', end: 'bottom bottom', scrub: 0.8 }, defaults: { ease: 'none' } });
+    roast.from('.roast__head > *', { autoAlpha: 0, y: 40, stagger: 0.02, duration: 0.07, ease: 'power2.out' }, 0.02)
+      .fromTo(steps, { autoAlpha: 0 }, { autoAlpha: 1, stagger: 0.015, duration: 0.06 }, 0.06) // niente transform sui <li>: il riquadro del testo è posizionato rispetto alla lista
+      .fromTo(stepsList, { '--progress': 0 }, { '--progress': 1, duration: 0.72 }, 0.12);
+    const span = 0.72 / steps.length;
     steps.forEach((st, i) => {
-      const at = 0.14 + i * span;
-      roast.fromTo(st, { autoAlpha: 0, x: -30 }, { autoAlpha: 1, x: 0, duration: span * 0.5 }, at)
-        .fromTo(st, { '--on': 0 }, { '--on': 1, duration: span * 0.4 }, at);
-      if (i < steps.length - 1) roast.to(st, { '--on': 0, duration: span * 0.4 }, at + span);
+      const at = 0.12 + i * span;
+      roast.fromTo(st, { '--on': 0 }, { '--on': 1, duration: span * 0.3, ease: 'power1.inOut' }, at);
+      if (i < steps.length - 1) roast.to(st, { '--on': 0, duration: span * 0.3, ease: 'power1.inOut' }, at + span * 0.85);
     });
-    roast.from('.roast__badge', { autoAlpha: 0, y: 20, duration: 0.06 }, 0.82)
-      .to('.roast', { autoAlpha: 0, duration: 0.05 }, 0.93)
+    roast.from('.roast__badge', { autoAlpha: 0, y: 16, duration: 0.05 }, 0.84)
+      .to('.roast', { autoAlpha: 0, duration: 0.05 }, 0.94)
       .set({}, {}, 1);
 
     // Storia: titolo + capitoli in sequenza

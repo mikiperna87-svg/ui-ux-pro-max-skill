@@ -8,7 +8,9 @@ Testi, loghi, foto prodotto e contatti vengono dal sito attuale [decarocaffe.it]
 index.html                   pagina unica + SEO + JSON-LD (LocalBusiness + catalogo)
 css/style.css                stile (palette in :root, oro preso dal logo)
 js/main.js                   canvas a scroll, loader, Lenis, GSAP/ScrollTrigger, cursore, form
-frames/                      fotogrammi WebP delle 3 scene + manifest.js (generati)
+js/scenes.js                 inquadrature e movimenti di camera delle 3 scene
+img/scenes/                  foto delle scene (2560px)
+frames/manifest.js           sequenze video opzionali (vuoto = si usano le foto)
 img/logo-decaro.*            logo ufficiale (bianco + oro, trasparente)
 img/products/                confezioni in grani (scontornate), capsule, cialde
 img/gallery/                 foto della galleria
@@ -32,17 +34,23 @@ tools/extract-frames.sh      video → WebP (desktop + mobile)
 
 ## Le scene a scroll
 
-Le 3 sequenze sono costruite dalle **foto reali** in `img/source/`. `tools/build-photo-scenes.py` le trasforma in video con movimenti di camera lenti (push-in, carrellata, dissolvenza tra due foto), ricampionati al sub-pixel perché non tremolino. Poi `tools/extract-frames.sh` le converte in WebP:
+Le 3 scene sono **foto reali ad alta risoluzione** (`img/scenes/*.webp`, 2560px) animate **in tempo reale** sul canvas. Una camera virtuale fa zoom, carrellata e dissolvenza tra due foto, calcolate a ogni frame del browser in base allo scroll. Per questo:
+
+- **Nitidezza piena su ogni schermo:** su un telefono verticale si ritaglia una porzione verticale della foto originale, invece di ingrandire un fotogramma orizzontale.
+- **Scorrimento fluido a 60fps**, senza fotogrammi intermedi né effetto "mosso".
+- **Peso ridotto:** circa 0,7 MB per tutte le scene, contro 20 MB della versione a fotogrammi.
+
+Inquadrature e movimenti si regolano in `js/scenes.js`: zoom, centro e luminosità a inizio e fine, più il centro orizzontale su schermi verticali (`portraitX`).
+
+**Video veri:** quando ci saranno riprese reali (tostatrice in funzione, estrazione dell'espresso) o video generati con l'AI:
 
 ```bash
-python3 tools/build-photo-scenes.py   # richiede Pillow e ffmpeg
-tools/extract-frames.sh               # desktop 1600px (tutti i frame) + mobile 900px (1 su 2)
+# metti i video in videos/ (scene1*, scene2*, scene3*), poi:
+tools/extract-frames.sh               # desktop 1600px + mobile 900px (1 su 2)
 tools/extract-frames.sh --interpolate # opzionale: interpolazione a 60 fps
 ```
 
-Per cambiare inquadrature o foto, modifica il dizionario `SCENES` nello script (zoom, centro, luminosità all'inizio e alla fine di ogni scena).
-
-**Video veri:** quando avrai riprese reali (tostatrice in funzione, chicchi che cadono, estrazione dell'espresso) o video generati con l'AI, mettili in `videos/` con nomi che iniziano per `scene1`, `scene2` e `scene3` e lancia solo `tools/extract-frames.sh`. Il sito legge numero di frame e dimensioni da `frames/manifest.js`. Su schermi verticali il ritaglio segue `data-focus-x` di ogni scena (0 = sinistra, 1 = destra).
+Lo script compila `frames/manifest.js`. Una scena che ha i fotogrammi del video usa quelli, le altre restano sulle foto. `tools/build-photo-scenes.py` genera ancora video dalle foto, se servono per i social.
 
 ## Da verificare prima della pubblicazione
 
@@ -81,8 +89,8 @@ Funziona anche aprendo `index.html` direttamente. Per pubblicarlo carica la cart
 
 ## Come funziona
 
-- **Canvas a scroll:** ogni scena è una sezione alta (`260–440vh`) con contenuto `sticky`. ScrollTrigger traduce il progresso della sezione in un indice di frame, che il canvas insegue in modo morbido, sfumando tra due frame adiacenti. Tra le scene c'è una dissolvenza al nero. Dopo l'ultima scena la foto resta come sfondo scurito, sotto le card in vetro.
-- **Caricamento:** il loader (logo + barra oro) aspetta l'inizio della scena 1 e un frame ogni 3 di tutte le scene. Il resto si carica in background, mostrando nel frattempo il frame più vicino già disponibile.
-- **Mobile:** frame dimezzati, risoluzione ridotta, devicePixelRatio limitato a 1,5, cursore personalizzato disattivato.
+- **Canvas a scroll:** ogni scena è una sezione alta (`260–380vh`) con contenuto `sticky`. ScrollTrigger traduce il progresso della sezione in una posizione della camera, che il canvas insegue in modo morbido. Tra le scene c'è una dissolvenza al nero. Dopo l'ultima scena la foto resta come sfondo scurito, sotto le card in vetro.
+- **Caricamento:** il loader (logo + barra oro) aspetta le 4 foto delle scene, circa 0,7 MB.
+- **Mobile:** ritaglio verticale dedicato per ogni scena (`portraitX`), canvas fino a 2x di densità, cursore personalizzato disattivato.
 - **Accessibilità:** con `prefers-reduced-motion` niente Lenis né cursore personalizzato e la grana resta ferma. Il sito ha skip link, focus visibile, etichette sui campi e messaggi di stato `aria-live`.
 - **Fallback:** se GSAP o Lenis non si caricano, il canvas a scroll funziona comunque e i testi restano visibili.

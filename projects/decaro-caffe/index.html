@@ -27,9 +27,8 @@
   <link rel="preload" as="font" type="font/woff2" href="fonts/cormorant-garamond-normal-latin.woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
 
-  <!-- Primo fotogramma: precaricato per mostrare subito la scena 1 -->
-  <link rel="preload" as="image" href="frames/scene1/desktop/0001.webp" media="(min-width: 769px)" fetchpriority="high">
-  <link rel="preload" as="image" href="frames/scene1/mobile/0001.webp" media="(max-width: 768px)" fetchpriority="high">
+  <!-- Foto della prima scena: precaricata per mostrarla subito -->
+  <link rel="preload" as="image" href="img/scenes/scene1-chicco.webp" fetchpriority="high">
   <link rel="preload" as="image" href="img/logo-decaro.webp">
 
   <link rel="stylesheet" href="css/style.css">
@@ -332,11 +331,11 @@
           </header>
           <div class="gallery">
             <figure class="gallery__item gallery__item--tall" data-reveal><img src="img/gallery/g5.webp" alt="Espresso De Caro con crema nocciola" width="644" height="800" loading="lazy" decoding="async"></figure>
-            <figure class="gallery__item gallery__item--wide" data-reveal><img src="img/gallery/g1.webp" alt="Macchina espresso, tazzine e chicchi di caffè" width="1200" height="881" loading="lazy" decoding="async"></figure>
-            <figure class="gallery__item" data-reveal><img src="img/gallery/g2.webp" alt="Tazzina De Caro su chicchi di caffè" width="1200" height="1005" loading="lazy" decoding="async"></figure>
-            <figure class="gallery__item" data-reveal><img src="img/gallery/g3.webp" alt="Barista che versa il latte per un cappuccino" width="1200" height="790" loading="lazy" decoding="async"></figure>
-            <figure class="gallery__item gallery__item--wide" data-reveal><img src="img/gallery/g4.webp" alt="Tazzina De Caro con piattino" width="1200" height="1005" loading="lazy" decoding="async"></figure>
-            <figure class="gallery__item" data-reveal><img src="img/gallery/g6.webp" alt="Pausa caffè con tazzina De Caro" width="1200" height="1005" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item gallery__item--wide" data-reveal><img src="img/gallery/g1.webp" alt="Macchina espresso, tazzine e chicchi di caffè" width="1600" height="1174" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item" data-reveal><img src="img/gallery/g2.webp" alt="Tazzina De Caro su chicchi di caffè" width="1600" height="1341" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item" data-reveal><img src="img/gallery/g3.webp" alt="Barista che versa il latte per un cappuccino" width="1600" height="1053" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item gallery__item--wide" data-reveal><img src="img/gallery/g4.webp" alt="Tazzina De Caro con piattino" width="1600" height="1341" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item" data-reveal><img src="img/gallery/g6.webp" alt="Pausa caffè con tazzina De Caro" width="1600" height="1341" loading="lazy" decoding="async"></figure>
           </div>
         </div>
       </section>
@@ -461,6 +460,7 @@
   <script src="js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="js/vendor/lenis.min.js" defer></script>
   <script src="frames/manifest.js" defer></script>
+  <script src="js/scenes.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>

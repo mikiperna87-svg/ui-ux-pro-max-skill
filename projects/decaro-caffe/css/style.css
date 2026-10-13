@@ -218,7 +218,7 @@ main { position: relative; z-index: 2; }
    ============================================================= */
 .scene { position: relative; }
 .scene--hero { height: 260vh; }
-.scene--roast { height: 440vh; }
+.scene--roast { height: 380vh; }
 .scene--story { height: 340vh; }
 .scene__sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
 
@@ -258,12 +258,16 @@ main { position: relative; z-index: 2; }
 .scene--roast .scene__sticky::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 7, 5, 0.25), rgba(10, 7, 5, 0.55) 45%, rgba(10, 7, 5, 0.88) 100%); }
 .roast > * { position: relative; }
 .roast__head { align-self: end; padding-bottom: 12vh; }
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; counter-reset: s; max-width: 520px; justify-self: end; }
-.step { --on: 0; display: grid; grid-template-columns: 3.5rem 1fr; gap: 1rem; padding: 1rem 0; border-top: 1px solid rgba(201, 160, 99, calc(0.15 + var(--on) * 0.45)); }
-.step > * { opacity: calc(0.45 + var(--on) * 0.55); }
-.step__num { font-family: var(--font-serif); font-size: 2rem; line-height: 1; color: var(--gold); font-style: italic; transform: scale(calc(0.9 + var(--on) * 0.25)); transform-origin: left top; }
-.step h3 { font-size: 1.7rem; font-weight: 500; color: var(--text); }
-.step p { margin-top: 0.3rem; font-size: 0.92rem; color: var(--muted); max-height: calc(var(--on) * 8rem); overflow: hidden; }
+/* Lista fissa + barra di avanzamento + testo del passaggio attivo in un riquadro
+   ad altezza fissa: nessun cambio di layout durante lo scroll */
+.steps { --progress: 0; position: relative; list-style: none; margin: 0; padding: 0 0 8.5rem 1.75rem; display: grid; gap: 0; max-width: 520px; width: 100%; justify-self: end; }
+.steps::before, .steps::after { content: ''; position: absolute; left: 0; top: 0.4rem; bottom: 9rem; width: 1px; background: rgba(201, 160, 99, 0.2); }
+.steps::after { background: linear-gradient(var(--gold-light), var(--gold)); transform: scaleY(var(--progress)); transform-origin: top; box-shadow: 0 0 12px rgba(201, 160, 99, 0.6); }
+.step { --on: 0; display: grid; grid-template-columns: 3rem 1fr; align-items: baseline; gap: 0.75rem; padding: 0.55rem 0; }
+.step > .step__num, .step h3 { opacity: calc(0.38 + var(--on) * 0.62); }
+.step__num { font-family: var(--font-serif); font-size: 1.5rem; line-height: 1; color: var(--gold); font-style: italic; }
+.step h3 { font-size: clamp(1.45rem, 2.2vw, 1.9rem); font-weight: 500; color: var(--text); transform: translateX(calc(var(--on) * 6px)); }
+.step > div > p { position: absolute; left: 1.75rem; right: 0; bottom: 0; height: 7.5rem; margin: 0; padding: 1rem 1.25rem; font-size: 0.95rem; line-height: 1.55; color: #e3d7c4; border: 1px solid rgba(201, 160, 99, 0.25); border-radius: 14px; background: rgba(10, 7, 5, 0.45); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: var(--on); transform: translateY(calc((1 - var(--on)) * 14px)); pointer-events: none; }
 .step strong { color: var(--gold-light); font-weight: 500; }
 .roast__badge { position: absolute; left: var(--gutter); bottom: 2.25rem; display: flex; align-items: center; gap: 0.9rem; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .roast__badge span { padding: 0.45rem 0.9rem; border: 1px solid var(--gold); border-radius: 999px; color: var(--gold-light); letter-spacing: 0.2em; }
@@ -492,7 +496,7 @@ address strong { font-weight: 500; }
 
 @media (max-width: 768px) {
   .scene--hero { height: 220vh; }
-  .scene--roast { height: 400vh; }
+  .scene--roast { height: 340vh; }
   .scene--story { height: 300vh; }
   .hero { padding-bottom: 2.5rem; max-width: none; }
   .scene--hero .scene__sticky::before { background: linear-gradient(0deg, rgba(5, 4, 3, 0.85), transparent 55%); }
@@ -501,10 +505,12 @@ address strong { font-weight: 500; }
 
   .scene--roast .scene__sticky::before { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.55) 60%, rgba(10, 7, 5, 0.35)); }
   .roast { align-content: end; padding-bottom: 5.5rem; }
-  .step { grid-template-columns: 2.5rem 1fr; padding: 0.7rem 0; }
-  .step__num { font-size: 1.5rem; }
-  .step h3 { font-size: 1.35rem; }
-  .step p { font-size: 0.85rem; }
+  .steps { padding-bottom: 8rem; }
+  .steps::before, .steps::after { bottom: 8.5rem; }
+  .step { grid-template-columns: 2.25rem 1fr; padding: 0.4rem 0; }
+  .step__num { font-size: 1.2rem; }
+  .step h3 { font-size: 1.3rem; }
+  .step > div > p { height: 7rem; font-size: 0.86rem; padding: 0.85rem 1rem; }
   .roast__badge { bottom: 1.5rem; font-size: 0.68rem; }
   .scene--story .scene__sticky::before { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.4) 60%, transparent); }
   .story { justify-content: flex-end; padding-bottom: 3rem; }
