@@ -48,12 +48,28 @@ Per cambiare inquadrature o foto, modifica il dizionario `SCENES` nello script (
 
 - **Abbinamento confezione ↔ miscela:** nel sito attuale le foto sono nell'ordine nera → Crema, bordeaux → Strong, verde → Arabic. Se l'abbinamento reale è diverso, scambia le immagini in `#miscele`.
 - **Formato 1 kg:** si legge sulle confezioni. Se esistono altri formati, aggiungili.
-- **Form:** di default apre WhatsApp (+39 346 133 6572) con la richiesta già scritta. Per ricevere le richieste via email aggiungi un endpoint (es. Formspree):
+- **Form:** di default apre WhatsApp (+39 346 133 6572) con la richiesta già scritta. Per ricevere le richieste via email aggiungi un endpoint (es. Formspree), aggiungendo il suo dominio a `connect-src` in `vercel.json` e il fornitore in `privacy.html`:
   ```html
   <form class="booking__form glass-card" id="contactForm" data-endpoint="https://formspree.io/f/xxxx" …>
   ```
 - **Versione inglese:** il sito attuale ha IT | EN; questa versione è solo in italiano.
 - **Dominio:** canonical, Open Graph e JSON-LD puntano a `https://decarocaffe.it/`.
+
+## Privacy e cookie (GDPR)
+
+Il sito è progettato per **non trasmettere dati a terzi senza consenso**, quindi non serve il banner cookie all'apertura:
+
+- **Nessuna richiesta esterna al caricamento.** Font (`fonts/`) e librerie (`js/vendor/`) sono ospitati in locale, niente Google Fonts né CDN. Verificato con Chromium: zero host esterni e zero cookie prima del consenso.
+- **Google Maps** è bloccato finché l'utente non preme "Mostra la mappa" (blocco preventivo, Linee guida del Garante del 10/06/2021). L'opzione "Ricorda la mia scelta" usa una chiave in localStorage, che si azzera con "Preferenze cookie" nel footer.
+- **Pagine legali:** `privacy.html` (informativa art. 13 GDPR) e `cookie-policy.html`, scritte su ciò che il sito fa davvero. Se in futuro si aggiungono statistiche (es. Google Analytics), pixel o un endpoint per il form, vanno aggiornate e serve un banner di consenso.
+- **Form:** casella "Ho letto l'informativa", non un consenso. Per rispondere a una richiesta la base giuridica è l'art. 6.1.b.
+- **Server** (`vercel.json`): Content-Security-Policy restrittiva, HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy` e `noindex` automatico sugli indirizzi di prova `*.vercel.app`.
+
+Le pagine legali sono un testo completo e coerente con il sito, ma non sono una consulenza legale. Il titolare (DEC ARTIGIANA) dovrebbe farle rivedere dal proprio consulente o allinearle al proprio account iubenda.
+
+## Dominio
+
+Vedi [`DOMINIO.md`](DOMINIO.md): situazione attuale (DNS Seeweb, sito su Landlogic, email IONOS) e i due record da cambiare per andare online su `decarocaffe.it` senza toccare la posta.
 
 ## Anteprima e pubblicazione
 
@@ -61,7 +77,7 @@ Per cambiare inquadrature o foto, modifica il dizionario `SCENES` nello script (
 npx serve .        # oppure: python3 -m http.server
 ```
 
-Funziona anche aprendo `index.html` direttamente. Per pubblicarlo carica la cartella (senza `videos/`, `tools/` e `img/source/`) su qualsiasi hosting statico: Netlify, Vercel, Cloudflare Pages o lo spazio attuale. Consigliata una cache lunga su `/frames/*` e `/img/*`.
+Funziona anche aprendo `index.html` direttamente. Per pubblicarlo carica la cartella (senza `videos/`, `tools/`, `img/source/` e i file `.md`) su qualsiasi hosting statico: Netlify, Vercel, Cloudflare Pages o lo spazio attuale. Consigliata una cache lunga su `/frames/*` e `/img/*`.
 
 ## Come funziona
 
@@ -69,4 +85,4 @@ Funziona anche aprendo `index.html` direttamente. Per pubblicarlo carica la cart
 - **Caricamento:** il loader (logo + barra oro) aspetta l'inizio della scena 1 e un frame ogni 3 di tutte le scene. Il resto si carica in background, mostrando nel frattempo il frame più vicino già disponibile.
 - **Mobile:** frame dimezzati, risoluzione ridotta, devicePixelRatio limitato a 1,5, cursore personalizzato disattivato.
 - **Accessibilità:** con `prefers-reduced-motion` niente Lenis né cursore personalizzato e la grana resta ferma. Il sito ha skip link, focus visibile, etichette sui campi e messaggi di stato `aria-live`.
-- **Fallback:** se i CDN di GSAP o Lenis non si caricano, il canvas a scroll funziona comunque e i testi restano visibili.
+- **Fallback:** se GSAP o Lenis non si caricano, il canvas a scroll funziona comunque e i testi restano visibili.

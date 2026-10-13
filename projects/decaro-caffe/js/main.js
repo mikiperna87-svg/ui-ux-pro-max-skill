@@ -461,16 +461,41 @@
     });
   }
 
+  /* Mappa Google: blocco preventivo finché l'utente non acconsente.
+     La scelta "ricorda" è salvata in localStorage (archiviazione tecnica, nessun cookie). */
+  const CONSENT_KEY = 'decaro-consent-maps';
+  const store = {
+    get() { try { return localStorage.getItem(CONSENT_KEY); } catch { return null; } },
+    set(v) { try { v ? localStorage.setItem(CONSENT_KEY, v) : localStorage.removeItem(CONSENT_KEY); } catch { /* storage non disponibile */ } },
+  };
+
   function setupMap() {
-    const frame = $('iframe[data-src]');
-    if (!frame) return;
-    const load = () => { frame.src = frame.dataset.src; frame.removeAttribute('data-src'); };
-    if (!('IntersectionObserver' in window)) return load();
-    const io = new IntersectionObserver(entries => {
-      if (entries.some(en => en.isIntersecting)) { load(); io.disconnect(); }
-    }, { rootMargin: '400px' });
-    io.observe(frame);
+    const box = $('#map');
+    const tpl = $('#mapTemplate');
+    if (!box || !tpl) return;
+    const show = () => {
+      if ($('iframe', box)) return;
+      box.appendChild(tpl.content.cloneNode(true));
+      box.classList.add('is-loaded');
+    };
+    $('#mapConsent').addEventListener('click', () => {
+      if ($('#mapRemember').checked) store.set('granted');
+      show();
+    });
+    if (store.get() === 'granted') show();
+
+    $('#resetConsent').addEventListener('click', () => {
+      store.set(null);
+      const frame = $('iframe', box);
+      if (frame) frame.remove();
+      box.classList.remove('is-loaded');
+      $('#mapRemember').checked = false;
+      const btn = $('#resetConsent');
+      btn.textContent = 'Preferenze azzerate ✓';
+      setTimeout(() => { btn.textContent = 'Preferenze cookie'; }, 2500);
+    });
   }
+
 
   /* -----------------------------------------------------------
      AVVIO

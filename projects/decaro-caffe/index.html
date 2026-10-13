@@ -21,10 +21,11 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 
-  <!-- Font: Cormorant Garamond (titoli) + Inter (testi) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Font: Cormorant Garamond (titoli) + Inter (testi), ospitati in locale:
+       nessun dato dei visitatori passa a Google (GDPR) -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/inter-normal-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/cormorant-garamond-normal-latin.woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
 
   <!-- Primo fotogramma: precaricato per mostrare subito la scena 1 -->
   <link rel="preload" as="image" href="frames/scene1/desktop/0001.webp" media="(min-width: 769px)" fetchpriority="high">
@@ -391,7 +392,7 @@
             </div>
             <label class="check">
               <input type="checkbox" name="privacy" id="f-privacy" required>
-              <span>Accetto la <a href="https://www.iubenda.com/privacy-policy/44161684" target="_blank" rel="noopener">Privacy Policy</a></span>
+              <span>Ho letto l'<a href="privacy.html" target="_blank">informativa privacy</a>: i miei dati servono solo a rispondere a questa richiesta.</span>
             </label>
             <button type="submit" class="btn btn--gold btn--block">Invia richiesta</button>
             <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
@@ -435,23 +436,30 @@
             <a class="btn btn--link" href="https://www.google.com/maps/search/?api=1&amp;query=Viale+delle+Nazioni+52+70032+Bitonto" target="_blank" rel="noopener">Indicazioni <span aria-hidden="true">→</span></a>
           </div>
 
-          <div class="footer__map">
-            <!-- La mappa viene caricata solo quando entra nello schermo (data-src) -->
-            <iframe title="Mappa: De Caro Caffè, Viale delle Nazioni 52, Bitonto" data-src="https://www.google.com/maps?q=Viale+delle+Nazioni+52+70032+Bitonto&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="footer__map" id="map">
+            <!-- Google Maps installa cookie di terze parti: si carica solo dopo il consenso
+                 dell'utente (blocco preventivo, Linee guida cookie del Garante 10/06/2021) -->
+            <div class="map-consent">
+              <p>La mappa è fornita da Google Maps, che può installare cookie di terze parti.</p>
+              <button type="button" class="btn btn--ghost" id="mapConsent">Mostra la mappa</button>
+              <label class="map-consent__remember"><input type="checkbox" id="mapRemember"> Ricorda la mia scelta</label>
+              <a href="cookie-policy.html">Cookie policy</a>
+            </div>
+            <template id="mapTemplate"><iframe title="Mappa: De Caro Caffè, Viale delle Nazioni 52, Bitonto" src="https://www.google.com/maps?q=Viale+delle+Nazioni+52+70032+Bitonto&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></template>
           </div>
         </div>
         <div class="container footer__bottom">
           <p>© <span id="year">2026</span> DEC ARTIGIANA SRL · C.F. e P.IVA 07579980728</p>
-          <p><a href="https://www.iubenda.com/privacy-policy/44161684" target="_blank" rel="noopener">Privacy Policy</a> · <a href="https://www.iubenda.com/privacy-policy/44161684/cookie-policy" target="_blank" rel="noopener">Cookie Policy</a></p>
+          <p><a href="privacy.html">Privacy policy</a> · <a href="cookie-policy.html">Cookie policy</a> · <button type="button" class="linklike" id="resetConsent">Preferenze cookie</button></p>
         </div>
       </footer>
     </div>
   </main>
 
-  <!-- Librerie: GSAP + ScrollTrigger (cdnjs), Lenis (jsdelivr) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <!-- Librerie ospitate in locale (nessuna CDN esterna): GSAP 3.12.5 + ScrollTrigger, Lenis 1.1.13 -->
+  <script src="js/vendor/gsap.min.js" defer></script>
+  <script src="js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="js/vendor/lenis.min.js" defer></script>
   <script src="frames/manifest.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>

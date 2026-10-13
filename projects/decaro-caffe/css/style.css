@@ -105,7 +105,7 @@ em { font-style: italic; color: var(--gold-light); }
   box-shadow: 0 10px 40px -12px rgba(201, 160, 99, 0.55);
 }
 .btn--gold:hover { transform: translateY(-2px); box-shadow: 0 16px 50px -12px rgba(201, 160, 99, 0.75); }
-.btn--ghost { border-color: var(--line); color: var(--gold-light); --pad: 0.75rem 1.4rem; min-height: 42px; }
+.btn--ghost { background: transparent; border-color: var(--line); color: var(--gold-light); --pad: 0.75rem 1.4rem; min-height: 42px; }
 .btn--ghost:hover { border-color: var(--gold); background: rgba(201, 160, 99, 0.08); }
 .btn--link { --pad: 0.75rem 0; color: var(--gold-light); border-radius: 0; }
 .btn--link span { transition: transform 0.35s var(--ease); }
@@ -515,3 +515,34 @@ address strong { font-weight: 500; }
 /* Ritocchi di composizione */
 .booking .h2 { font-size: clamp(2.4rem, 4.4vw, 3.8rem); }
 .blend__kind { letter-spacing: 0.18em; }
+
+/* Mappa con consenso preventivo */
+.footer__map { position: relative; }
+.map-consent { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 0.8rem; padding: 1.25rem; text-align: center; font-size: 0.82rem; color: var(--muted); background: radial-gradient(circle at 50% 40%, rgba(201, 160, 99, 0.12), transparent 70%); }
+.map-consent p { max-width: 22rem; }
+.map-consent a { color: var(--gold-light); font-size: 0.75rem; }
+.map-consent__remember { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.map-consent__remember input { accent-color: var(--gold); width: 16px; height: 16px; }
+.footer__map.is-loaded .map-consent { display: none; }
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+
+/* =============================================================
+   PAGINE LEGALI (privacy.html, cookie-policy.html)
+   ============================================================= */
+.legal-page { background: var(--black); }
+.legal-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem var(--gutter); border-bottom: 1px solid var(--line); }
+.legal-header img { height: 44px; width: auto; }
+.legal-header a:last-child { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-light); text-decoration: none; }
+.legal { width: min(780px, 100%); margin: 0 auto; padding: clamp(3rem, 8vh, 5rem) var(--gutter) 5rem; }
+.legal h1 { font-size: clamp(2.6rem, 6vw, 3.8rem); font-weight: 300; margin-bottom: 0.75rem; }
+.legal .updated { color: var(--muted); font-size: 0.85rem; margin-bottom: 2.5rem; }
+.legal h2 { font-size: 1.75rem; font-weight: 500; color: var(--gold-light); margin: 2.5rem 0 0.75rem; }
+.legal p, .legal li { color: #ddd3c2; font-size: 0.98rem; }
+.legal p + p { margin-top: 0.8rem; }
+.legal ul { list-style: disc; padding-left: 1.25rem; display: grid; gap: 0.45rem; margin-top: 0.6rem; }
+.legal a { color: var(--gold-light); }
+.legal table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.88rem; }
+.legal th, .legal td { text-align: left; vertical-align: top; padding: 0.7rem 0.6rem; border-bottom: 1px solid var(--line); color: #ddd3c2; }
+.legal th { color: var(--gold); font-weight: 500; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; }
+.legal .box { margin-top: 1rem; padding: 1.1rem 1.25rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 248, 236, 0.03); }
+@media (max-width: 600px) { .legal table, .legal thead, .legal tbody, .legal tr, .legal th, .legal td { display: block; } .legal thead { display: none; } .legal td { border: 0; padding: 0.2rem 0; } .legal tr { padding: 0.8rem 0; border-bottom: 1px solid var(--line); } }
