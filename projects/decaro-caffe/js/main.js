@@ -221,7 +221,7 @@
     if (!hasGSAP) { loader.remove(); return; }
     const tl = gsap.timeline();
     tl.to(loader, { autoAlpha: 0, duration: reduceMotion ? 0 : 0.9, ease: 'power2.inOut', onComplete: () => loader.remove() })
-      .from('.nav', { y: -24, autoAlpha: 0, duration: 1, ease: 'expo.out' }, '-=0.3')
+      .from('.nav', { y: -24, autoAlpha: 0, duration: 1, ease: 'expo.out', clearProps: 'transform' }, '-=0.3')
       .from('.hero > *', { y: 50, autoAlpha: 0, duration: 1.4, stagger: 0.12, ease: 'expo.out' }, '<');
     if (reduceMotion) tl.progress(1);
   }
