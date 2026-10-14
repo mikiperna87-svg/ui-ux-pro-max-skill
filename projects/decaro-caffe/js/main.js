@@ -47,8 +47,12 @@
       this.current = 0;  // 0..1 smussato
     }
     get ready() { return this.parts.some(p => p.img); }
-    tasks() { return this.parts.map(p => () => loadImage(p.src).then(img => { p.img = img; })); }
-    shot(k, t, alpha) {
+    tasks() {
+      return this.parts.map(p => () => loadImage(p.src).then(img => {
+        p.img = img;
+      }));
+    }
+    shot(k, t, alpha, zm = 1) {
       const p = this.parts[k];
       if (!p.img) return;
       const n = this.parts.length;
@@ -57,7 +61,7 @@
       const W = canvas.width, H = canvas.height;
       const cx = H > W && p.portraitX ? lerp(p.portraitX[0], p.portraitX[1], local) : cxL;
       const iw = p.img.naturalWidth, ih = p.img.naturalHeight;
-      const sc = Math.max(W / iw, H / ih) * z;          // pixel schermo per pixel foto
+      const sc = Math.max(W / iw, H / ih) * z * zm;     // pixel schermo per pixel foto
       const vw = W / sc, vh = H / sc;                     // finestra visibile sulla foto
       const x0 = clamp(cx * iw - vw / 2, 0, iw - vw);
       const y0 = clamp(cy * ih - vh / 2, 0, ih - vh);
@@ -65,17 +69,17 @@
       ctx.drawImage(p.img, x0, y0, vw, vh, 0, 0, W, H);
       if (light < 1) { ctx.fillStyle = `rgba(5,4,3,${((1 - light) * alpha).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
     }
-    draw(t, a = 1) {
+    draw(t, a = 1, zm = 1) {
       const n = this.parts.length;
       const xf = 0.16; // durata della dissolvenza tra due inquadrature
       const seg = Math.min(Math.floor(t * n), n - 1);
-      this.shot(seg, t, a);
+      this.shot(seg, t, a, zm);
       const edge = (seg + 1) / n;
-      if (seg < n - 1 && t > edge - xf / 2) this.shot(seg + 1, t, ease(clamp((t - (edge - xf / 2)) / xf)) * a);
+      if (seg < n - 1 && t > edge - xf / 2) this.shot(seg + 1, t, ease(clamp((t - (edge - xf / 2)) / xf)) * a, zm);
       else if (seg > 0 && t < seg / n + xf / 2) {
         const m = ease(clamp((t - (seg / n - xf / 2)) / xf));
-        this.shot(seg - 1, t, a);
-        this.shot(seg, t, m * a);
+        this.shot(seg - 1, t, a, zm);
+        this.shot(seg, t, m * a, zm);
       }
       ctx.globalAlpha = 1;
     }
@@ -159,12 +163,18 @@
     dirty = true;
   }
 
-  /* Passaggio tra scene: nell'ultimo tratto di una sezione la foto della
-     successiva entra in dissolvenza sopra quella attuale (nessun passaggio dal
-     nero). Quando la nuova sezione inizia è già completamente visibile. */
-  const XFADE_FROM = 0.8;
+  /* Passaggio tra scene ("zoom-through"): nell'ultimo tratto di una sezione
+     - la camera continua ad avvicinarsi alla foto attuale,
+     - la foto successiva entra in dissolvenza partendo più stretta e si allarga
+       fino alla sua inquadratura iniziale (il movimento in avanti non si ferma),
+     - a metà passaggio un bagliore caldo (il calore della tostatura) le unisce.
+     Quando la nuova sezione inizia, la sua foto è già ferma e nitida. */
+  const XFADE_FROM = 0.45; // il passaggio occupa l'ultimo 55% della sezione
+  const PUSH_OUT = 0.16;  // zoom extra della foto che esce
+  const PULL_IN = 0.22;   // zoom di partenza in più della foto che entra
+
   const nextOf = seq => sequences[sequences.indexOf(seq) + 1];
-  const mixOf = seq => (nextOf(seq) ? ease(smoothstep(XFADE_FROM, 1, seq.current)) : 0);
+  const mixOf = seq => (nextOf(seq) ? smoothstep(XFADE_FROM, 1, seq.current) : 0);
 
   function render() {
     const seq = active;
@@ -176,11 +186,27 @@
     if (!dirty && key === lastKey) return;
     lastKey = key;
     dirty = false;
+    const W = canvas.width, H = canvas.height;
     ctx.globalAlpha = 1;
     ctx.fillStyle = '#0a0705';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (mix < 0.999) seq.draw(t);
-    if (mix > 0.001) next.draw(0, mix);
+    ctx.fillRect(0, 0, W, H);
+    if (mix <= 0.001) { seq.draw(t); return; }
+    if (mix >= 0.999) { next.draw(0); return; }
+
+    seq.draw(t, 1, 1 + PUSH_OUT * mix);
+    next.draw(0, mix, 1 + PULL_IN * (1 - mix));
+
+    const peak = Math.sin(Math.PI * mix); // 0 → 1 → 0
+    // Bagliore caldo, come il calore della tostatura (fusione normale: costo quasi nullo)
+    const g = ctx.createRadialGradient(W * 0.6, H * 0.55, 0, W * 0.6, H * 0.55, Math.max(W, H) * 0.8);
+    g.addColorStop(0, 'rgba(255, 186, 110, 0.85)');
+    g.addColorStop(0.4, 'rgba(214, 138, 60, 0.4)');
+    g.addColorStop(1, 'rgba(120, 60, 20, 0)');
+    ctx.globalAlpha = peak * 0.3;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
   }
 
   /* Sfumature dietro i testi (incrociate con le foto) + sfondo scurito sotto i contenuti */
