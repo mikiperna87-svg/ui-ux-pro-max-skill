@@ -65,17 +65,17 @@
       ctx.drawImage(p.img, x0, y0, vw, vh, 0, 0, W, H);
       if (light < 1) { ctx.fillStyle = `rgba(5,4,3,${((1 - light) * alpha).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
     }
-    draw(t) {
+    draw(t, a = 1) {
       const n = this.parts.length;
       const xf = 0.16; // durata della dissolvenza tra due inquadrature
       const seg = Math.min(Math.floor(t * n), n - 1);
-      this.shot(seg, t, 1);
+      this.shot(seg, t, a);
       const edge = (seg + 1) / n;
-      if (seg < n - 1 && t > edge - xf / 2) this.shot(seg + 1, t, ease(clamp((t - (edge - xf / 2)) / xf)));
+      if (seg < n - 1 && t > edge - xf / 2) this.shot(seg + 1, t, ease(clamp((t - (edge - xf / 2)) / xf)) * a);
       else if (seg > 0 && t < seg / n + xf / 2) {
         const m = ease(clamp((t - (seg / n - xf / 2)) / xf));
-        this.shot(seg - 1, t, 1);
-        this.shot(seg, t, m);
+        this.shot(seg - 1, t, a);
+        this.shot(seg, t, m * a);
       }
       ctx.globalAlpha = 1;
     }
@@ -106,7 +106,7 @@
       }
       return null;
     }
-    draw(t) {
+    draw(t, alpha = 1) {
       const f = t * (this.count - 1);
       const i0 = Math.floor(f);
       const a = this.nearest(i0);
@@ -116,10 +116,11 @@
         const W = canvas.width, H = canvas.height, s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
         ctx.drawImage(img, (W - img.naturalWidth * s) * fx, (H - img.naturalHeight * s) / 2, img.naturalWidth * s, img.naturalHeight * s);
       };
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = alpha;
       cover(a);
       const b = this.images[Math.min(i0 + 1, this.count - 1)];
-      if (f - i0 > 0.01 && b && b !== a) { ctx.globalAlpha = f - i0; cover(b); ctx.globalAlpha = 1; }
+      if (f - i0 > 0.01 && b && b !== a) { ctx.globalAlpha = (f - i0) * alpha; cover(b); }
+      ctx.globalAlpha = 1;
     }
   }
 
@@ -158,29 +159,42 @@
     dirty = true;
   }
 
+  /* Passaggio tra scene: nell'ultimo tratto di una sezione la foto della
+     successiva entra in dissolvenza sopra quella attuale (nessun passaggio dal
+     nero). Quando la nuova sezione inizia è già completamente visibile. */
+  const XFADE_FROM = 0.8;
+  const nextOf = seq => sequences[sequences.indexOf(seq) + 1];
+  const mixOf = seq => (nextOf(seq) ? ease(smoothstep(XFADE_FROM, 1, seq.current)) : 0);
+
   function render() {
     const seq = active;
     if (!seq || !seq.ready) return;
     const t = clamp(seq.current);
-    const key = `${seq.id}:${t.toFixed(5)}`;
+    const next = nextOf(seq);
+    const mix = next && next.ready ? mixOf(seq) : 0;
+    const key = `${seq.id}:${t.toFixed(5)}:${mix.toFixed(4)}`;
     if (!dirty && key === lastKey) return;
     lastKey = key;
     dirty = false;
     ctx.globalAlpha = 1;
     ctx.fillStyle = '#0a0705';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    seq.draw(t);
+    if (mix < 0.999) seq.draw(t);
+    if (mix > 0.001) next.draw(0, mix);
   }
 
-  /* Dissolvenza al nero tra una scena e l'altra + sfondo scurito sotto i contenuti */
+  /* Sfumature dietro i testi (incrociate con le foto) + sfondo scurito sotto i contenuti */
+  const scrims = $$('[data-scrim]');
   let contentShade = 0;
   function updateShade() {
-    const p = active.progress;
-    const idx = sequences.indexOf(active);
-    let dip = 0;
-    if (idx < sequences.length - 1) dip = Math.max(dip, smoothstep(0.86, 1, p));
-    if (idx > 0) dip = Math.max(dip, 1 - smoothstep(0, 0.08, p));
-    shadeEl.style.opacity = Math.max(dip * 0.92, contentShade).toFixed(3);
+    const next = nextOf(active);
+    const mix = next ? mixOf(active) : 0;
+    scrims.forEach(el => {
+      const id = el.dataset.scrim;
+      const w = id === active.id ? 1 - mix : next && id === next.id ? mix : 0;
+      el.style.opacity = w.toFixed(3);
+    });
+    shadeEl.style.opacity = contentShade.toFixed(3);
   }
 
   /* Progresso di una sezione senza ScrollTrigger (fallback se GSAP non carica) */

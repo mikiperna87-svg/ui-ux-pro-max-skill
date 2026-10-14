@@ -137,6 +137,9 @@ em { font-style: italic; color: var(--gold-light); }
 .stage { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--black); }
 .stage__canvas { width: 100%; height: 100%; display: block; }
 .stage__shade { position: absolute; inset: 0; background: var(--black); opacity: 0; }
+/* Sfumature dietro i testi: fisse sullo schermo e incrociate in dissolvenza
+   insieme alle foto (se scorressero con le sezioni lascerebbero bordi visibili) */
+.stage__scrim { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity; }
 .stage__vignette {
   position: absolute; inset: 0;
   background:
@@ -232,7 +235,7 @@ main { position: relative; z-index: 2; }
   padding: 0 var(--gutter) clamp(5rem, 14vh, 9rem);
   max-width: min(680px, 46vw);
 }
-.scene--hero .scene__sticky::before {
+.stage__scrim--scene1 {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, rgba(5, 4, 3, 0.7), rgba(5, 4, 3, 0.25) 40%, transparent 60%);
 }
@@ -258,7 +261,7 @@ main { position: relative; z-index: 2; }
 
 /* Torrefazione: passaggi */
 .roast { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: 4rem; padding: var(--nav-h) var(--gutter) 2rem; }
-.scene--roast .scene__sticky::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 7, 5, 0.25), rgba(10, 7, 5, 0.55) 45%, rgba(10, 7, 5, 0.88) 100%); }
+.stage__scrim--scene2 { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 7, 5, 0.25), rgba(10, 7, 5, 0.55) 45%, rgba(10, 7, 5, 0.88) 100%); }
 .roast > * { position: relative; }
 .roast__head { align-self: end; padding-bottom: 12vh; }
 /* Lista fissa + barra di avanzamento + testo del passaggio attivo in un riquadro
@@ -276,7 +279,7 @@ main { position: relative; z-index: 2; }
 .roast__badge span { padding: 0.45rem 0.9rem; border: 1px solid var(--gold); border-radius: 999px; color: var(--gold-light); letter-spacing: 0.2em; }
 
 /* Storia */
-.scene--story .scene__sticky::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 7, 5, 0.85), rgba(10, 7, 5, 0.45) 50%, transparent 75%); }
+.stage__scrim--scene3 { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 7, 5, 0.85), rgba(10, 7, 5, 0.45) 50%, transparent 75%); }
 .story { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: var(--nav-h) var(--gutter) 2rem; max-width: 660px; }
 .story__chapters { position: relative; margin-top: 2.5rem; min-height: 10rem; }
 .chapter { position: absolute; inset: 0 auto auto 0; display: grid; grid-template-columns: 7.5rem 1fr; gap: 1.5rem; align-items: start; max-width: 34rem; }
@@ -502,11 +505,11 @@ address strong { font-weight: 500; }
   .scene--roast { height: 340vh; }
   .scene--story { height: 300vh; }
   .hero { padding-bottom: 2.5rem; max-width: none; }
-  .scene--hero .scene__sticky::before { background: linear-gradient(0deg, rgba(5, 4, 3, 0.85), transparent 55%); }
+  .stage__scrim--scene1 { background: linear-gradient(0deg, rgba(5, 4, 3, 0.85), transparent 55%); }
   .scroll-hint { display: none; }
   .nav__logo img, .nav.is-scrolled .nav__logo img { height: 36px; }
 
-  .scene--roast .scene__sticky::before { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.55) 60%, rgba(10, 7, 5, 0.35)); }
+  .stage__scrim--scene2 { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.55) 60%, rgba(10, 7, 5, 0.35)); }
   .roast { align-content: end; padding-bottom: 5.5rem; }
   .steps { padding-bottom: 8rem; }
   .steps::before, .steps::after { bottom: 8.5rem; }
@@ -515,7 +518,7 @@ address strong { font-weight: 500; }
   .step h3 { font-size: 1.3rem; }
   .step > div > p { height: 7rem; font-size: 0.86rem; padding: 0.85rem 1rem; }
   .roast__badge { bottom: 1.5rem; font-size: 0.68rem; }
-  .scene--story .scene__sticky::before { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.4) 60%, transparent); }
+  .stage__scrim--scene3 { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.4) 60%, transparent); }
   .story { justify-content: flex-end; padding-bottom: 3rem; }
   .story__chapters { min-height: 10rem; }
   .chapter { grid-template-columns: 1fr; gap: 0.5rem; }
