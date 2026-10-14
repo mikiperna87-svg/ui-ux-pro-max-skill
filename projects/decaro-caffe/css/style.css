@@ -226,7 +226,7 @@ main { position: relative; z-index: 2; }
 .scene--hero { height: 260vh; }
 .scene--roast { height: 460vh; }
 .scene--story { height: 340vh; }
-.scene__sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+.scene__sticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* Hero */
 .hero {
@@ -271,7 +271,9 @@ main { position: relative; z-index: 2; }
 .steps::after { background: linear-gradient(var(--gold-light), var(--gold)); transform: scaleY(var(--progress)); transform-origin: top; box-shadow: 0 0 12px rgba(201, 160, 99, 0.6); }
 .step { --on: 0; display: grid; grid-template-columns: 3rem 1fr; align-items: baseline; gap: 0.75rem; padding: 0.55rem 0; }
 .step > .step__num, .step h3 { opacity: calc(0.38 + var(--on) * 0.62); }
-.step__num { font-family: var(--font-serif); font-size: 1.5rem; line-height: 1; color: var(--gold); font-style: italic; }
+.step__num { font-family: var(--font-serif); font-size: 1.5rem; line-height: 1; color: var(--gold); font-style: italic; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; }
+.step__num:hover { color: var(--gold-light); }
+.steps__hint { display: none; }
 .step h3 { font-size: clamp(1.45rem, 2.2vw, 1.9rem); font-weight: 500; color: var(--text); transform: translateX(calc(var(--on) * 6px)); }
 .step > div > p { position: absolute; left: 1.75rem; right: 0; bottom: 0; height: 7.5rem; margin: 0; padding: 1rem 1.25rem; font-size: 0.95rem; line-height: 1.55; color: #e3d7c4; border: 1px solid rgba(201, 160, 99, 0.25); border-radius: 14px; background: rgba(12, 9, 6, 0.78); opacity: var(--on); transform: translateY(calc((1 - var(--on)) * 14px)); pointer-events: none; }
 .step strong { color: var(--gold-light); font-weight: 500; }
@@ -513,18 +515,19 @@ address strong { font-weight: 500; }
   /* Torrefazione su telefono: layout compatto che entra anche negli schermi bassi
      (Safari mostra solo ~550–740px di altezza). I 5 passaggi diventano una fila di
      numeri sulla linea oro; titolo e testo del passaggio attivo stanno in un unico riquadro. */
-  .roast { align-content: end; gap: 1.25rem; padding: calc(var(--nav-h) + 1rem) var(--gutter) 4rem; }
+  .roast { align-content: center; gap: 1.25rem; padding: calc(var(--nav-h) + 0.5rem) var(--gutter) 3.5rem; }
+  .steps__hint { display: block; margin-top: -0.4rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); text-align: center; }
   .roast__head .eyebrow { margin-bottom: 0.75rem; }
   .roast__head .h2 { font-size: clamp(2.1rem, 9vw, 2.6rem); }
   .steps { display: flex; justify-content: space-between; gap: 0.5rem; max-width: none; padding: 0 0 11.5rem; }
   .steps::before, .steps::after { left: 1.3rem; right: 1.3rem; top: 1.3rem; bottom: auto; width: auto; height: 1px; }
   .steps::after { transform: scaleX(var(--progress)); transform-origin: left; }
   .step { display: block; padding: 0; }
-  .step > .step__num { opacity: calc(0.55 + var(--on) * 0.45); }
+  .step > .step__num { opacity: 1; color: rgba(230, 201, 149, calc(0.75 + var(--on) * 0.25)); }
   .step__num {
     position: relative; z-index: 1; display: grid; place-items: center;
     width: 2.6rem; height: 2.6rem; border-radius: 50%; font-size: 1.05rem;
-    border: 1px solid rgba(201, 160, 99, calc(0.25 + var(--on) * 0.75));
+    border: 1px solid rgba(201, 160, 99, calc(0.5 + var(--on) * 0.5));
     background: rgba(10, 7, 5, 0.85); box-shadow: 0 0 calc(var(--on) * 16px) rgba(201, 160, 99, 0.45);
   }
   .step h3 {
@@ -534,7 +537,7 @@ address strong { font-weight: 500; }
   .step > div > p { left: 0; height: 10.5rem; padding: 3.5rem 1rem 0.9rem; font-size: 0.86rem; }
   .roast__badge { bottom: 1.25rem; font-size: 0.64rem; }
   .stage__scrim--scene3 { background: linear-gradient(0deg, rgba(10, 7, 5, 0.92), rgba(10, 7, 5, 0.4) 60%, transparent); }
-  .story { justify-content: flex-end; padding-bottom: 3rem; }
+  .story { justify-content: center; padding: calc(var(--nav-h) + 0.5rem) var(--gutter) 2rem; }
   .story__chapters { min-height: 10rem; }
   .chapter { grid-template-columns: 1fr; gap: 0.5rem; }
   .blend { grid-template-columns: 1fr; }

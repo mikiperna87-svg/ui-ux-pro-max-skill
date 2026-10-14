@@ -367,7 +367,16 @@
       roast.fromTo(st, { '--on': 0 }, { '--on': 1, duration: span * 0.3, ease: 'power1.inOut' }, at);
       if (i < steps.length - 1) roast.to(st, { '--on': 0, duration: span * 0.3, ease: 'power1.inOut' }, at + span * 0.85);
     });
-    roast.from('.roast__badge', { autoAlpha: 0, y: 16, duration: 0.05 }, 0.58)
+    // Numeri toccabili: portano lo scroll al centro del passaggio scelto
+    steps.forEach((st, i) => {
+      $('.step__num', st).addEventListener('click', () => {
+        const sec = $('#tostatura');
+        const p = 0.1 + i * span + span * 0.5;
+        scrollToTarget(sec.offsetTop + (sec.offsetHeight - innerHeight) * p);
+      });
+    });
+    roast.from('.steps__hint', { autoAlpha: 0, duration: 0.04 }, 0.12)
+      .from('.roast__badge', { autoAlpha: 0, y: 16, duration: 0.05 }, 0.58)
       .to('.roast', { autoAlpha: 0, duration: 0.06 }, 0.7)
       .set({}, {}, 1);
 
