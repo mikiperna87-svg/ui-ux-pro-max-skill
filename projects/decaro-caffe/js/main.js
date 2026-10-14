@@ -169,12 +169,15 @@
        fino alla sua inquadratura iniziale (il movimento in avanti non si ferma),
      - a metà passaggio un bagliore caldo (il calore della tostatura) le unisce.
      Quando la nuova sezione inizia, la sua foto è già ferma e nitida. */
-  const XFADE_FROM = 0.45; // il passaggio occupa l'ultimo 55% della sezione
+  // inizio del passaggio (frazione della sezione): di default l'ultimo 55%;
+  // una sezione può anticiparlo o ritardarlo con data-xfade (es. dopo i suoi testi)
+  const XFADE_FROM = 0.45;
+  const xfadeOf = seq => Number(seq.section.dataset.xfade || XFADE_FROM);
   const PUSH_OUT = 0.16;  // zoom extra della foto che esce
   const PULL_IN = 0.22;   // zoom di partenza in più della foto che entra
 
   const nextOf = seq => sequences[sequences.indexOf(seq) + 1];
-  const mixOf = seq => (nextOf(seq) ? smoothstep(XFADE_FROM, 1, seq.current) : 0);
+  const mixOf = seq => (nextOf(seq) ? smoothstep(xfadeOf(seq), 1, seq.current) : 0);
 
   function render() {
     const seq = active;
@@ -356,15 +359,16 @@
     const roast = gsap.timeline({ scrollTrigger: { trigger: '#tostatura', start: 'top top', end: 'bottom bottom', scrub: 0.8 }, defaults: { ease: 'none' } });
     roast.from('.roast__head > *', { autoAlpha: 0, y: 40, stagger: 0.02, duration: 0.07, ease: 'power2.out' }, 0.02)
       .fromTo(steps, { autoAlpha: 0 }, { autoAlpha: 1, stagger: 0.015, duration: 0.06 }, 0.06) // niente transform sui <li>: il riquadro del testo è posizionato rispetto alla lista
-      .fromTo(stepsList, { '--progress': 0 }, { '--progress': 1, duration: 0.72 }, 0.12);
-    const span = 0.72 / steps.length;
+      .fromTo(stepsList, { '--progress': 0 }, { '--progress': 1, duration: 0.52 }, 0.1);
+    // i passaggi finiscono prima che la foto inizi a sfumare nella scena successiva (data-xfade="0.72")
+    const span = 0.52 / steps.length;
     steps.forEach((st, i) => {
-      const at = 0.12 + i * span;
+      const at = 0.1 + i * span;
       roast.fromTo(st, { '--on': 0 }, { '--on': 1, duration: span * 0.3, ease: 'power1.inOut' }, at);
       if (i < steps.length - 1) roast.to(st, { '--on': 0, duration: span * 0.3, ease: 'power1.inOut' }, at + span * 0.85);
     });
-    roast.from('.roast__badge', { autoAlpha: 0, y: 16, duration: 0.05 }, 0.84)
-      .to('.roast', { autoAlpha: 0, duration: 0.05 }, 0.94)
+    roast.from('.roast__badge', { autoAlpha: 0, y: 16, duration: 0.05 }, 0.58)
+      .to('.roast', { autoAlpha: 0, duration: 0.06 }, 0.7)
       .set({}, {}, 1);
 
     // Storia: titolo + capitoli in sequenza
