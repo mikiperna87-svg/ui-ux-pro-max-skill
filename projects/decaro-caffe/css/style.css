@@ -506,8 +506,9 @@ address strong { font-weight: 500; }
   .scene--hero { height: 220vh; }
   .scene--roast { height: 420vh; }
   .scene--story { height: 300vh; }
-  .hero { padding-bottom: 2.5rem; max-width: none; }
-  .stage__scrim--scene1 { background: linear-gradient(0deg, rgba(5, 4, 3, 0.85), transparent 55%); }
+  /* Prima schermata centrata verticalmente, come le altre sezioni a schermo intero */
+  .hero { justify-content: center; padding: calc(var(--nav-h) + 0.5rem) var(--gutter) 2rem; max-width: none; }
+  .stage__scrim--scene1 { background: linear-gradient(0deg, rgba(5, 4, 3, 0.8), rgba(5, 4, 3, 0.6) 50%, rgba(5, 4, 3, 0.3)); }
   .scroll-hint { display: none; }
   .nav__logo img, .nav.is-scrolled .nav__logo img { height: 36px; }
 
