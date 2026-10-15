@@ -237,7 +237,7 @@ main { position: relative; z-index: 2; }
 }
 .stage__scrim--scene1 {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(90deg, rgba(5, 4, 3, 0.7), rgba(5, 4, 3, 0.25) 40%, transparent 60%);
+  background: linear-gradient(90deg, rgba(5, 4, 3, 0.85), rgba(5, 4, 3, 0.55) 38%, rgba(5, 4, 3, 0.15) 62%, transparent 75%);
 }
 .hero__title {
   font-size: clamp(3.2rem, 7vw, 7rem);

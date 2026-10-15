@@ -13,9 +13,10 @@
    (tools/extract-frames.sh), il sito usa i fotogrammi del video.
    ============================================================= */
 window.PHOTO_SCENES = {
-  // 1. Hero: lento push-in sul chicco adagiato sul macinato
+  // 1. Hero: lento push-in sul chicco tostato in primo piano
+  //    (foto sorgente 1170px ingrandita 2x: zoom contenuto per restare nitida)
   scene1: [
-    { src: 'img/scenes/scene1-chicco.webp', from: [1.0, 0.55, 0.55, 0.8], to: [1.3, 0.69, 0.64, 1], portraitX: [0.64, 0.72] },
+    { src: 'img/scenes/scene1-chicco.webp', from: [1.0, 0.5, 0.5, 0.82], to: [1.14, 0.5, 0.42, 1], portraitX: [0.48, 0.5] },
   ],
   // 2. Torrefazione: carrellata laterale dentro la tostatrice
   scene2: [

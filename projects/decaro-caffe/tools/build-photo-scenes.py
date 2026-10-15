@@ -53,7 +53,7 @@ def grade(frame, light):
 # Movimenti di camera: (zoom, centro x, centro y, luminosità) all'inizio e alla fine
 SCENES = {
     # 1. Hero: lento push-in sul chicco adagiato sul macinato
-    'scene1-chicco': [('scene1-chicco.jpg', (1.00, 0.55, 0.55, 0.78), (1.32, 0.70, 0.66, 1.0))],
+    'scene1-chicco': [('scene1-chicco.jpg', (1.00, 0.50, 0.50, 0.82), (1.14, 0.50, 0.42, 1.0))],
     # 2. Tostatura: carrellata laterale dentro la tostatrice
     'scene2-tostatura': [('scene2-tostatura.jpg', (1.18, 0.30, 0.50, 0.85), (1.42, 0.62, 0.56, 1.0))],
     # 3. Dal raccolto alla tazzina: piantagione -> dissolvenza -> crema
