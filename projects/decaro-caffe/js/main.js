@@ -153,14 +153,17 @@
   function resize() {
     // densità fino a 2x (le foto sorgente sono 2560px), ma al massimo 2400px di
     // larghezza: oltre, la differenza non si vede e costa solo lavoro alla GPU
-    cw = canvas.clientWidth;
-    ch = canvas.clientHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2, 2400 / Math.max(cw, 1));
-    canvas.width = Math.round(cw * dpr);
-    canvas.height = Math.round(ch * dpr);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2, 2400 / Math.max(w, 1));
+    const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+    if (bw === canvas.width && bh === canvas.height) return; // misura invariata: niente da rifare
+    cw = w; ch = h;
+    canvas.width = bw;
+    canvas.height = bh;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     dirty = true;
+    render(); // ridisegna subito, nello stesso frame: mai un'immagine stirata a schermo
   }
 
   /* Passaggio tra scene ("zoom-through"): nell'ultimo tratto di una sezione
@@ -587,7 +590,10 @@
   window.scrollTo(0, 0);
 
   resize();
-  addEventListener('resize', () => { resize(); });
+  // ResizeObserver scatta prima del disegno del frame: il canvas viene adattato
+  // senza il ritardo dell'evento resize (che su iOS arriva a scroll finito)
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
+  addEventListener('resize', resize);
   setupNav();
   setupForm();
   setupMap();

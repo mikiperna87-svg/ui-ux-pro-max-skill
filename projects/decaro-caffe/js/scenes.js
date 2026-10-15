@@ -16,7 +16,7 @@ window.PHOTO_SCENES = {
   // 1. Hero: lento push-in sul chicco tostato in primo piano
   //    (foto sorgente 1170px ingrandita 2x: zoom contenuto per restare nitida)
   scene1: [
-    { src: 'img/scenes/scene1-chicchi.webp', from: [1.0, 0.5, 0.5, 0.82], to: [1.14, 0.5, 0.42, 1], portraitX: [0.48, 0.5] },
+    { src: 'img/scenes/scene1-chicchi-hd.webp', from: [1.0, 0.5, 0.5, 0.82], to: [1.14, 0.5, 0.42, 1], portraitX: [0.48, 0.5] },
   ],
   // 2. Torrefazione: carrellata laterale dentro la tostatrice
   scene2: [
