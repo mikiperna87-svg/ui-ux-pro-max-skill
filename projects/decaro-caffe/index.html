@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>De Caro Caffè — Torrefazione artigianale a Bitonto | Un gusto unico</title>
+  <meta name="description" content="De Caro Caffè, torrefazione artigianale pugliese a Bitonto: miscele in grani Crema, Strong e Arabic, capsule compatibili e cialde. Caffè raccolto con metodo Picking, tostato con cura. Qualità certificata ISO 9001:2015.">
+  <meta name="theme-color" content="#0a0705">
+  <link rel="canonical" href="https://decarocaffe.it/">
+
+  <!-- Open Graph / social -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:site_name" content="De Caro Caffè">
+  <meta property="og:title" content="De Caro Caffè — Torrefazione artigianale a Bitonto">
+  <meta property="og:description" content="Miscele artigianali, capsule e cialde. Dal raccolto con metodo Picking alla tazzina: un gusto unico.">
+  <meta property="og:image" content="https://decarocaffe.it/img/og-image.jpg">
+  <meta property="og:url" content="https://decarocaffe.it/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+
+  <!-- Font: Cormorant Garamond (titoli) + Inter (testi), ospitati in locale:
+       nessun dato dei visitatori passa a Google (GDPR) -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/inter-normal-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/cormorant-garamond-normal-latin.woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
+
+  <!-- Foto della prima scena: precaricata per mostrarla subito -->
+  <link rel="preload" as="image" href="img/scenes/scene1-chicchi-hd.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="img/logo-decaro.webp">
+
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.classList.add('js');</script>
+
+  <!-- Dati strutturati: azienda / torrefazione -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "https://decarocaffe.it/#azienda",
+    "name": "De Caro Caffè",
+    "legalName": "DEC ARTIGIANA SRL",
+    "slogan": "Un gusto unico",
+    "description": "Torrefazione artigianale pugliese: torrefazione, confezionamento e commercializzazione di caffè torrefatto in grani, capsule e cialde.",
+    "url": "https://decarocaffe.it/",
+    "logo": "https://decarocaffe.it/img/logo-decaro.png",
+    "image": "https://decarocaffe.it/img/og-image.jpg",
+    "telephone": "+39 080 32 13 360",
+    "email": "info@decarocaffe.it",
+    "vatID": "IT07579980728",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Viale delle Nazioni 52",
+      "addressLocality": "Bitonto",
+      "addressRegion": "BA",
+      "postalCode": "70032",
+      "addressCountry": "IT"
+    },
+    "contactPoint": [
+      { "@type": "ContactPoint", "telephone": "+39 346 133 6572", "contactType": "sales", "availableLanguage": ["it", "en"] },
+      { "@type": "ContactPoint", "telephone": "+39 080 32 13 360", "contactType": "customer service", "availableLanguage": ["it"] }
+    ],
+    "sameAs": [
+      "https://www.facebook.com/caffedecaro",
+      "https://www.instagram.com/decarocaffe/"
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Caffè De Caro",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Caffè in grani Crema", "description": "Miscela 50% arabica – 50% robusta" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Caffè in grani Strong", "description": "Miscela 30% arabica – 70% robusta" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Caffè in grani Arabic", "description": "Miscela 70% arabica – 30% robusta" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Capsule e cialde De Caro", "description": "Compatibili Nespresso, Bialetti, A Modo Mio, Dolce Gusto; cialde Crema e Decaffeinato" } }
+      ]
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Vai al contenuto</a>
+
+  <!-- ============ LOADER ============ -->
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <div class="loader__inner">
+      <img class="loader__logo" src="img/logo-decaro.webp" alt="De Caro Caffè" width="640" height="338">
+      <div class="loader__bar"><span id="loaderBar"></span></div>
+      <p class="loader__pct"><span id="loaderPct">0</span>%</p>
+    </div>
+  </div>
+
+  <!-- ============ CANVAS A SCROLL + EFFETTI ============ -->
+  <div class="stage" aria-hidden="true">
+    <canvas id="scene" class="stage__canvas"></canvas>
+    <div class="stage__scrim stage__scrim--scene1" data-scrim="scene1"></div>
+    <div class="stage__scrim stage__scrim--scene2" data-scrim="scene2"></div>
+    <div class="stage__scrim stage__scrim--scene3" data-scrim="scene3"></div>
+    <div class="stage__shade" id="stageShade"></div>
+    <div class="stage__vignette"></div>
+    <div class="stage__grain"></div>
+  </div>
+
+  <!-- ============ CURSORE ============ -->
+  <div class="cursor is-hidden" aria-hidden="true"><span class="cursor__dot"></span><span class="cursor__ring"></span></div>
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="nav" id="nav">
+    <a href="#top" class="nav__logo" aria-label="De Caro Caffè — torna all'inizio">
+      <img src="img/logo-decaro.webp" alt="De Caro Caffè" width="640" height="338">
+    </a>
+    <nav aria-label="Navigazione principale">
+      <ul class="nav__links" id="navLinks">
+        <li><a href="#tostatura">Torrefazione</a></li>
+        <li><a href="#storia">Storia</a></li>
+        <li><a href="#miscele">Miscele</a></li>
+        <li><a href="#capsule">Capsule e cialde</a></li>
+        <li><a href="#galleria">Galleria</a></li>
+      </ul>
+    </nav>
+    <a href="#contatti" class="btn btn--ghost nav__cta">Contattaci</a>
+    <button class="nav__toggle" id="navToggle" aria-label="Apri menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span></button>
+  </header>
+
+  <main id="main">
+    <!-- 1. HERO — scena 1: il chicco -->
+    <section class="scene scene--hero" id="top" data-scene="scene1" data-focus-x="0.72" aria-labelledby="hero-title">
+      <div class="scene__sticky">
+        <div class="hero">
+          <p class="eyebrow hero__eyebrow">Torrefazione artigianale · Bitonto</p>
+          <h1 class="hero__title" id="hero-title">Un gusto <em>unico.</em></h1>
+          <p class="hero__lead">La produzione De Caro è prettamente artigianale: ogni fase è controllata per mantenere intatti gli aromi e i principi attivi di ogni singolo chicco.</p>
+          <div class="hero__actions">
+            <a href="#miscele" class="btn btn--gold">Scopri le miscele</a>
+            <a href="#storia" class="btn btn--link">La nostra storia <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div class="scroll-hint" aria-hidden="true"><span></span>Scorri</div>
+      </div>
+    </section>
+
+    <!-- 2. TORREFAZIONE — scena 2: dentro la tostatrice -->
+    <section class="scene scene--roast" id="tostatura" data-scene="scene2" data-focus-x="0.35" data-xfade="0.72" aria-labelledby="roast-title">
+      <div class="scene__sticky">
+        <div class="roast">
+          <header class="roast__head">
+            <p class="eyebrow">La torrefazione</p>
+            <h2 id="roast-title" class="h2">Il cuore<br><em>pulsante</em></h2>
+          </header>
+          <ol class="steps" id="steps">
+            <li class="step">
+              <button type="button" class="step__num" aria-label="Passaggio 01: Selezione">01</button>
+              <div><h3>Selezione</h3><p>Solo caffè crudo raccolto con metodo <strong>Picking</strong>: a mano, bacca per bacca, scegliendo i frutti giunti a perfetta maturazione.</p></div>
+            </li>
+            <li class="step">
+              <button type="button" class="step__num" aria-label="Passaggio 02: Metodo lavato">02</button>
+              <div><h3>Metodo lavato</h3><p>Il crudo è lavorato con metodo <strong>lavato</strong>, per esaltare in tazzina acidità e profumi.</p></div>
+            </li>
+            <li class="step">
+              <button type="button" class="step__num" aria-label="Passaggio 03: La miscela">03</button>
+              <div><h3>La miscela</h3><p>Il maestro torrefattore progetta ogni miscela pensando a tre cose: aspetto, gusto, sapore.</p></div>
+            </li>
+            <li class="step">
+              <button type="button" class="step__num" aria-label="Passaggio 04: Tostatura">04</button>
+              <div><h3>Tostatura</h3><p>Il maestro tostatore dialoga con la macchina e governa la <strong>curva di tostatura</strong>, controllando calore e tempo in ogni istante.</p></div>
+            </li>
+            <li class="step">
+              <button type="button" class="step__num" aria-label="Passaggio 05: Raffreddamento">05</button>
+              <div><h3>Raffreddamento</h3><p>Il chicco libera l'anidride carbonica: l'aroma resta intatto e in tazzina arriva una crema perfetta.</p></div>
+            </li>
+          </ol>
+          <p class="steps__hint" aria-hidden="true">Tocca un numero o continua a scorrere</p>
+          <p class="roast__badge"><span>ISO 9001:2015</span> Qualità certificata in ogni fase</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. STORIA — scena 3: dal raccolto alla tazzina -->
+    <section class="scene scene--story" id="storia" data-scene="scene3" data-focus-x="0.45" aria-labelledby="story-title">
+      <div class="scene__sticky">
+        <div class="story">
+          <p class="eyebrow">La nostra storia</p>
+          <h2 id="story-title" class="h2">Dalla pianta<br><em>alla tazzina</em></h2>
+          <div class="story__chapters">
+            <article class="chapter">
+              <span class="chapter__year">L'idea</span>
+              <p>Nasce dai fratelli <strong>Francesco e Valentino Decaro</strong>, già imprenditori, che hanno voluto legare al caffè, bevanda italiana per antonomasia, una storia destinata ai loro figli e nipoti.</p>
+            </article>
+            <article class="chapter">
+              <span class="chapter__year">Il viaggio</span>
+              <p>Jamaica e Guatemala, poi il Brasile: tra le piantagioni hanno imparato la raccolta delle bacche mature con il metodo Picking. È stata la scintilla.</p>
+            </article>
+            <article class="chapter">
+              <span class="chapter__year">Oggi</span>
+              <p>DEC ARTIGIANA è tra le più giovani torrefazioni pugliesi, guarda al mercato europeo e sta costruendo il nuovo stabilimento di Bitonto.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Da qui il canvas resta come sfondo scurito -->
+    <div class="content">
+      <!-- Citazione -->
+      <section class="section section--quote" aria-label="Citazione">
+        <div class="container">
+          <figure class="quote" data-reveal>
+            <blockquote>La vita è un bellissimo e interminabile viaggio alla ricerca della <em>perfetta tazza di caffè.</em></blockquote>
+            <figcaption>Barbara A. Daniels</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 4. MISCELE -->
+      <section class="section" id="miscele" aria-labelledby="blend-title">
+        <div class="container">
+          <header class="section__head section__head--split" data-reveal>
+            <div>
+              <p class="eyebrow">Caffè in grani</p>
+              <h2 id="blend-title" class="h2">Le nostre miscele</h2>
+            </div>
+            <p class="section__intro">Studiate per rispondere a palati molto diversi tra loro, ma sempre raffinati e alla ricerca del particolare.</p>
+          </header>
+
+          <div class="blends">
+            <article class="blend glass-card" data-reveal style="--accent: #a88a5c">
+              <div class="blend__media"><img src="img/products/crema.webp" alt="Confezione De Caro Caffè in grani Crema da 1 kg" width="226" height="618" loading="lazy" decoding="async"></div>
+              <div class="blend__body">
+                <p class="blend__kind">Caffè in grani · 1 kg</p>
+                <h3>Crema</h3>
+                <div class="ratio" role="img" aria-label="50% arabica, 50% robusta">
+                  <span class="ratio__bar"><i style="width: 50%"></i></span>
+                  <span class="ratio__legend"><b>50%</b> Arabica <b>50%</b> Robusta</span>
+                </div>
+                <p>Per chi ama il gusto persistente e una tazzina che dà la carica. Miscela decisa, dall'aroma piacevolmente fiorito; corpo pieno e lungo retrogusto di gianduiotto.</p>
+                <ul class="notes"><li>Frutta e spezie</li><li>Mandorla</li><li>Gianduiotto</li></ul>
+              </div>
+            </article>
+
+            <article class="blend glass-card" data-reveal style="--accent: #b0413e">
+              <div class="blend__media"><img src="img/products/strong.webp" alt="Confezione De Caro Caffè in grani Strong da 1 kg" width="240" height="634" loading="lazy" decoding="async"></div>
+              <div class="blend__body">
+                <p class="blend__kind">Caffè in grani · 1 kg</p>
+                <h3>Strong</h3>
+                <div class="ratio" role="img" aria-label="30% arabica, 70% robusta">
+                  <span class="ratio__bar"><i style="width: 30%"></i></span>
+                  <span class="ratio__legend"><b>30%</b> Arabica <b>70%</b> Robusta</span>
+                </div>
+                <p>Il classico espresso italiano, apprezzato da tutti. Fragranza dolcemente floreale, sapore rotondo e soave.</p>
+                <ul class="notes"><li>Floreale</li><li>Rotondo</li><li>Espresso classico</li></ul>
+              </div>
+            </article>
+
+            <article class="blend glass-card" data-reveal style="--accent: #3f8a63">
+              <div class="blend__media"><img src="img/products/arabic.webp" alt="Confezione De Caro Caffè in grani Arabic da 1 kg" width="213" height="604" loading="lazy" decoding="async"></div>
+              <div class="blend__body">
+                <p class="blend__kind">Caffè in grani · 1 kg</p>
+                <h3>Arabic</h3>
+                <div class="ratio" role="img" aria-label="70% arabica, 30% robusta">
+                  <span class="ratio__bar"><i style="width: 70%"></i></span>
+                  <span class="ratio__legend"><b>70%</b> Arabica <b>30%</b> Robusta</span>
+                </div>
+                <p>Per chi prende tanti caffè e non dice mai basta. Delicata e amabile, agrumata, appena acidula, con un finale cremoso e burroso. Marcatamente profumata.</p>
+                <ul class="notes"><li>Agrumi</li><li>Cioccolato fondente</li><li>Pepe e malto</li></ul>
+              </div>
+            </article>
+          </div>
+
+          <ul class="pillars" data-reveal>
+            <li><strong>100%</strong><span>Lavorazione artigianale</span></li>
+            <li><strong>Picking</strong><span>Solo bacche mature, raccolte a mano</span></li>
+            <li><strong>Lavato</strong><span>Per esaltare acidità e profumi</span></li>
+            <li><strong>ISO 9001</strong><span>Qualità certificata</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5. CAPSULE E CIALDE -->
+      <section class="section" id="capsule" aria-labelledby="caps-title">
+        <div class="container">
+          <header class="section__head section__head--split" data-reveal>
+            <div>
+              <p class="eyebrow">Monodose</p>
+              <h2 id="caps-title" class="h2">Capsule e cialde</h2>
+            </div>
+            <p class="section__intro">Lo stesso gusto De Caro per le macchine di casa e dell'ufficio: pregiate qualità di caffè, torrefatto e macinato, confezionato in atmosfera protettiva.</p>
+          </header>
+          <div class="caps">
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/capsula-decaro.webp" alt="Capsula De Caro Caffè" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Capsula De Caro</h3><p>Caffè espresso monodose</p>
+            </article>
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/capsula-nespresso.webp" alt="Capsula De Caro compatibile Nespresso" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Compatibile Nespresso<sup>*</sup></h3><p>Caffè espresso monodose</p>
+            </article>
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/capsula-bialetti.webp" alt="Capsula De Caro compatibile Bialetti" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Compatibile Bialetti<sup>*</sup></h3><p>Caffè espresso monodose</p>
+            </article>
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/capsula-a-modo-mio.webp" alt="Capsula De Caro per sistema A Modo Mio" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Sistema A Modo Mio<sup>*</sup></h3><p>Caffè espresso monodose</p>
+            </article>
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/capsula-dolce-gusto.webp" alt="Capsula De Caro per sistema Dolce Gusto" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Sistema Dolce Gusto<sup>*</sup></h3><p>Caffè espresso monodose</p>
+            </article>
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/cialda-crema.webp" alt="Cialda De Caro caffè espresso Crema" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Cialda Crema</h3><p>Cialda monodose in carta</p>
+            </article>
+            <article class="cap" data-reveal>
+              <div class="cap__img"><img src="img/products/cialda-dek.webp" alt="Cialda De Caro caffè espresso Decaffeinato" width="700" height="700" loading="lazy" decoding="async"></div>
+              <h3>Cialda Decaffeinato</h3><p>Cialda monodose in carta</p>
+            </article>
+            <article class="cap cap--cta" data-reveal>
+              <h3>Per bar, uffici e rivenditori</h3>
+              <p>Forniture Horeca e vending, assistenza post-vendita dedicata.</p>
+              <a href="#contatti" class="btn btn--link">Richiedi il listino <span aria-hidden="true">→</span></a>
+            </article>
+          </div>
+          <p class="disclaimer">* I marchi citati appartengono ai rispettivi proprietari e non sono collegati a De Caro Caffè; sono indicati solo per segnalare la compatibilità.</p>
+        </div>
+      </section>
+
+      <!-- 6. GALLERIA -->
+      <section class="section" id="galleria" aria-labelledby="gal-title">
+        <div class="container">
+          <header class="section__head" data-reveal>
+            <p class="eyebrow">Galleria</p>
+            <h2 id="gal-title" class="h2">Ogni giorno, in tazzina</h2>
+          </header>
+          <div class="gallery">
+            <figure class="gallery__item gallery__item--tall" data-reveal><img src="img/gallery/g5.webp" alt="Espresso De Caro con crema nocciola" width="644" height="800" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item gallery__item--wide" data-reveal><img src="img/gallery/g1.webp" alt="Macchina espresso, tazzine e chicchi di caffè" width="1600" height="1174" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item" data-reveal><img src="img/gallery/g2.webp" alt="Tazzina De Caro su chicchi di caffè" width="1600" height="1341" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item" data-reveal><img src="img/gallery/g3.webp" alt="Barista che versa il latte per un cappuccino" width="1600" height="1053" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item gallery__item--wide" data-reveal><img src="img/gallery/g4.webp" alt="Tazzina De Caro con piattino" width="1600" height="1341" loading="lazy" decoding="async"></figure>
+            <figure class="gallery__item" data-reveal><img src="img/gallery/g6.webp" alt="Pausa caffè con tazzina De Caro" width="1600" height="1341" loading="lazy" decoding="async"></figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. CONTATTI -->
+      <section class="section section--booking" id="contatti" aria-labelledby="contact-title">
+        <div class="container booking">
+          <div class="booking__intro" data-reveal>
+            <p class="eyebrow">Contatti</p>
+            <h2 id="contact-title" class="h2">Portiamo De Caro<br><em>da te</em></h2>
+            <p>Hai un bar, un ristorante, un ufficio o vuoi diventare rivenditore? Raccontaci di cosa hai bisogno: ti rispondiamo con proposte e listino dedicati.</p>
+            <ul class="contact-list">
+              <li><a href="tel:+393461336572">+39 346 133 65 72</a></li>
+              <li><a href="tel:+390803213360">+39 080 32 13 360</a></li>
+              <li><a href="mailto:info@decarocaffe.it">info@decarocaffe.it</a></li>
+            </ul>
+            <a class="btn btn--whatsapp" id="waButton" href="https://wa.me/393461336572" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.07-.12-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.31l-.34-.2-3.57.94.95-3.48-.22-.36a9.43 9.43 0 1 1 7.99 4.41zm8.03-17.47A11.3 11.3 0 0 0 12.05.7C5.8.7.7 5.8.7 12.06c0 2 .52 3.95 1.52 5.67L.6 23.6l6.02-1.58a11.33 11.33 0 0 0 5.43 1.38h.01c6.26 0 11.35-5.1 11.36-11.36 0-3.03-1.18-5.89-3.33-8.03z"/></svg>
+              Scrivici su WhatsApp
+            </a>
+          </div>
+
+          <form class="booking__form glass-card" id="contactForm" data-reveal novalidate>
+            <div class="field-row field-row--2">
+              <div class="field">
+                <label for="f-name">Nome e cognome</label>
+                <input id="f-name" name="name" type="text" autocomplete="name" required placeholder="Mario Rossi">
+              </div>
+              <div class="field">
+                <label for="f-type">Sei</label>
+                <select id="f-type" name="type" required>
+                  <option value="" disabled selected>Scegli</option>
+                  <option>Bar, ristorante o hotel</option>
+                  <option>Rivenditore o distributore</option>
+                  <option>Ufficio o vending</option>
+                  <option>Privato</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row field-row--2">
+              <div class="field">
+                <label for="f-email">Email</label>
+                <input id="f-email" name="email" type="email" autocomplete="email" required placeholder="nome@email.it">
+              </div>
+              <div class="field">
+                <label for="f-phone">Telefono <span class="optional">(facoltativo)</span></label>
+                <input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="+39 …">
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-msg">Messaggio</label>
+              <textarea id="f-msg" name="message" rows="3" required placeholder="Quali prodotti ti interessano? Quantità, macchina che usi, città…"></textarea>
+            </div>
+            <label class="check">
+              <input type="checkbox" name="privacy" id="f-privacy" required>
+              <span>Ho letto l'<a href="privacy.html" target="_blank">informativa privacy</a>: i miei dati servono solo a rispondere a questa richiesta.</span>
+            </label>
+            <button type="submit" class="btn btn--gold btn--block">Invia richiesta</button>
+            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- 8. FOOTER -->
+      <footer class="footer">
+        <div class="container footer__grid">
+          <div class="footer__brand">
+            <a href="#top" class="footer__logo" aria-label="De Caro Caffè — torna all'inizio">
+              <img src="img/logo-decaro.webp" alt="De Caro Caffè" width="640" height="338" loading="lazy">
+            </a>
+            <div class="social">
+              <a href="https://www.facebook.com/caffedecaro" target="_blank" rel="noopener" aria-label="Facebook">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.53l.38-2.94H13.5V8.69c0-.85.24-1.43 1.46-1.43h1.55V4.63A20.6 20.6 0 0 0 14.25 4.5c-2.24 0-3.78 1.37-3.78 3.88v2.18H7.94v2.94h2.53V21h3.03z"/></svg>
+              </a>
+              <a href="https://www.instagram.com/decarocaffe/" target="_blank" rel="noopener" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="footer__title">Azienda</h3>
+            <address>
+              <strong>DEC ARTIGIANA SRL</strong><br>
+              Viale delle Nazioni 52<br>70032 Bitonto (BA)<br>
+              P.IVA 07579980728
+            </address>
+          </div>
+
+          <div>
+            <h3 class="footer__title">Contatti</h3>
+            <address>
+              <a href="tel:+393461336572">+39 346 133 65 72</a><br>
+              <a href="tel:+390803213360">+39 080 32 13 360</a><br>
+              <a href="mailto:info@decarocaffe.it">info@decarocaffe.it</a>
+            </address>
+            <a class="btn btn--link" href="https://www.google.com/maps/search/?api=1&amp;query=Viale+delle+Nazioni+52+70032+Bitonto" target="_blank" rel="noopener">Indicazioni <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="footer__map" id="map">
+            <!-- Google Maps installa cookie di terze parti: si carica solo dopo il consenso
+                 dell'utente (blocco preventivo, Linee guida cookie del Garante 10/06/2021) -->
+            <div class="map-consent">
+              <p>La mappa è fornita da Google Maps, che può installare cookie di terze parti.</p>
+              <button type="button" class="btn btn--ghost" id="mapConsent">Mostra la mappa</button>
+              <label class="map-consent__remember"><input type="checkbox" id="mapRemember"> Ricorda la mia scelta</label>
+              <a href="cookie-policy.html">Cookie policy</a>
+            </div>
+            <template id="mapTemplate"><iframe title="Mappa: De Caro Caffè, Viale delle Nazioni 52, Bitonto" src="https://www.google.com/maps?q=Viale+delle+Nazioni+52+70032+Bitonto&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></template>
+          </div>
+        </div>
+        <div class="container footer__bottom">
+          <p>© <span id="year">2026</span> DEC ARTIGIANA SRL · C.F. e P.IVA 07579980728</p>
+          <p><a href="privacy.html">Privacy policy</a> · <a href="cookie-policy.html">Cookie policy</a> · <button type="button" class="linklike" id="resetConsent">Preferenze cookie</button></p>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Librerie ospitate in locale (nessuna CDN esterna): GSAP 3.12.5 + ScrollTrigger, Lenis 1.1.13 -->
+  <script src="js/vendor/gsap.min.js" defer></script>
+  <script src="js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="js/vendor/lenis.min.js" defer></script>
+  <script src="frames/manifest.js" defer></script>
+  <script src="js/scenes.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
